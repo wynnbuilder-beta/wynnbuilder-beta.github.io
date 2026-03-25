@@ -6813,7 +6813,7 @@
         },
         {
             "display_name": "Pressure",
-            "desc": "When Generalist acts on a spell, it is enhanced. </br> Bash gains 4x as many hits and is 0.2s faster. </br> Uppercut deals additional damage. </br><span class='mc-white'>Total Damage</span>: +395% (of your DPS)   </br>&emsp;(<span class='nDam'>Damage</span>: +170%)   </br>&emsp;(<span class='nDam'>Rainbow Damage</span>: +45%) </br> War Scream grants a damage boost, but effect duration is reduced. </br>Effect: +10% Damage Bonus to Players </br>Duration: 12s",
+            "desc": "When Generalist acts on a spell, it is enhanced. </br> Bash gains 3x as many hits and is 0.1s faster. </br> Uppercut deals additional damage. </br><span class='mc-white'>Total Damage</span>: +395% (of your DPS)   </br>&emsp;(<span class='nDam'>Damage</span>: +170%)   </br>&emsp;(<span class='nDam'>Rainbow Damage</span>: +45%) </br> War Scream grants a damage boost, but effect duration is reduced. </br>Effect: +10% Damage Bonus to Players </br>Duration: 12s",
             "base_abil": "War Scream",
             "archetype": "Battle Monk",
             "archetype_req": 10,
@@ -6836,7 +6836,7 @@
             "properties": {
                 "pressure_rainbow_uppercut": 55,
                 "pressure_neutral_uppercut": 170,
-                "pressure_bash_hits": 4,
+                "pressure_bash_hits": 3,
                 "pressure_scream_boost": 10
             },
             "effects": [
