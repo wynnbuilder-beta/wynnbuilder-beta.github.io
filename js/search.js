@@ -211,7 +211,7 @@ function create_filter() {
 
     let filter_input = make_elem("input",
         ["col", "border-dark", "text-light", "dark-5", "rounded", "scaled-font", "form-control", "form-control-sm", "filter-input"],
-        {id: "filter-input-" + filter_id_counter, type: "text", placeholder: "Filter", autocomplete:"off"}
+        {id: "filter-input-" + filter_id_counter, type: "text", placeholder: "Filter"}
     );
     filter_id_counter++;
     col.appendChild(filter_input);
@@ -229,7 +229,7 @@ function create_filter() {
 
     let min = make_elem("input",
         ["col", "border-dark", "text-light", "dark-5", "rounded", "scaled-font", "form-control", "form-control-sm", "min-max-input"],
-        {id: "filter-min-input-" + filter_id_counter, type: "text", placeholder: "-\u221E", autocomplete:"off"}
+        {id: "filter-min-input-" + filter_id_counter, type: "text", placeholder: "-\u221E"}
     );
     col.appendChild(min);
     data.min_elem = min;
@@ -239,7 +239,7 @@ function create_filter() {
 
     let max = make_elem("input",
         ["col", "border-dark", "text-light", "dark-5", "rounded", "scaled-font", "form-control", "form-control-sm", "min-max-input"],
-        {id: "filter-max-input-" + filter_id_counter, type: "text", placeholder: "\u221E", autocomplete:"off"}
+        {id: "filter-max-input-" + filter_id_counter, type: "text", placeholder: "\u221E"}
     );
     col.appendChild(max);
     data.max_elem = max;
