@@ -135,6 +135,15 @@ function displayBuildStats(parent_id, build, command_group, stats) {
         // id instruction
         else {
             let id = command;
+            if (id === "mr" && !stats.get(id)) {
+                let row = make_elem('div', ['row']);
+                let desc_elem = make_elem('div', ['col', 'text-start'], { textContent: "Mana Regen with Base: " });
+                let value_elem = make_elem('div', ['col', 'text-end', 'positive'], { textContent: "25/5s" });
+                row.appendChild(desc_elem);
+                row.appendChild(value_elem);
+                parent_div.appendChild(row);
+                continue;
+            }
             if (stats.get(id)) {
                 let style = null;
 
