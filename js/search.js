@@ -189,7 +189,7 @@ function init_search() {
     // bleh, ings dont have string stuff (yet?)
     let string_filter = document.getElementById("add-string");
     if (string_filter) {
-        addEventListener("click", create_filter_string);
+        string_filter.addEventListener("click", create_filter_string);
     }
     create_filter();
     filters[0].input_elem.value = "Combat Level";
