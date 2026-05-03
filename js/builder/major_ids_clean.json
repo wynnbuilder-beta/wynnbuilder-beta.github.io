@@ -2953,7 +2953,7 @@
     },
     "FISSURE": {
         "displayName": "Fissure",
-        "description": "Ice Snake moves much more slowly, but deals massive knockback, [neutral]275%, and [water]155%.",
+        "description": "Ice Snake moves much more slowly, but deals massive knockback, [neutral]+275%, and [water]+155%.",
         "abilities": [
             {
                 "class": "Mage",
@@ -3323,7 +3323,7 @@
     },
     "DIVINE_RIGHT": {
         "displayName": "Divine Right",
-        "description": "Sacred Surge's damage is increased by 1% (Maximum 200%) for every 200 max HP you have when it triggers.",
+        "description": "Your Maximum Health is reduced by 60%. For every 100 HP lost, Sacred Surge's damage is increased by 5%.",
         "abilities": [
             {
                 "class": "Warrior",
@@ -3347,10 +3347,32 @@
                             "name": "damMult.DivineRight:3.Smite Damage"
                         },
                         "scaling": [
-                            0.005,
-                            0.005
+                            0.03,
+                            0.03
+                        ]
+                    },
+                    {
+                        "type": "stat_scaling",
+                        "slider": false,
+                        "positive": false,
+                        "inputs": [
+                            {
+                                "type": "stat",
+                                "name": "hpBonus"
+                            },
+                            {
+                                "type": "stat",
+                                "name": "hp"
+                            }
                         ],
-                        "max": 200
+                        "output": {
+                            "type": "stat",
+                            "name": "hp"
+                        },
+                        "scaling": [
+                            -0.6,
+                            -0.6
+                        ]
                     }
                 ]
             }
@@ -3391,7 +3413,7 @@
     },
     "BURNT_SHADOWS": {
         "displayName": "Burnt Shadows",
-        "description": "Buried Light is faster and is controlled by the direction you face. Enemies in the light instead take [fire]80% and recieve 10% more damage.",
+        "description": "Buried Light burns faster and is controlled by the direction you face. Enemies in the light instead take [fire]80% and recieve 10% more damage.",
         "abilities": [
             {
                 "class": "Warrior",
@@ -3573,7 +3595,7 @@
     },
     "BLINDING_LIGHTS": {
         "displayName": "Blinding Lights",
-        "description": "All Ophanim orbs become closer-range Lightweaver orbs. Using Main Attack causes all orbs to spin faster. Crystallize stacks are reduced by -2 per hit.",
+        "description": "All Ophanim orbs deal 250% increased damage, gain +5 Crystallize per hit, and instead orbit around you. Using Main Attack causes all orbs to travel faster.",
         "abilities": [
             {
                 "class": "Mage",
@@ -3583,38 +3605,30 @@
                 },
                 "effects": [
                     {
-                        "type": "replace_spell",
-                        "name": "Blinding Lights",
-                        "base_spell": 3,
-                        "display": "Total Orb DPS",
-                        "parts": [
+                        "type": "raw_stat",
+                        "bonuses": [
                             {
-                                "name": "Ophanim Damage per Hit",
-                                "type": "damage",
-                                "multipliers": [
-                                    400,
-                                    0,
-                                    0,
-                                    0,
-                                    0,
-                                    0
-                                ]
-                            },
-                            {
-                                "name": "Total Orb DPS",
-                                "type": "total",
-                                "hits": {
-                                    "Per Orb DPS": "Ophanim.num_orbs"
-                                }
+                                "type": "stat",
+                                "name": "damMult.BlindingLights:3.Per Orb",
+                                "value": 250
                             }
                         ]
                     },
                     {
                         "type": "add_spell_prop",
                         "base_spell": 3,
+                        "display": "Total Orb DPS",
+                        "target_part": "Total Orb DPS",
+                        "hits": {
+                            "Per Orb DPS": "Ophanim.num_orbs"
+                        }
+                    },
+                    {
+                        "type": "add_spell_prop",
+                        "base_spell": 3,
                         "target_part": "Per Orb DPS",
                         "hits": {
-                            "Ophanim Damage per Hit": "Ophanim.blinding_lights_atkrate"
+                            "Per Orb": "Ophanim.blinding_lights_atkrate"
                         },
                         "hide": true
                     },
@@ -3623,8 +3637,17 @@
                         "base_spell": 3,
                         "target_part": "Maximum Orb DPS",
                         "hits": {
-                            "Ophanim Damage per Hit": "Ophanim.num_orbs"
+                            "Per Orb": "Ophanim.num_orbs"
                         }
+                    },
+                    {
+                        "type": "add_spell_prop",
+                        "base_spell": 3,
+                        "target_part": "Per Melee (max)",
+                        "hits": {
+                            "Per Orb": 0
+                        },
+                        "hide": true
                     },
                     {
                         "type": "raw_stat",
@@ -3806,5 +3829,10 @@
                 ]
             }
         ]
+    },
+    "BACKSTEP": {
+        "displayName": "Backstep",
+        "description": "Charge and Teleport will travel backwards.",
+        "abilities": []
     }
 }
