@@ -826,17 +826,16 @@ class DisplayBuildWarningsNode extends ComputeNode {
             total_assigned += assigned;
         }
 
-        // Pre-compute which guild tome (if any) saves the build
+        // Pre-compute which guild tome(s), if any, save the build
+        const SP_SHORT = ["Str", "Dex", "Int", "Def", "Agi"];
         const over_indices = [];
         for (let i = 0; i < 5; i++) if (assigned_per_type[i] > 100) over_indices.push(i);
         const deficit = total_assigned - levelCap;
-        let focused_tome_idx = -1;
-        let any_focused_works = false;
-        if (noGuildTome && deficit <= 4) {
-            if (over_indices.length === 1 && assigned_per_type[over_indices[0]] <= 104) {
-                focused_tome_idx = over_indices[0];
-            } else if (over_indices.length === 0 && deficit > 0) {
-                any_focused_works = true;
+        const working_focused = [];
+        if (noGuildTome && deficit <= 4 && (deficit > 0 || over_indices.length > 0)) {
+            for (let i = 0; i < 5; i++) {
+                const others_ok = assigned_per_type.every((v, j) => j === i || v <= 100);
+                if (others_ok && assigned_per_type[i] <= 104) working_focused.push(i);
             }
         }
         const rainbow_works = noGuildTome
@@ -848,8 +847,8 @@ class DisplayBuildWarningsNode extends ComputeNode {
             document.getElementById(skp_order[i] + "-warnings").textContent = '';
             const assigned = assigned_per_type[i];
             if (assigned > 100) {
-                const focusedCovers = focused_tome_idx === i;
-                const rainbowCovers = focused_tome_idx === -1 && rainbow_works && assigned <= 101;
+                const focusedCovers = working_focused.includes(i);
+                const rainbowCovers = rainbow_works && assigned <= 101;
                 if (focusedCovers || rainbowCovers) continue;
                 let skp_warning = document.createElement("p");
                 skp_warning.classList.add("warning", "small-text");
@@ -874,13 +873,9 @@ class DisplayBuildWarningsNode extends ComputeNode {
 
         let tomeText = null;
         if (tome_needed) {
-            if (focused_tome_idx !== -1) {
-                tomeText = "WARNING: Build requires a " + skill[focused_tome_idx] + " guild tome.";
-            } else if (any_focused_works) {
-                tomeText = "WARNING: Build requires a guild tome.";
-            } else if (rainbow_works) {
-                tomeText = "WARNING: Build requires the Assimilator guild tome.";
-            }
+            let parts = working_focused.map(i => SP_SHORT[i]).join("/");
+            if (rainbow_works) parts = parts ? parts + " or Rainbow" : "Rainbow";
+            if (parts) tomeText = "WARNING: Build requires a " + parts + " Tome.";
         }
         if (tomeText) {
             let skpWarning = document.createElement("span");
