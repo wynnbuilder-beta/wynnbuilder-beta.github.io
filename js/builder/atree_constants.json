@@ -5118,11 +5118,11 @@
             ],
             "dependencies": [],
             "blockers": [],
-            "cost": 2,
+            "cost": 1,
             "display": {
                 "row": 18,
                 "col": 5,
-                "icon": "node_2"
+                "icon": "node_1"
             },
             "properties": {},
             "effects": [
@@ -5315,6 +5315,9 @@
                         0,
                         0,
                         0
+                    ],
+                    "ignored_mults": [
+                        "BloodPact"
                     ]
                 },
                 {
@@ -6292,7 +6295,7 @@
         },
         {
             "display_name": "Radiance",
-            "desc": "Bash will buff positive IDs of yourself and allies. (XP Bonus, Loot Bonus, Loot Quality, Gather XP Bonus, and Gather Speed Bonus are excluded) </br> </br>Effect: +15% ID Effectiveness to Allies </br>Duration: 8s </br>Cooldown: 15s",
+            "desc": "Bash will buff positive IDs of yourself and allies. (Max Mana, XP Bonus, Loot Bonus, Loot Quality, Gather XP Bonus, and Gather Speed Bonus are excluded) </br> </br>Effect: +15% ID Effectiveness to Allies </br>Duration: 8s </br>Cooldown: 15s",
             "archetype": "Paladin",
             "archetype_req": 11,
             "base_abil": "Bash",
@@ -8595,7 +8598,7 @@
         },
         {
             "display_name": "Sentient Snake",
-            "desc": "Ice Snake will follow the direction you're facing, allowing you to control it. </br> Frozen Tornado drifts towards nearby enemies. </br> </br><span class='mc-white'>Total Damage</span>: +40% (of your DPS, for Ice Snake)   </br>&emsp;(<span class='nDam'>Damage</span>: +25%)   </br>&emsp;(<span class='wDam'>Water</span>: +15%) </br><span class='mc-white'>Total Damage</span>: +25% (of your DPS, for Frozen Tornado)   </br>&emsp;(<span class='nDam'>Damage</span>: +20%)   </br>&emsp;(<span class='wDam'>Water</span>: +5%) </br>Drift Range: 10 Blocks",
+            "desc": "Ice Snake will follow the direction you're facing, allowing you to control it. </br> Frozen Tornado drifts towards nearby enemies. </br> </br><span class='mc-white'>Total Damage</span>: +40% (of your DPS, for Ice Snake)   </br>&emsp;(<span class='nDam'>Damage</span>: +25%)   </br>&emsp;(<span class='wDam'>Water</span>: +15%) </br><span class='mc-white'>Total Damage</span>: +20% (of your DPS, for Frozen Tornado)   </br>&emsp;(<span class='nDam'>Damage</span>: +15%)   </br>&emsp;(<span class='wDam'>Water</span>: +5%) </br>Drift Range: 10 Blocks",
             "base_abil": "Ice Snake",
             "parents": [
                 "Arcane Transfer",
@@ -8633,7 +8636,7 @@
                     "behavior": "modify",
                     "base_spell": 4,
                     "multipliers": [
-                        20,
+                        15,
                         0,
                         0,
                         5,
@@ -8645,7 +8648,7 @@
         },
         {
             "display_name": "Frozen Tornado",
-            "desc": "Casting Ice Snake instead summons a frozen tornado that deals damage every 0.5s. </br> For every +1 Distortion, the tornado gains +0.025 </br>Area of Effect and +1.2% Damage. </br> </br><span class='mc-white'>Total Damage</span>: 80% (of your DPS)   </br>&emsp;(<span class='nDam'>Damage</span>: 60%)   </br>&emsp;(<span class='wDam'>Water</span>: 10%)   </br>&emsp;(<span class='aDam'>Air</span>: 10%) </br>Area of Effect: 6 Blocks (Circle-Shaped) </br>Effect: 50% Slowness to Enemies </br>Tornado Duration: 5s </br>Slow Duration: 1s",
+            "desc": "Casting Ice Snake instead summons a frozen tornado that deals damage every 0.5s. </br> For every +1 Distortion, the tornado gains +0.025 </br>Area of Effect and +1.1% Damage. </br> </br><span class='mc-white'>Total Damage</span>: 80% (of your DPS)   </br>&emsp;(<span class='nDam'>Damage</span>: 60%)   </br>&emsp;(<span class='wDam'>Water</span>: 10%)   </br>&emsp;(<span class='aDam'>Air</span>: 10%) </br>Area of Effect: 6 Blocks (Circle-Shaped) </br>Effect: 50% Slowness to Enemies </br>Tornado Duration: 5s </br>Slow Duration: 1s",
             "base_abil": "Distortion",
             "archetype": "Riftwalker",
             "parents": [
@@ -8706,7 +8709,7 @@
                         "name": "damMult.Distortion:4.Damage per Tick"
                     },
                     "scaling": [
-                        1.2
+                        1.1
                     ]
                 }
             ]
@@ -9012,7 +9015,7 @@
         },
         {
             "display_name": "Snake Nest",
-            "desc": "Ice Snake will summon 3 snakes. </br> Frozen Tornado will summon 3 tornados. (Enemies cannot be damaged by multiple tornados or snakes at the same time.) </br> </br><span class='mc-white'>Total Damage</span>: +50% (of your DPS, for Ice Snake)   </br>&emsp;(<span class='nDam'>Damage</span>: +35%)   </br>&emsp;(<span class='wDam'>Water</span>: +15%) </br><span class='mc-white'>Total Damage</span>: +30% (of your DPS, for Frozen Tornado)   </br>&emsp;(<span class='nDam'>Damage</span>: +20%)   </br>&emsp;(<span class='wDam'>Water</span>: +5%)   </br>&emsp;(<span class='aDam'>Air</span>: +5%)",
+            "desc": "Ice Snake will summon 3 snakes. </br> Frozen Tornado will summon 3 tornados. (Enemies cannot be damaged by multiple tornados or snakes at the same time.) </br> </br><span class='mc-white'>Total Damage</span>: +50% (of your DPS, for Ice Snake)   </br>&emsp;(<span class='nDam'>Damage</span>: +35%)   </br>&emsp;(<span class='wDam'>Water</span>: +15%) </br><span class='mc-white'>Total Damage</span>: +25% (of your DPS, for Frozen Tornado)   </br>&emsp;(<span class='nDam'>Damage</span>: +20%)   </br>&emsp;(<span class='wDam'>Water</span>: +5%)",
             "base_abil": "Ice Snake",
             "parents": [
                 "Pyrokinesis",
@@ -9057,7 +9060,7 @@
                         0,
                         5,
                         0,
-                        5
+                        0
                     ]
                 }
             ]
@@ -9101,7 +9104,7 @@
         },
         {
             "display_name": "Meteor Shower",
-            "desc": "Casting Meteor summons an additional meteor near the target location for every 20 Distortion you have. (Max 20 Meteors, only one Meteor Shower can be active at the same time.) </br> Meteor and Astral Fragmentation become smaller, dealing -10% Damage and losing -20% </br>Area of Effect. </br> </br>Target Radius: 1 Blocks (Circle-Shaped)",
+            "desc": "Casting Meteor summons an additional meteor near the target location for every 20 Distortion you have. (Max 20 Meteors, only one Meteor Shower can be active at the same time.) </br> Meteor and Astral Fragmentation become smaller, dealing -20% Damage and losing -20% </br>Area of Effect. </br> </br>Target Radius: 1 Blocks (Circle-Shaped)",
             "base_abil": "Distortion",
             "archetype": "Riftwalker",
             "parents": [
@@ -9135,7 +9138,7 @@
                         {
                             "type": "stat",
                             "name": "damMult.MeteorShower:3.Meteor Damage",
-                            "value": -10
+                            "value": -20
                         }
                     ]
                 },
@@ -9969,7 +9972,7 @@
         },
         {
             "display_name": "Influx Shift",
-            "desc": "Increase the amount of Distortion generated by +20% and effects gained from it by +35%.",
+            "desc": "Increase the amount of Distortion generated by +20% and effects gained from it by +25%.",
             "base_abil": "Distortion",
             "archetype": "Riftwalker",
             "archetype_req": 10,
@@ -10004,7 +10007,7 @@
                         "name": "damMult.Distortion:4.Damage per Tick"
                     },
                     "scaling": [
-                        0.42
+                        0.275
                     ]
                 },
                 {
@@ -10016,7 +10019,7 @@
                         "name": "damMult.Distortion:0.Vacuokinesis"
                     },
                     "scaling": [
-                        0.35
+                        0.25
                     ]
                 }
             ]
@@ -10763,7 +10766,7 @@
         },
         {
             "display_name": "Blitz",
-            "desc": "Increase the damage of Ice Snake and double its speed. </br> Increase the damage of Frozen Tornado by an additional +2% every time the tornado damages an enemy. </br> </br><span class='mc-white'>Total Damage</span>: +65% (of your DPS, for Ice Snake)   </br>&emsp;(<span class='nDam'>Damage</span>: +40%)   </br>&emsp;(<span class='tDam'>Thunder</span>: +25%)",
+            "desc": "Increase the damage of Ice Snake and double its speed. </br> Increase the damage of Frozen Tornado by an additional +3% every time the tornado damages an enemy. </br> </br><span class='mc-white'>Total Damage</span>: +65% (of your DPS, for Ice Snake)   </br>&emsp;(<span class='nDam'>Damage</span>: +40%)   </br>&emsp;(<span class='tDam'>Thunder</span>: +25%)",
             "base_abil": "Ice Snake",
             "parents": [
                 "Arcane Overflow",
@@ -10801,16 +10804,16 @@
                         "type": "stat",
                         "name": "damMult.Blitz:4.Damage per Tick"
                     },
-                    "slider_max": 10,
+                    "slider_max": 16,
                     "scaling": [
-                        2
+                        3
                     ]
                 }
             ]
         },
         {
             "display_name": "Time Vortex",
-            "desc": "Casting Frozen Tornado inside your Dimensional Tear infuses it with otherworldly energies, turning it into a Time Vortex. </br> Time Vortex deals damage 25% faster, lasts longer and grants +2 Distortion every time it deals damage to an enemy. </br> </br>Tornado Duration: +3s",
+            "desc": "Casting Frozen Tornado inside your Dimensional Tear infuses it with otherworldly energies, turning it into a Time Vortex. </br> Time Vortex deals damage 25% faster, lasts longer and grants +1.5 Distortion every time it deals damage to an enemy. </br> </br>Tornado Duration: +3s",
             "archetype": "Riftwalker",
             "archetype_req": 12,
             "parents": [
@@ -10853,7 +10856,7 @@
         },
         {
             "display_name": "Paradox",
-            "desc": "You send 25% of the damage you take to the future, dealing it over 10s and borrow mana from the past, refunding 30% of your spent mana over 10s. </br> For every +1 Distortion, the mana is refunded -0.02s faster.",
+            "desc": "You send 25% of the damage you take to the future, dealing it over 10s and borrow mana from the past, refunding 25% of your spent mana over 10s. </br> For every +1 Distortion, the mana is refunded -0.02s faster.",
             "archetype": "Riftwalker",
             "parents": [
                 "Portal to the Beyond",
@@ -16895,7 +16898,7 @@
         },
         {
             "display_name": "Maddening Roots",
-            "desc": "Uproot will slow down enemies. </br> </br>Effect: 40% Slowness to Enemies </br>Duration: 3s",
+            "desc": "Uproot will slow down enemies. Additionally, increase the damage bonus granted by Bullwhip. </br> </br>Effect: 40% Slowness to Enemies </br>Effect: +15% Bullwhip Damage Bonus </br>Duration: 3s",
             "base_abil": "Uproot",
             "archetype": "Summoner",
             "parents": [
@@ -17205,7 +17208,7 @@
         },
         {
             "display_name": "Invigorating Wave",
-            "desc": "Aura will temporarily increase your Summons' attack speed. Players hit will gain +2 mana. </br> </br>Effect: +30% Attack Speed to Summons </br>Duration: 2.5s",
+            "desc": "Aura will temporarily increase your Summons' attack speed. Players hit will gain +3 mana. </br> </br>Effect: +30% Attack Speed to Summons </br>Duration: 2.5s",
             "archetype": "Summoner",
             "archetype_req": 3,
             "parents": [
@@ -17411,7 +17414,7 @@
         },
         {
             "display_name": "Shepherd",
-            "desc": "When you or your Summons kill an enemy, gain +1 Max Puppets for 15s. (Max +8)",
+            "desc": "When you or your Summons kill an enemy, or when you kill a Puppet with Friendly Fire, gain +1 Max Puppets for 15s. (Max +8)",
             "archetype": "Summoner",
             "base_abil": "Puppet Master",
             "parents": [
