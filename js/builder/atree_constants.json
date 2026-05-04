@@ -16899,7 +16899,7 @@
         {
             "display_name": "Maddening Roots",
             "desc": "Uproot will slow down enemies. Additionally, increase the damage bonus granted by Bullwhip. </br> </br>Effect: 40% Slowness to Enemies </br>Effect: +15% Bullwhip Damage Bonus </br>Duration: 3s",
-            "base_abil": "Uproot",
+            "base_abil": "Bullwhip",
             "archetype": "Summoner",
             "parents": [
                 "Crimson Effigy"
@@ -16915,8 +16915,7 @@
                 "icon": "node_2"
             },
             "properties": {
-                "effects": 40,
-                "duration": 3
+                "damage_boost": 15
             },
             "effects": []
         },

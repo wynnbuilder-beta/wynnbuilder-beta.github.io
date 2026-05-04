@@ -5926,12 +5926,12 @@
       "tiers": [
         {
           "threshold": 1,
-          "description": "Bullwhip gains +5% Damage Bonus to Summons.",
+          "description": "Bullwhip gains +4% Damage Bonus to Summons.",
           "abilities": [
             {
               "base_abil": "Bullwhip",
               "properties": {
-                "damage_boost": 5
+                "damage_boost": 4
               },
               "effects": []
             }
@@ -5939,12 +5939,12 @@
         },
         {
           "threshold": 5,
-          "description": "Bullwhip gains +9% Damage Bonus to Summons.",
+          "description": "Bullwhip gains +6% Damage Bonus to Summons.",
           "abilities": [
             {
               "base_abil": "Bullwhip",
               "properties": {
-                "damage_boost": 9
+                "damage_boost": 6
               },
               "effects": []
             }
@@ -5952,12 +5952,12 @@
         },
         {
           "threshold": 30,
-          "description": "Bullwhip gains +12% Damage Bonus to Summons.",
+          "description": "Bullwhip gains +8% Damage Bonus to Summons.",
           "abilities": [
             {
               "base_abil": "Bullwhip",
               "properties": {
-                "damage_boost": 12
+                "damage_boost": 8
               },
               "effects": []
             }
@@ -5965,12 +5965,12 @@
         },
         {
           "threshold": 150,
-          "description": "Bullwhip gains +15% Damage Bonus to Summons.",
+          "description": "Bullwhip gains +10% Damage Bonus to Summons.",
           "abilities": [
             {
               "base_abil": "Bullwhip",
               "properties": {
-                "damage_boost": 15
+                "damage_boost": 10
               },
               "effects": []
             }
