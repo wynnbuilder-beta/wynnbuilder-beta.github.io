@@ -46,8 +46,15 @@ function do_item_search() {
         if (filter_name === undefined) {
             filter_name = special_mappings[raw_name];
             if (filter_name === undefined) {
-                document.getElementById("summary").innerHTML = "Error: The filter \"" + filter.input_elem.value + "\" is not recognized";
-                return;
+                filter_name = weapon_expression_mappings[raw_name];
+                if (filter_name === undefined) {
+                    document.getElementById("summary").innerHTML = "Error: The filter \"" + filter.input_elem.value + "\" is not recognized";
+                    return;
+                }
+                else {
+                    // weapon based filter should be handled seperately
+                    filter_name = process_weapon_filter(raw_name, filter_name, filter);
+                }
             }
             filter_name = "(" + filter_name + ")";
         }
@@ -230,6 +237,7 @@ function create_filter() {
         asc_desc.children[1].classList.toggle("asc-sel");
     });
     col.appendChild(asc_desc);
+    data.counter = filter_id_counter;
 
     let min = make_elem("input",
         ["col", "border-dark", "text-light", "dark-5", "rounded", "scaled-font", "form-control", "form-control-sm", "min-max-input"],
@@ -417,6 +425,9 @@ function create_filter_string() {
 function init_filter_dropdown(filter, input_filters, is_string = false) {
     let field_choice = filter.input_elem;
     field_choice.onclick = function() {field_choice.dispatchEvent(new Event('input'));};
+    field_choice.addEventListener('input', function(event) {
+        check_weapon_subfilter(field_choice.value, filter);
+    });
     filter.autoComplete = new autoComplete({
         data: {
             src: input_filters,
@@ -452,6 +463,8 @@ function init_filter_dropdown(filter, input_filters, is_string = false) {
                         event.target.value = event.detail.selection.value;
                         if (is_string) {
                             update_value_filter(event.detail.selection.value, filter);
+                        } else {
+                            check_weapon_subfilter(field_choice.value, filter);
                         }
                     };
                 },
@@ -564,4 +577,104 @@ function update_value_filter(input, filter) {
         }
     }
     init_string_options_dropdown(filter.value_elem, value_filter);
+}
+
+function check_weapon_subfilter(input, filter) {
+    let filter_name = weapon_expression_mappings[input];
+
+    if (filter_name === undefined) {
+        // Remove subfilter if it's unnecessary
+        if (filter.weapon_elem && filter.powder_elem) {
+            filter.weapon_elem.remove();
+            filter.powder_elem.remove();
+            filter.weapon_elem = null;
+            filter.powder_elem = null;
+        }
+        return;
+    }
+    
+    if (filter.weapon_elem && filter.powder_elem) {
+        return;
+    }
+
+    let row_2 = make_elem("div", ["row"], {});
+    row_2.style.marginLeft = "25px";
+    filter.div.appendChild(row_2);
+
+    let weapon_selection = make_elem("input",
+        ["col", "border-dark", "text-light", "dark-5", "rounded", "scaled-font", "form-control", "form-control-sm", "min-max-input"],
+        {id: "filter-weapon-input-" + filter.counter, type: "text", placeholder: "Weapon"}
+    );
+    weapon_selection.style.marginLeft = "25px";
+    row_2.appendChild(weapon_selection);
+    filter.weapon_elem = weapon_selection;
+
+    let powder_selection = make_elem("input",
+        ["col", "border-dark", "text-light", "dark-5", "rounded", "scaled-font", "form-control", "form-control-sm", "min-max-input"],
+        {id: "filter-powder-input-" + filter.counter, type: "text", placeholder: "Powders"}
+    );
+    row_2.appendChild(powder_selection);
+    filter.powder_elem = powder_selection;
+    
+    let weapons = [];
+    for (item of items) {
+        if (item.category === "weapon")
+            weapons.push(item.displayName);
+    }
+    weapon_selection.autoComplete = new autoComplete({
+        data: {
+            src: weapons,
+        },  
+        threshold: 0,
+        selector: "#" + weapon_selection.id,
+        wrapper: false,
+        resultsList: {
+            maxResults: 100,
+            tabSelect: true,
+            noResults: true,
+            class: "search-box dark-7 rounded-bottom px-2 fw-bold dark-shadow-sm",
+            element: (list, data) => {
+                let position = weapon_selection.getBoundingClientRect();
+                list.style.top = position.bottom + window.scrollY +"px";
+                list.style.left = position.x+"px";
+                list.style.width = position.width+"px";
+                list.style.maxHeight = position.height * 2 +"px";
+
+                if (!data.results.length) {
+                    const message = make_elem('li', ['scaled-font'], {textContent: "No results found!"});
+                    list.prepend(message);
+                };
+            },
+        },
+        resultItem: {
+            class: "scaled-font search-item",
+            selected: "dark-5",
+        },
+        events: {
+            input: {
+                selection: (event) => {
+                    if (event.detail.selection.value) {
+                        event.target.value = event.detail.selection.value;
+                    };
+                },
+            },
+        }
+    });
+}
+
+// potentially move string filters to here eventually?
+function process_weapon_filter(raw_name, filter_name, filter) {
+    switch(raw_name) {
+        case "Weapon Spell Damage Bonus": {
+            const weapon_choice = filter.weapon_elem.value;
+            const powder_choice = filter.powder_elem.value;
+            return 'weapondmgbonus("' + weapon_choice + '", "' + powder_choice + '", true)';
+        }
+        case "Weapon Melee Damage Bonus": {
+            const weapon_choice = filter.weapon_elem.value;
+            const powder_choice = filter.powder_elem.value;
+            return 'weapondmgbonus("' + weapon_choice + '", "' + powder_choice + '", false)';
+        }
+    }
+    return filter_name;
 }

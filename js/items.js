@@ -159,6 +159,15 @@ const string_mappings = {
     "Restriction": "restrict"
 }
 
+const weapon_expression_mappings = {
+    "Weapon Melee Damage Bonus": "",
+    "Weapon Spell Damage Bonus": ""
+}
+
+for (let x in weapon_expression_mappings) {
+    item_filters.push(x);
+}
+
 for (let x in special_mappings) {
     item_filters.push(x);
 }

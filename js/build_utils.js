@@ -377,3 +377,14 @@ function type_to_skill(t) {
             return null
     }
 }
+
+/** 
+ * Why do ingredients store non-present rolls as null but items store it as 0?
+ * Returns .get(key) of a map, but if the value is undefined it returns 0 instead.
+ */
+function getOrNullToZero(map, key) {
+    const val = map.get(key);
+    if (val)
+        return val;
+    return 0;
+}
