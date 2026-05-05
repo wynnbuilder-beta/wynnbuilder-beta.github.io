@@ -835,7 +835,8 @@ class DisplayBuildWarningsNode extends ComputeNode {
         if (noGuildTome && deficit <= 4 && (deficit > 0 || over_indices.length > 0)) {
             for (let i = 0; i < 5; i++) {
                 const others_ok = assigned_per_type.every((v, j) => j === i || v <= 100);
-                if (others_ok && assigned_per_type[i] <= 104) working_focused.push(i);
+                const absorbs_deficit = Math.min(4, assigned_per_type[i]) >= deficit;
+                if (others_ok && assigned_per_type[i] <= 104 && absorbs_deficit) working_focused.push(i);
             }
         }
         const rainbow_works = noGuildTome
