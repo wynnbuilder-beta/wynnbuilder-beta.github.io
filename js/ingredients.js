@@ -138,6 +138,15 @@ const special_mappings = {
     "Sum (Melee Damages %)": "summeleedampct+sumdampct"
 };
 
+const weapon_expression_mappings = {
+    "Weapon Melee Damage Bonus": "",
+    "Weapon Spell Damage Bonus": ""
+}
+
+for (let x in weapon_expression_mappings) {
+    item_filters.push(x);
+}
+
 for (let x in special_mappings) {
     item_filters.push(x);
 }
@@ -212,6 +221,7 @@ function init_values() {
 
 (async function() {
     await Promise.resolve(ingredient_loader.load_init());
+    await Promise.resolve(item_loader.load_init(), load_major_id_data(wynn_version_names[WYNN_VERSION_LATEST]));
     init_search();
 })();
 

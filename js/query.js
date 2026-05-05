@@ -1,3 +1,6 @@
+let saved_weapon_args;
+let weapon_choice;
+
 // dynamic type casts
 function checkBool(v) {
   if (typeof v !== 'boolean') throw new Error(`Expected boolean, but got ${typeof v}`);
@@ -464,6 +467,82 @@ const queryFuncs = {
       if (args[0] <= -3) return 0.51;
       if (args[0] >= 3) return 4.3;
       throw new Error('Invalid argument to atkSpdMod()');
+    }
+  },
+  weapondmgbonus: {
+    type: 'number',
+    fn: function(item, itemExp, args) {
+      if (args.length < 3) throw new Error('Not enough args to weaponDmgBonus()');
+      let damage_weight = 0;
+      // try not to recalculate the weapon if it's not necessary
+      if (saved_weapon_args == null || saved_weapon_args[0] != args[0] || saved_weapon_args[1] != args[1]) {
+        saved_weapon_args = args;
+        weapon_choice = new Item(itemMap.get(args[0]));
+
+        // copy pasted from PowderInputNode
+        let input = args[1].trim();
+        let powdering = [];
+        while (input) {
+            let first = input.slice(0, 2).toLowerCase();
+            let powder = powderIDs.get(first);
+            if (powder === undefined) {
+                break;
+            } else {
+                powdering.push(powder);
+            }
+            input = input.slice(2);
+        }
+        weapon_choice.statMap.set("powders", powdering);
+        apply_weapon_powders(weapon_choice.statMap);
+      }
+      const use_spell = args[2];
+      let max_roll;
+
+      if (itemExp.has("ids")) {
+        // For ingredients
+        max_roll = itemExp.get("ids").get("maxRolls");
+      } else {
+        // For items
+        max_roll = itemExp.get("maxRolls");
+      }
+
+      if (use_spell) {
+        const damage_elements = ['n'].concat(skp_elements);
+        for (ele of damage_elements) {
+          const dmg_range = weapon_choice.statMap.get(ele + "Dam_");
+          const avg_dmg = (dmg_range[0] + dmg_range[1]) / 2;
+          if (avg_dmg == 0){
+              continue;
+          }
+          const atkspd_idx = { SUPER_SLOW: 0, VERY_SLOW: 1, SLOW: 2, NORMAL: 3, FAST: 4, VERY_FAST: 5, SUPER_FAST: 6 };
+          const avg_dps = avg_dmg * baseDamageMultiplier[atkspd_idx[weapon_choice.statMap.get("atkSpd")]];
+
+          let pct_damage_boost = getOrNullToZero(max_roll,ele+'DamPct') + getOrNullToZero(max_roll,ele+'SdPct') + getOrNullToZero(max_roll,'damPct') + getOrNullToZero(max_roll,'sdPct');
+          if (ele != "n") {
+            pct_damage_boost += getOrNullToZero(max_roll,'rDamPct') + getOrNullToZero(max_roll,'rSdPct');
+          }
+          damage_weight += avg_dps/100 * pct_damage_boost + getOrNullToZero(max_roll,ele+'DamRaw') + getOrNullToZero(max_roll,ele+'SdRaw');
+        }
+        damage_weight += getOrNullToZero(max_roll,'damRaw') + getOrNullToZero(max_roll,'sdRaw') + getOrNullToZero(max_roll,'rSdRaw');
+      }
+      else {
+        const damage_elements = ['n'].concat(skp_elements);
+        for (ele of damage_elements) {
+          const dmg_range = weapon_choice.statMap.get(ele + "Dam_");
+          const avg_dmg = (dmg_range[0] + dmg_range[1]) / 2;
+          if (avg_dmg == 0){
+              continue;
+          }
+          let pct_damage_boost = getOrNullToZero(max_roll,ele+'DamPct') + getOrNullToZero(max_roll,ele+'MdPct') + getOrNullToZero(max_roll,'damPct') + getOrNullToZero(max_roll,'mdPct');
+          if (ele != "n") {
+            pct_damage_boost += getOrNullToZero(max_roll,'rDamPct') + getOrNullToZero(max_roll,'rMdPct');
+          }
+          damage_weight += avg_dmg/100 * pct_damage_boost + getOrNullToZero(max_roll,ele+'DamRaw') + getOrNullToZero(max_roll,ele+'MdRaw');
+        }
+        damage_weight += getOrNullToZero(max_roll,'damRaw') + getOrNullToZero(max_roll,'mdRaw') + getOrNullToZero(max_roll,'rMdRaw');
+      }
+
+      return damage_weight;
     }
   }
 };
