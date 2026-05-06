@@ -323,6 +323,7 @@ function idRound(id){
 /**
  * stupid stupid multiplicative stats
  */
+const nonstacking_stats = ['Potion', 'Vulnerability', 'Mask']
 function merge_stat(stats, name, value) {
     const [start, end] = name.split('.', limit=2);
     if (start === 'damMult' || start === 'defMult' || start === 'healMult') {
@@ -336,7 +337,7 @@ function merge_stat(stats, name, value) {
             }
             return;
         }
-        if (end == 'Potion' || end == 'Vulnerability') {
+        if (nonstacking_stats.includes(end)) {
             let highest = stats.get(start).get(end);
             if (highest !== undefined) {
                 if (value > highest) {
