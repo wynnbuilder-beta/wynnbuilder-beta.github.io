@@ -2039,11 +2039,11 @@
             "effects": [
                 {
                     "type": "add_spell_prop",
-                    "base_spell": 3,
-                    "target_part": "Arrow Shield",
+                    "base_spell": 4,
+                    "target_part": "Shield Damage",
                     "behavior": "modify",
                     "multipliers": [
-                        40,
+                        30,
                         0,
                         0,
                         0,
@@ -10988,6 +10988,11 @@
                             "type": "stat",
                             "name": "damMult.Unstable:0.Melee",
                             "value": 100
+                        },
+                        {
+                            "type": "stat",
+                            "name": "damMult.Unstable:12.Fire Serpent Hit",
+                            "value": 100
                         }
                     ]
                 }
@@ -11069,9 +11074,9 @@
                             "name": "Thunder Serpent Hit",
                             "type": "damage",
                             "multipliers": [
-                                200,
+                                600,
                                 0,
-                                100,
+                                300,
                                 0,
                                 0,
                                 0
@@ -11081,11 +11086,11 @@
                             "name": "Fire Serpent Hit",
                             "type": "damage",
                             "multipliers": [
-                                300,
+                                1300,
                                 0,
                                 0,
                                 0,
-                                0,
+                                700,
                                 0
                             ]
                         },
@@ -15239,6 +15244,7 @@
         {
             "display_name": "Nature's Jolt",
             "desc": "Hitting the ground after using Haul will deal damage around you. </br> </br><span class='mc-white'>Total Damage</span>: 150% (of your DPS)   </br>&emsp;(<span class='nDam'>Damage</span>: 110%)   </br>&emsp;(<span class='eDam'>Earth</span>: 40%) </br>Area of Effect: 4.5 Blocks (Circle-Shaped)",
+            "archetype": "Summoner",
             "base_abil": "Haul",
             "parents": [
                 "Earth Mastery",
@@ -17339,27 +17345,6 @@
                         "Hop Damage": 3
                     },
                     "display": "Total Damage"
-                },
-                {
-                    "type": "raw_stat",
-                    "bonuses": [
-                        {
-                            "type": "stat",
-                            "name": "damMult.Frog:2.Hop Damage",
-                            "value": -100
-                        }
-                    ]
-                },
-                {
-                    "type": "raw_stat",
-                    "toggle": "Mask of the Heretic",
-                    "bonuses": [
-                        {
-                            "type": "stat",
-                            "name": "damMult.Frog:2.Hop Damage",
-                            "value": 100
-                        }
-                    ]
                 }
             ]
         },
