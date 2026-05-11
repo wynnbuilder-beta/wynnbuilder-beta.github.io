@@ -23435,7 +23435,7 @@
       },
       "emblem": "sticker_6",
       "tier": "Unique",
-      "drop": "normal",
+      "drop": "lootchest",
       "elements": [
         "thunder",
         "air"
@@ -97603,6 +97603,55 @@
       "tDefPct": 9,
       "mdRaw": 60,
       "id": 1993
+    },
+    {
+      "displayName": "Pas De Deux",
+      "name": "Pas De Deux",
+      "category": "weapon",
+      "type": "relik",
+      "icon": {
+        "value": {
+          "id": "minecraft:potion",
+          "name": "relik.air3",
+          "customModelData": {
+            "rangeDispatch": [
+              3595
+            ]
+          }
+        },
+        "format": "attribute"
+      },
+      "emblem": "diamond_4",
+      "tier": "Fabled",
+      "atkSpd": "FAST",
+      "averageDps": 600,
+      "drop": "normal",
+      "elements": [
+        "water",
+        "air"
+      ],
+      "lvl": 81,
+      "classReq": "shaman",
+      "agiReq": 50,
+      "intReq": 50,
+      "majorIds": [
+        "AUBRIS_TEARS"
+      ],
+      "slots": 3,
+      "lore": "\"I am only human in the snow. When it melts away, so too do I, for then I am cursed to be a swan.\"",
+      "ref": 28,
+      "slowEnemy": 11,
+      "jh": 1,
+      "hprPct": -11,
+      "spRaw2": -6,
+      "wSdRaw": 177,
+      "nDam": "15-65",
+      "aDam": "35-165",
+      "wDam": "65-135",
+      "eDam": "0-0",
+      "tDam": "0-0",
+      "fDam": "0-0",
+      "id": 5343
     },
     {
       "category": "accessory",
