@@ -251,7 +251,7 @@ let MAJOR_IDS = null;
 
 async function load_major_id_data(version_str) {
     let getUrl = window.location;
-    let baseUrl = `${getUrl.protocol}//${getUrl.host}/`;
+    let baseUrl = `${getUrl.protocol}//${getUrl.host}`;
     // No random string -- we want to use caching
     let url = `${baseUrl}/data/${version_str}/majid.json`;
     MAJOR_IDS = await (await fetch(url)).json();
@@ -263,7 +263,7 @@ let DEC = null
 
 async function load_encoding_constants(version_str, decoding_version_str) {
     let getUrl = window.location;
-    let baseUrl = `${getUrl.protocol}//${getUrl.host}/`;
+    let baseUrl = `${getUrl.protocol}//${getUrl.host}`;
     // No random string -- we want to use caching
     let encoding_url = `${baseUrl}/data/${version_str}/encoding_consts.json`;
     let decoding_url = `${baseUrl}/data/${decoding_version_str}/encoding_consts.json`;
