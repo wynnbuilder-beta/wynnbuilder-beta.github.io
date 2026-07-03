@@ -1,5 +1,5 @@
 import type { ExpandedItem, ItemStatMap, MajorId, SetBonusData } from './types/item';
-import type { Ingredient, IngredientMap, Recipe, RecipeMap } from './types/ingredient';
+import type { Ingredient, Recipe } from './types/ingredient';
 import type { Loader } from './loader';
 
 declare global {
@@ -12,8 +12,8 @@ declare global {
   // Item loader
   var itemMap: Map<string, ExpandedItem>;
   var idMap: Map<number, string>;
-  var redirectMap: Map<string, string>;
-  var itemLists: Map<string, ItemStatMap[]>;
+  var redirectMap: Map<number, string>;
+  var itemLists: Map<string, string[]>;
   var items: ItemStatMap[];
   var sets: Map<string, SetBonusData>;
   var none_items: ItemStatMap[];
@@ -26,14 +26,16 @@ declare global {
   var item_loader: Loader;
 
   // Ingredient loader
-  var ingMap: IngredientMap;
-  var ingList: Ingredient[];
-  var recipeMap: RecipeMap;
-  var recipeList: Recipe[];
+  var ingMap: Map<string, Ingredient>;
+  var ingList: string[];
+  var recipeMap: Map<string, Recipe>;
+  var recipeList: string[];
   var ingIDMap: Map<number, string>;
   var recipeIDMap: Map<number, string>;
   var ings: Record<string, Ingredient> | Ingredient[];
-  var recipes: Record<string, Recipe>;
+  var recipes: Record<string, Recipe> | Recipe[];
+  var ingredient_loader: Loader;
+  /** @deprecated Use ingredient_loader */
   var ing_loader: Loader;
 
   // Builder

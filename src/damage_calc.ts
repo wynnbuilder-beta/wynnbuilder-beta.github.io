@@ -3,6 +3,12 @@
  */
 
 import { attachGlobals } from './lib/attachGlobals';
+import {
+  attackSpeeds,
+  baseDamageMultiplier,
+  skillpoint_damage_mult,
+  skillPointsToPercentage,
+} from './build_utils';
 import { damage_keys, damage_present_key } from './powders';
 import type { ExpandedItem } from './types/item';
 import type {
@@ -13,12 +19,6 @@ import type {
   WeaponType,
 } from './types/stats';
 import { SKP_ELEMENTS, SKP_ORDER } from './types/stats';
-
-declare function skillPointsToPercentage(skp: number): number;
-
-declare const skillpoint_damage_mult: number[];
-declare const attackSpeeds: AttackSpeed[];
-declare const baseDamageMultiplier: number[];
 
 type DamagePair = DamageRange;
 type BaseDpsResult = number | DamageRange;
