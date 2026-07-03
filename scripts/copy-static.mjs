@@ -4,8 +4,8 @@ import { dirname, resolve } from 'node:path';
 const root = resolve(import.meta.dirname, '..');
 const dist = resolve(root, 'dist');
 
-/** Static asset directories copied to dist. */
-const copyTargets = ['css', 'data', 'media', 'thirdparty'];
+/** Static asset directories copied to dist. App CSS is bundled by Vite. */
+const copyTargets = ['data', 'media', 'thirdparty'];
 
 /** Root-level assets not emitted by Vite. */
 const rootFiles = ['manifest.json', 'credits.txt'];

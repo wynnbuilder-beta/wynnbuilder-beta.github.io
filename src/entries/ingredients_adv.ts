@@ -1,4 +1,5 @@
 import './bootstrap';
+import '@/lib/styles/items_adv';
 import '@/icons';
 import '@/display_constants';
 import '@/expr_parser';

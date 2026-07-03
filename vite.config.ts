@@ -4,33 +4,10 @@ import sirv from 'sirv';
 
 const root = resolve(__dirname);
 
-const staticDirs = ['css', 'data', 'media', 'thirdparty'] as const;
+/** Static dirs served in dev and copied to dist (not processed by Vite). */
+const staticDirs = ['data', 'media', 'thirdparty'] as const;
 
-/** CSS served from /thirdparty and not bundled by Vite entry imports. */
-const legacyStylesheets = ['/thirdparty/bootstrap.min.css'] as const;
-
-/** Re-add bootstrap CSS before other stylesheets (Vite strips the HTML link during build). */
-function preserveLegacyStylesheets(): Plugin {
-  return {
-    name: 'preserve-legacy-stylesheets',
-    transformIndexHtml: {
-      order: 'post',
-      handler(html) {
-        if (html.includes('/thirdparty/bootstrap.min.css')) {
-          return html;
-        }
-        const tag = '<link rel="stylesheet" href="/thirdparty/bootstrap.min.css">';
-        const firstSheet = html.match(/<link rel="stylesheet"/);
-        if (firstSheet && firstSheet.index !== undefined) {
-          return html.slice(0, firstSheet.index) + tag + '\n    ' + html.slice(firstSheet.index);
-        }
-        return html.replace('</head>', `    ${tag}\n  </head>`);
-      },
-    },
-  };
-}
-
-/** Serve /js, /css, /data, /media, and /thirdparty during dev. */
+/** Serve /data, /media, and /thirdparty during dev. */
 function serveLegacyAssets(): Plugin {
   return {
     name: 'serve-legacy-assets',
@@ -78,6 +55,7 @@ export default defineConfig({
   resolve: {
     alias: {
       '@': resolve(root, 'src'),
+      '@css': resolve(root, 'css'),
     },
   },
   server: {
@@ -92,5 +70,5 @@ export default defineConfig({
       input: pages,
     },
   },
-  plugins: [serveLegacyAssets(), preserveLegacyStylesheets()],
+  plugins: [serveLegacyAssets()],
 });

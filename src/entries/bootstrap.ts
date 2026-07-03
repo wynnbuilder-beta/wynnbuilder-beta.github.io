@@ -1,4 +1,5 @@
-/** Register globals before classic scripts load. */
+/** Shared styles and globals used by every app page. */
+import '@/lib/styles/common';
 import '@/redirect_fork';
 import '@/utils';
 import '@/build_utils';
