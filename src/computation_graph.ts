@@ -228,7 +228,7 @@ export class InputNode extends ValueCheckComputeNode {
     });
   }
 
-  compute_func(_input_map: Map<string, unknown>): string {
+  compute_func(_input_map: Map<string, unknown>): unknown {
     return this.input_field.value;
   }
 }

@@ -1,4 +1,3 @@
-// @ts-nocheck
 import { displayExpandedSet } from './display';
 import {
   item_loader,
@@ -9,10 +8,16 @@ import {
 } from './load_item';
 import { make_elem } from './utils';
 
+interface SetDisplayData {
+  hidden?: boolean;
+  bonuses: unknown[];
+}
+
 function init_sets(): void {
   const set_parent = document.getElementById('search-results')!;
   for (const [key, value] of sets) {
-    if (value.hidden == true) {
+    const setData = value as unknown as SetDisplayData;
+    if (setData.hidden === true) {
       continue;
     }
 
@@ -26,7 +31,12 @@ function init_sets(): void {
     box.append(bckgrdbox);
     set_parent.appendChild(box);
 
-    displayExpandedSet(key, value, bckgrdbox.id, value.bonuses.length - 1);
+    displayExpandedSet(
+      key,
+      setData as Parameters<typeof displayExpandedSet>[1],
+      bckgrdbox.id,
+      setData.bonuses.length - 1,
+    );
   }
 }
 

@@ -50,7 +50,7 @@ export interface PassThroughNode extends ComputeNode {
 
 /** InputNode bound to an HTML input element. */
 export interface InputNode extends ValueCheckComputeNode {
-  input_field: HTMLElement;
+  input_field: HTMLInputElement;
 }
 
 /** Callback scheduled by calcSchedule(). */

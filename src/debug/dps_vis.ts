@@ -1,4 +1,3 @@
-// @ts-nocheck
 import * as d3 from 'd3';
 import { attachGlobals } from '@/lib/attachGlobals';
 import { WYNN_VERSION_LATEST, setWynnVersionId, wynn_version_names } from '@/load_item';

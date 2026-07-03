@@ -4,28 +4,27 @@ import sirv from 'sirv';
 
 const root = resolve(__dirname);
 
-const staticDirs = ['js', 'css', 'data', 'media', 'thirdparty'] as const;
+const staticDirs = ['css', 'data', 'media', 'thirdparty'] as const;
 
-/** CSS linked in HTML but not bundled by Vite. */
-const legacyStylesheets = [
-  '/thirdparty/autoComplete.min.css',
-  '/css/sq2bs.css',
-  '/css/sidebar.css',
-] as const;
+/** CSS served from /thirdparty and not bundled by Vite entry imports. */
+const legacyStylesheets = ['/thirdparty/bootstrap.min.css'] as const;
 
-/** Re-add CSS link tags removed during Vite HTML transform. */
+/** Re-add bootstrap CSS before other stylesheets (Vite strips the HTML link during build). */
 function preserveLegacyStylesheets(): Plugin {
   return {
     name: 'preserve-legacy-stylesheets',
     transformIndexHtml: {
       order: 'post',
       handler(html) {
-        const tags = legacyStylesheets
-          .filter((href) => !html.includes(href))
-          .map((href) => `<link rel="stylesheet" href="${href}">`)
-          .join('\n    ');
-        if (!tags) return html;
-        return html.replace('</head>', `    ${tags}\n  </head>`);
+        if (html.includes('/thirdparty/bootstrap.min.css')) {
+          return html;
+        }
+        const tag = '<link rel="stylesheet" href="/thirdparty/bootstrap.min.css">';
+        const firstSheet = html.match(/<link rel="stylesheet"/);
+        if (firstSheet && firstSheet.index !== undefined) {
+          return html.slice(0, firstSheet.index) + tag + '\n    ' + html.slice(firstSheet.index);
+        }
+        return html.replace('</head>', `    ${tag}\n  </head>`);
       },
     },
   };
@@ -54,6 +53,7 @@ const pages = {
   builder: resolve(root, 'builder/index_full.html'),
   'builder/doc': resolve(root, 'builder/doc.html'),
   items: resolve(root, 'items/index.html'),
+  sets: resolve(root, 'sets/index.html'),
   item: resolve(root, 'item/index.html'),
   crafter: resolve(root, 'crafter/index.html'),
   custom: resolve(root, 'custom/index.html'),
@@ -62,6 +62,7 @@ const pages = {
   ingredients: resolve(root, 'ingredients/index.html'),
   ingredient: resolve(root, 'ingredient/index.html'),
   items_adv: resolve(root, 'items_adv/index.html'),
+  'items_adv/help': resolve(root, 'items_adv/items_adv_help.html'),
   ingredients_adv: resolve(root, 'ingredients_adv/index.html'),
   wynnfo: resolve(root, 'wynnfo/index.html'),
   dev: resolve(root, 'dev/index.html'),
