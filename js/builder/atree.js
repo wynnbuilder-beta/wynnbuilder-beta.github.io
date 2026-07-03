@@ -127,7 +127,7 @@ let ATREES;
  */
 async function load_atree_data(version_str) {
     let getUrl = window.location;
-    let baseUrl = `${getUrl.protocol}//${getUrl.host}/`;
+    let baseUrl = `${getUrl.protocol}//${getUrl.host}`;
     // No random string -- we want to use caching
     let url = `${baseUrl}/data/${version_str}/atree.json`;
     ATREES = await (await fetch(url)).json();
