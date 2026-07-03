@@ -1,4 +1,3 @@
-// @ts-nocheck
 /**
  * File containing compute graph structure of the builder page.
  */
@@ -109,6 +108,9 @@ import {
   zip2,
   zip3,
 } from '@/utils';
+import type { ATree, RenderedATree } from '@/types/atree';
+import type { SetBonusTier } from '@/types/item';
+import type { SkillpointVector, SpellDefinition } from '@/types/stats';
 
 export let pre_scale_agg_node: ComputeNode;
 
@@ -120,7 +122,7 @@ export let armor_powder_node = new (class extends ComputeNode {
         let def_boost = 0;
         let statMap = new Map();
         for (const [e, elem] of zip2(skp_elements, skp_order)) {
-            let val = parseInt(document.getElementById(elem + "_boost_armor").value);
+            let val = parseInt((document.getElementById(elem + "_boost_armor") as HTMLInputElement).value);
             statMap.set(e + 'DamPct', val);
         }
         return statMap;
@@ -313,6 +315,9 @@ class PowderSpecialDisplayNode extends ComputeNode {
  * Signature: ItemInputNode() => Item | null
  */
 class ItemInputNode extends InputNode {
+    none_item: Item;
+    category: unknown;
+
     /**
      * Make an item stat pulling compute node.
      *
@@ -349,7 +354,7 @@ class ItemInputNode extends InputNode {
             if (this.category == 'weapon') {
                 type_match = item.statMap.get('category') == 'weapon';
             } else if (item.statMap.get("crafted")) {
-                const fieldType = this.none_item.statMap.get('type');
+                const fieldType = this.none_item.statMap.get('type') as string;
                 const fieldSkill = type_to_skill(fieldType);
                 const itemSkillMatchesField = item.recipe.get('skill') === fieldSkill;
 
@@ -433,6 +438,10 @@ class ItemPowderingNode extends ComputeNode {
  * Signature: ItemInputDisplayNode(item: Item) => null
  */
 class ItemInputDisplayNode extends ComputeNode {
+    input_field: HTMLElement;
+    health_field: HTMLElement | null;
+    level_field: HTMLElement | null;
+    image: HTMLElement;
 
     constructor(name, eq, item_image) {
         super(name);
@@ -489,6 +498,8 @@ class ItemInputDisplayNode extends ComputeNode {
  * Signature: ItemDisplayNode(item: Item) => null
  */
 class ItemDisplayNode extends ComputeNode {
+    target_elem: string;
+
     constructor(name, target_elem) {
         super(name);
         this.target_elem = target_elem;
@@ -509,6 +520,8 @@ class ItemDisplayNode extends ComputeNode {
  * Signature: WeaponInputDisplayNode(item: Item) => null
  */
 class WeaponInputDisplayNode extends ComputeNode {
+    image: HTMLElement;
+    dps_field: HTMLElement;
 
     constructor(name, image_field, dps_field) {
         super(name);
@@ -523,12 +536,17 @@ class WeaponInputDisplayNode extends ComputeNode {
         const type = item.statMap.get('type');
         this.image.style.backgroundPosition = itemBGPositions[type];
 
-        let dps = get_base_dps(item.statMap);
-        if (isNaN(dps)) {
-            dps = dps[1];
-            if (isNaN(dps)) dps = 0;
+        const dpsResult = get_base_dps(item.statMap);
+        let dps: number;
+        if (typeof dpsResult === 'number') {
+            dps = dpsResult;
+        } else {
+            dps = dpsResult[1];
         }
-        this.dps_field.textContent = Math.round(dps);
+        if (isNaN(dps)) {
+            dps = 0;
+        }
+        this.dps_field.textContent = String(Math.round(dps));
     }
 }
 
@@ -557,13 +575,13 @@ class BuildEncodeNode extends ComputeNode {
             input_map.get('boots-powder'),
             input_map.get('weapon-powder')
         ];
-        const skillpoints = [
+        const skillpoints: SkillpointVector = [
             input_map.get('str'),
             input_map.get('dex'),
             input_map.get('int'),
             input_map.get('def'),
             input_map.get('agi')
-        ];
+        ] as SkillpointVector;
         // TODO: grr global state for copy button..
         setPlayerBuild(build);
         setBuildPowders(powders);
@@ -744,6 +762,8 @@ export { getDefenseStats } from './defense_stats';
  *                             spell-damage: List[SpellDamage]) => null
  */
 export class SpellDisplayNode extends ComputeNode {
+    spell: SpellDefinition;
+
     constructor(spell) {
         super("builder-spell" + spell.base_spell + "-display");
         this.spell = spell;
@@ -931,7 +951,7 @@ class DisplayBuildWarningsNode extends ComputeNode {
             summarybox.append(lvlWarning);
         }
         for (const [setName, count] of build.activeSetCounts) {
-            const bonus = sets.get(setName).bonuses[count - 1];
+            const bonus = (sets.get(setName) as SetBonusTier[])[count - 1];
             if (bonus["illegal"]) {
                 let setWarning = document.createElement("p");
                 setWarning.classList.add("itemp"); setWarning.classList.add("warning");
@@ -990,7 +1010,7 @@ export const radiance_node = new (class extends ComputeNode {
     constructor() { super('radiance-node->:('); }
 
     compute_func(input_map) {
-        const [statmap] = input_map.values();  // Extract values, pattern match it into size one list and bind to first element
+        const statmap = [...input_map.values()][0] as Map<string, number>;
         var boost = 1;
         if (document.getElementById('radiance-boost').classList.contains("toggleOn")) {
             boost += 0.15;
@@ -1022,8 +1042,9 @@ export const radiance_node = new (class extends ComputeNode {
             
             // Radiance only affects the skillpoints granted from items (and consu apparently?)
             skp_order.forEach((skp, i) => {
-                if ((player_build.total_item_skillpoints[i] || 0) > 0) {
-                    ret.set(skp, Math.floor((ret.get(skp) || 0) + player_build.total_item_skillpoints[i] * (boost-1)));
+                const build = player_build as Build;
+                if ((build.total_item_skillpoints[i] || 0) > 0) {
+                    ret.set(skp, Math.floor((ret.get(skp) || 0) + build.total_item_skillpoints[i] * (boost-1)));
                 }
             });
             return ret;
@@ -1079,6 +1100,8 @@ export function resetEditableIDs() {
  * Signature: EditableIDSetterNode(build: Build) => null
  */
 class EditableIDSetterNode extends ComputeNode {
+    notify_nodes: ComputeNode[];
+
     constructor(notify_nodes) {
         super("builder-id-setter");
         this.notify_nodes = notify_nodes.slice();
@@ -1093,7 +1116,7 @@ class EditableIDSetterNode extends ComputeNode {
         const [build] = input_map.values();  // Extract values, pattern match it into size one list and bind to first element
         for (const id of editable_item_fields) {
             const val = build.statMap.get(id);
-            document.getElementById(id).value = val;
+            (document.getElementById(id) as HTMLInputElement).value = val;
             document.getElementById(id + '-base').textContent = 'Original Value: ' + val;
         }
     }
@@ -1116,6 +1139,9 @@ class EditableIDSetterNode extends ComputeNode {
  * Signature: SkillPointSetterNode(build: Build) => null
  */
 class SkillPointSetterNode extends ComputeNode {
+    notify_nodes: ComputeNode[];
+    skillpoints: number[] | null;
+
     constructor(notify_nodes) {
         super("builder-skillpoint-setter");
         this.notify_nodes = notify_nodes.slice();
@@ -1131,13 +1157,13 @@ class SkillPointSetterNode extends ComputeNode {
         const [build] = input_map.values();  // Extract values, pattern match it into size one list and bind to first element
 
         for (const [idx, elem] of skp_order.entries()) {
-            document.getElementById(elem + '-skp').value = build.total_skillpoints[idx];
+            (document.getElementById(elem + '-skp') as HTMLInputElement).value = String(build.total_skillpoints[idx]);
         }
 
         if (this.skillpoints !== null) {
             for (const [idx, elem] of skp_order.entries()) {
                 if (this.skillpoints[idx] !== null) {
-                    document.getElementById(elem + '-skp').value = this.skillpoints[idx];
+                    (document.getElementById(elem + '-skp') as HTMLInputElement).value = String(this.skillpoints[idx]);
                 }
             }
             this.skillpoints = null;
@@ -1303,7 +1329,7 @@ export function builder_graph_init(skillpoints: number[] | null) {
     // Phase 1/3: Set up item input, propagate updates, etc.
 
     // Level input node.
-    let level_input = new InputNode('level-input', document.getElementById('level-choice'));
+    let level_input = new InputNode('level-input', document.getElementById('level-choice') as HTMLInputElement);
 
     // "Build" now only refers to equipment and level (no powders). Powders are injected before damage calculation / stat display.
     build_node = new BuildAssembleNode();
@@ -1319,11 +1345,11 @@ export function builder_graph_init(skillpoints: number[] | null) {
         let input_field = document.getElementById(eq + "-choice");
         let item_image = document.getElementById(eq + "-img");
 
-        let item_input = new ItemInputNode(eq + '-input', input_field, none_item);
+        let item_input: ComputeNode = new ItemInputNode(eq + '-input', input_field as HTMLInputElement, none_item);
         equip_inputs.push(item_input);
         if (powder_inputs.includes(eq + '-powder')) { // TODO: fragile
             const powder_name = eq + '-powder';
-            let powder_node = new PowderInputNode(powder_name, document.getElementById(powder_name))
+            let powder_node = new PowderInputNode(powder_name, document.getElementById(powder_name) as HTMLInputElement)
                 .link_to(item_input, 'item');
             powder_nodes.push(powder_node);
             build_encode_node.link_to(powder_node, powder_name);
@@ -1343,7 +1369,7 @@ export function builder_graph_init(skillpoints: number[] | null) {
         let input_field = document.getElementById(eq + "-choice");
         let item_image = document.getElementById(eq + "-img");
 
-        let item_input = new ItemInputNode(eq + '-input', input_field, none_item);
+        let item_input: ComputeNode = new ItemInputNode(eq + '-input', input_field as HTMLInputElement, none_item);
         equip_inputs.push(item_input);
         item_final_nodes.push(item_input);
         new ItemInputDisplayNode(eq + '-input-display', eq, item_image).link_to(item_input);
@@ -1374,7 +1400,7 @@ export function builder_graph_init(skillpoints: number[] | null) {
     for (const field of editable_item_fields) {
         // Create nodes that listens to each editable id input, the node name should match the "id"
         const elem = document.getElementById(field);
-        const node = new SumNumberInputNode('builder-' + field + '-input', elem);
+        const node = new SumNumberInputNode('builder-' + field + '-input', elem as HTMLInputElement);
 
         edit_agg_node.link_to(node, field);
         edit_input_nodes.push(node);
@@ -1386,12 +1412,12 @@ export function builder_graph_init(skillpoints: number[] | null) {
 
     for (const skp of skp_order) {
         const elem = document.getElementById(skp + '-skp');
-        const node = new SumNumberInputNode('builder-' + skp + '-input', elem);
+        const node = new SumNumberInputNode('builder-' + skp + '-input', elem as HTMLInputElement);
 
         edit_agg_node.link_to(node, skp);
         build_encode_node.link_to(node, skp);
         edit_input_nodes.push(node);
-        skp_inputs.push(node);
+        skp_inputs.push(node as ComputeNode & { input_field?: HTMLInputElement; value?: number });
     }
     pre_scale_agg_node.link_to(edit_agg_node);
 
@@ -1418,10 +1444,10 @@ export function builder_graph_init(skillpoints: number[] | null) {
         const aspect_image_div = document.getElementById(field + '-img');
         const aspect_image_loc_div = document.getElementById(field + '-img-loc');
         new AspectAutocompleteInitNode(field + '-autocomplete', field).link_to(class_node, 'player-class');
-        const aspect_input = new AspectInputNode(field + '-input', aspect_input_field).link_to(class_node, 'player-class');
-        new AspectInputDisplayNode(field + '-input', aspect_input_field, aspect_image_div).link_to(aspect_input, "aspect-spec");
+        const aspect_input = new AspectInputNode(field + '-input', aspect_input_field as HTMLInputElement).link_to(class_node, 'player-class');
+        new AspectInputDisplayNode(field + '-input', aspect_input_field as HTMLInputElement, aspect_image_div).link_to(aspect_input, "aspect-spec");
         aspect_inputs.push(aspect_input);
-        const aspect_tier_input = new AspectTierInputNode(field + '-tier-input', aspect_tier_input_field).link_to(aspect_input, 'aspect-spec');
+        const aspect_tier_input = new AspectTierInputNode(field + '-tier-input', aspect_tier_input_field as HTMLInputElement).link_to(aspect_input, 'aspect-spec');
         new AspectRenderNode(field + '-render', aspect_image_loc_div, aspects_dropdown).link_to(aspect_tier_input, 'tooltip-args');
         aspect_agg_node!.link_to(aspect_tier_input, field + '-tiered');
     }
@@ -1449,9 +1475,9 @@ export function builder_graph_init(skillpoints: number[] | null) {
         const atree_state = atree_state_node.value;
         if (atree_data.length > 0) {
             try {
-                const active_nodes = decodeAtree(atree_node.value, atree_data);
+                const active_nodes = decodeAtree(atree_node.value as ATree, atree_data as unknown as Parameters<typeof decodeAtree>[1]);
                 for (const node of active_nodes) {
-                    atree_set_state(atree_state.get(node.ability.id), true);
+                    atree_set_state((atree_state as RenderedATree).get(node.ability.id), true);
                 }
                 atree_state_node.mark_dirty().update();
             } catch (e) {

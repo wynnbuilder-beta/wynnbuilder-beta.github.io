@@ -7,6 +7,12 @@ declare global {
     Loader: typeof Loader;
     toggleIcons?: () => void;
     toggle_tab?: (id: string) => void;
+    opera?: string;
+  }
+
+  interface HTMLInputElement {
+    /** Custom slider accent color used by gen_slider/recolor_slider. */
+    color?: string;
   }
 
   // Item loader

@@ -1,4 +1,3 @@
-// @ts-nocheck
 import { attachGlobals } from './lib/attachGlobals';
 
 let getUrl = window.location;
@@ -8,7 +7,7 @@ const url_base = getUrl.protocol + "//" + getUrl.host + "/" + getUrl.pathname.sp
 // replace with navigator.userAgentData.mobile once it has wider support
 const isMobile = function() {
     let check = false;
-    (function(a){if(/(android|bb\d+|meego).+mobile|avantgo|bada\/|blackberry|blazer|compal|elaine|fennec|hiptop|iemobile|ip(hone|od)|iris|kindle|lge |maemo|midp|mmp|mobile.+firefox|netfront|opera m(ob|in)i|palm( os)?|phone|p(ixi|re)\/|plucker|pocket|psp|series(4|6)0|symbian|treo|up\.(browser|link)|vodafone|wap|windows ce|xda|xiino/i.test(a)||/1207|6310|6590|3gso|4thp|50[1-6]i|770s|802s|a wa|abac|ac(er|oo|s\-)|ai(ko|rn)|al(av|ca|co)|amoi|an(ex|ny|yw)|aptu|ar(ch|go)|as(te|us)|attw|au(di|\-m|r |s )|avan|be(ck|ll|nq)|bi(lb|rd)|bl(ac|az)|br(e|v)w|bumb|bw\-(n|u)|c55\/|capi|ccwa|cdm\-|cell|chtm|cldc|cmd\-|co(mp|nd)|craw|da(it|ll|ng)|dbte|dc\-s|devi|dica|dmob|do(c|p)o|ds(12|\-d)|el(49|ai)|em(l2|ul)|er(ic|k0)|esl8|ez([4-7]0|os|wa|ze)|fetc|fly(\-|_)|g1 u|g560|gene|gf\-5|g\-mo|go(\.w|od)|gr(ad|un)|haie|hcit|hd\-(m|p|t)|hei\-|hi(pt|ta)|hp( i|ip)|hs\-c|ht(c(\-| |_|a|g|p|s|t)|tp)|hu(aw|tc)|i\-(20|go|ma)|i230|iac( |\-|\/)|ibro|idea|ig01|ikom|im1k|inno|ipaq|iris|ja(t|v)a|jbro|jemu|jigs|kddi|keji|kgt( |\/)|klon|kpt |kwc\-|kyo(c|k)|le(no|xi)|lg( g|\/(k|l|u)|50|54|\-[a-w])|libw|lynx|m1\-w|m3ga|m50\/|ma(te|ui|xo)|mc(01|21|ca)|m\-cr|me(rc|ri)|mi(o8|oa|ts)|mmef|mo(01|02|bi|de|do|t(\-| |o|v)|zz)|mt(50|p1|v )|mwbp|mywa|n10[0-2]|n20[2-3]|n30(0|2)|n50(0|2|5)|n7(0(0|1)|10)|ne((c|m)\-|on|tf|wf|wg|wt)|nok(6|i)|nzph|o2im|op(ti|wv)|oran|owg1|p800|pan(a|d|t)|pdxg|pg(13|\-([1-8]|c))|phil|pire|pl(ay|uc)|pn\-2|po(ck|rt|se)|prox|psio|pt\-g|qa\-a|qc(07|12|21|32|60|\-[2-7]|i\-)|qtek|r380|r600|raks|rim9|ro(ve|zo)|s55\/|sa(ge|ma|mm|ms|ny|va)|sc(01|h\-|oo|p\-)|sdk\/|se(c(\-|0|1)|47|mc|nd|ri)|sgh\-|shar|sie(\-|m)|sk\-0|sl(45|id)|sm(al|ar|b3|it|t5)|so(ft|ny)|sp(01|h\-|v\-|v )|sy(01|mb)|t2(18|50)|t6(00|10|18)|ta(gt|lk)|tcl\-|tdg\-|tel(i|m)|tim\-|t\-mo|to(pl|sh)|ts(70|m\-|m3|m5)|tx\-9|up(\.b|g1|si)|utst|v400|v750|veri|vi(rg|te)|vk(40|5[0-3]|\-v)|vm40|voda|vulc|vx(52|53|60|61|70|80|81|83|85|98)|w3c(\-| )|webc|whit|wi(g |nc|nw)|wmlb|wonu|x700|yas\-|your|zeto|zte\-/i.test(a.substr(0,4))) check = true;})(navigator.userAgent||navigator.vendor||window.opera);
+    (function(a){if(/(android|bb\d+|meego).+mobile|avantgo|bada\/|blackberry|blazer|compal|elaine|fennec|hiptop|iemobile|ip(hone|od)|iris|kindle|lge |maemo|midp|mmp|mobile.+firefox|netfront|opera m(ob|in)i|palm( os)?|phone|p(ixi|re)\/|plucker|pocket|psp|series(4|6)0|symbian|treo|up\.(browser|link)|vodafone|wap|windows ce|xda|xiino/i.test(a)||/1207|6310|6590|3gso|4thp|50[1-6]i|770s|802s|a wa|abac|ac(er|oo|s\-)|ai(ko|rn)|al(av|ca|co)|amoi|an(ex|ny|yw)|aptu|ar(ch|go)|as(te|us)|attw|au(di|\-m|r |s )|avan|be(ck|ll|nq)|bi(lb|rd)|bl(ac|az)|br(e|v)w|bumb|bw\-(n|u)|c55\/|capi|ccwa|cdm\-|cell|chtm|cldc|cmd\-|co(mp|nd)|craw|da(it|ll|ng)|dbte|dc\-s|devi|dica|dmob|do(c|p)o|ds(12|\-d)|el(49|ai)|em(l2|ul)|er(ic|k0)|esl8|ez([4-7]0|os|wa|ze)|fetc|fly(\-|_)|g1 u|g560|gene|gf\-5|g\-mo|go(\.w|od)|gr(ad|un)|haie|hcit|hd\-(m|p|t)|hei\-|hi(pt|ta)|hp( i|ip)|hs\-c|ht(c(\-| |_|a|g|p|s|t)|tp)|hu(aw|tc)|i\-(20|go|ma)|i230|iac( |\-|\/)|ibro|idea|ig01|ikom|im1k|inno|ipaq|iris|ja(t|v)a|jbro|jemu|jigs|kddi|keji|kgt( |\/)|klon|kpt |kwc\-|kyo(c|k)|le(no|xi)|lg( g|\/(k|l|u)|50|54|\-[a-w])|libw|lynx|m1\-w|m3ga|m50\/|ma(te|ui|xo)|mc(01|21|ca)|m\-cr|me(rc|ri)|mi(o8|oa|ts)|mmef|mo(01|02|bi|de|do|t(\-| |o|v)|zz)|mt(50|p1|v )|mwbp|mywa|n10[0-2]|n20[2-3]|n30(0|2)|n50(0|2|5)|n7(0(0|1)|10)|ne((c|m)\-|on|tf|wf|wg|wt)|nok(6|i)|nzph|o2im|op(ti|wv)|oran|owg1|p800|pan(a|d|t)|pdxg|pg(13|\-([1-8]|c))|phil|pire|pl(ay|uc)|pn\-2|po(ck|rt|se)|prox|psio|pt\-g|qa\-a|qc(07|12|21|32|60|\-[2-7]|i\-)|qtek|r380|r600|raks|rim9|ro(ve|zo)|s55\/|sa(ge|ma|mm|ms|ny|va)|sc(01|h\-|oo|p\-)|sdk\/|se(c(\-|0|1)|47|mc|nd|ri)|sgh\-|shar|sie(\-|m)|sk\-0|sl(45|id)|sm(al|ar|b3|it|t5)|so(ft|ny)|sp(01|h\-|v\-|v )|sy(01|mb)|t2(18|50)|t6(00|10|18)|ta(gt|lk)|tcl\-|tdg\-|tel(i|m)|tim\-|t\-mo|to(pl|sh)|ts(70|m\-|m3|m5)|tx\-9|up(\.b|g1|si)|utst|v400|v750|veri|vi(rg|te)|vk(40|5[0-3]|\-v)|vm40|voda|vulc|vx(52|53|60|61|70|80|81|83|85|98)|w3c(\-| )|webc|whit|wi(g |nc|nw)|wmlb|wonu|x700|yas\-|your|zeto|zte\-/i.test(a.substr(0,4))) check = true;})(navigator.userAgent||navigator.vendor||(window as Window & { opera?: string }).opera);
     return check;
 }(); // runs immediately, so isMobile is a boolean not a function
 
@@ -80,12 +79,12 @@ function setValue(id, value) {
         console.log("WARN tried to set text value of id {"+id+"} to ["+value+"] but did not exist!");
         return;
     }
-    el.value = value;
+    (el as HTMLInputElement).value = value;
     el.dispatchEvent(new Event("change"));
 }
 
 function getValue(id) {
-    return document.getElementById(id).value;
+    return (document.getElementById(id) as HTMLInputElement).value;
 }
 
 function log(b, n) {
@@ -168,7 +167,7 @@ class Base64 {
         let b64String = "";
         let rem = 0;
 
-        for (let i in arr) {
+        for (let i = 0; i < arr.length; i++) {
             const iMod = i % 3;
             const num = (arr[i] << (iMod * 2)) & 0x3F | rem;
             rem = arr[i] >> (6 - iMod * 2);
@@ -247,6 +246,9 @@ const VERISON_BITLEN = 10
  *
  */
  class BitVector {
+    length: number;
+    tailIdx: number;
+    bits: Uint32Array;
 
     /** Constructs an arbitrary-length bit vector.
      * @class
@@ -255,7 +257,7 @@ const VERISON_BITLEN = 10
      *
      * The structure of the Uint32Array should be [[last, ..., first], ..., [last, ..., first], [empty space, last, ..., first]]
      */
-    constructor(data, length) {
+    constructor(data: string | number, length?: number) {
         let bitVec = [];
 
         if (typeof data === "string") {
@@ -279,8 +281,7 @@ const VERISON_BITLEN = 10
                 }
             }
         } else if (typeof data === "number") {
-            if (typeof length === "undefined")
-            if (length < 0) {
+            if (typeof length === "undefined" || length < 0) {
                 throw new RangeError("BitVector must have nonnegative length.");
             }
 
@@ -441,10 +442,10 @@ const VERISON_BITLEN = 10
         const postPos = prePos + vLen; // excess insertion pos
 
         this.bits[this.tailIdx - 1] |= v << prePos; // mask the tail with the bits of the new int that fit
-        this.tailIdx += postPos >= 32; // if we've exhausted the tail, increment it
+        this.tailIdx += postPos >= 32 ? 1 : 0; // if we've exhausted the tail, increment it
 
         // if we've overflowed and there's excess bits, add them to the new tail
-        this.bits[this.tailIdx - 1] |= (v & ((postPos <= 32) - 1)) >>> (32 - prePos);
+        this.bits[this.tailIdx - 1] |= (v & ((postPos <= 32 ? 1 : 0) - 1)) >>> (32 - prePos);
         this.length += vLen;
     }
 
@@ -534,9 +535,9 @@ const VERISON_BITLEN = 10
  * @prop {number} #endIdx - the last index the cursor is permitted to travel to.
  */
 class BitVectorCursor {
-    #bitVec;
-    #currIdx;
-    #endIdx;
+    #bitVec: BitVector | null;
+    #currIdx: number;
+    #endIdx: number;
 
     /**
      * Construct a new Cursor from an existing bit vector. 
@@ -657,9 +658,11 @@ class BitVectorCursor {
  * A Bit Vector with specific helpers for encoding.
  */
 class EncodingBitVector extends BitVector {
-    constructor(data, length, bitcodeMap=ENC) {
+    bitcodeMap: Record<string, Record<string, number>>;
+
+    constructor(data: string | number, length?: number, bitcodeMap = ENC) {
         super(data, length);
-        this.bitcodeMap = bitcodeMap;
+        this.bitcodeMap = bitcodeMap as Record<string, Record<string, number>>;
     }
 
     appendFlag(field, flag) {
@@ -740,7 +743,7 @@ class BootstringEncoder {
      * @param {string} str - a `base` conforming string.
      * @returns {number} - the decoded number.
      */
-    #decodeVLI(str, bias) {
+    #decodeVLI(str, bias): [number, string] {
         let i = 0;
         let w = 1; // initial weight
         let res = 0; // Initial delta
@@ -790,7 +793,7 @@ class BootstringEncoder {
      *
      * @returns {[string[], Set<number>, number]}
      */
-    #splitBasicExtended(raw) {
+    #splitBasicExtended(raw): [string[], Set<number>, number] {
         let basicCodepoints = [];
         let nonBasicCodepoints = [];
         for (const x of raw) {
@@ -802,7 +805,7 @@ class BootstringEncoder {
         }
         const encodedCount = basicCodepoints.length;
         if (encodedCount > 0) basicCodepoints.push(this.#delim);
-        return [basicCodepoints, new Set(nonBasicCodepoints.sort((a, b) => (a > b) - (a < b))), encodedCount];
+        return [basicCodepoints, new Set(nonBasicCodepoints.sort((a, b) => (a > b ? 1 : 0) - (a < b ? 1 : 0))), encodedCount];
     }
 
     /**
@@ -972,8 +975,8 @@ function fallbackCopyTextToClipboard(text) {
 
   // Place in the top-left corner of screen regardless of scroll position.
   textArea.style.position = 'fixed';
-  textArea.style.top = 0;
-  textArea.style.left = 0;
+  textArea.style.top = '0';
+  textArea.style.left = '0';
 
   // Ensure it has a small width and height. Setting to 1px / 1em
   // doesn't work as this gives a negative w/h on some browsers.
@@ -981,7 +984,7 @@ function fallbackCopyTextToClipboard(text) {
   textArea.style.height = '2em';
 
   // We don't need padding, reducing the size if it does flash render.
-  textArea.style.padding = 0;
+  textArea.style.padding = '0';
 
   // Clean up any borders.
   textArea.style.border = 'none';
@@ -1171,7 +1174,7 @@ async function hardReload() {
         await db_names.forEach(db => { window.indexedDB.deleteDatabase(db) });
     }
 
-    location.reload(true);
+    location.reload();
 }
 
 
@@ -1182,20 +1185,14 @@ function capitalizeFirst(str) {
 /** https://stackoverflow.com/questions/16839698/jquery-getscript-alternative-in-native-javascript
  *  If we ever want to write something that needs to import other js files
  */
-const getScript = url => new Promise((resolve, reject) => {
+const getScript = url => new Promise<void>((resolve, reject) => {
     const script = document.createElement('script');
     script.src = url;
     script.async = true;
 
     script.onerror = reject;
 
-    script.onload = script.onreadystatechange = function () {
-        const loadState = this.readyState;
-
-        if (loadState && loadState !== 'loaded' && loadState !== 'complete') return
-
-        script.onload = script.onreadystatechange = null;
-
+    script.onload = () => {
         resolve();
     }
 
@@ -1330,10 +1327,10 @@ function gen_slider(min = 0, max = 100, step = 1, default_val = min, id = undefi
     //simple attribute vals
     let slider = document.createElement("input");
     slider.type = "range";
-    slider.min = min;
-    slider.max = max;
-    slider.step = step;
-    slider.value = default_val;
+    slider.min = String(min);
+    slider.max = String(max);
+    slider.step = String(step);
+    slider.value = String(default_val);
     slider.autocomplete = "off";
     if (id) {
         if (document.getElementById(id)) {

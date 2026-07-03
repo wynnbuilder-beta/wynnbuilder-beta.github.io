@@ -6,7 +6,7 @@
  *
  * This script should be loaded at the beginning of every html file.
  */
-export const REDIRECT_DEV_OVERRIDE = true;
+export const REDIRECT_DEV_OVERRIDE = false;
 export const HOST = 'wynnbuilder.github.io';
 
 export const CONFIRMATION_MESSAGE =

@@ -1,4 +1,3 @@
-// @ts-nocheck
 import { ComputeNode } from '@/computation_graph';
 import { calculateSpellDamage } from '@/damage_calc';
 import type { SpellDefinition } from '@/types/stats';
@@ -22,8 +21,8 @@ export class SpellDamageCalcNode extends ComputeNode {
     const stats = input_map.get('stats');
     let display_spell_results = [];
     const spell_result_map = new Map();
-    let use_speed = 'use_atkspd' in spell ? spell.use_atkspd : true;
-    let use_spell = 'scaling' in spell ? spell.scaling === 'spell' : true;
+    let use_speed: boolean | string = 'use_atkspd' in spell ? spell.use_atkspd : true;
+    let use_spell: boolean | string = 'scaling' in spell ? spell.scaling === 'spell' : true;
 
     for (const part of spell_parts) {
       const { name } = part;
@@ -56,8 +55,8 @@ export class SpellDamageCalcNode extends ComputeNode {
           stats,
           weapon,
           part.multipliers,
-          use_spell,
-          !use_speed,
+          Boolean(use_spell),
+          !Boolean(use_speed),
           part_id,
           !use_str,
           ignored_mults,
@@ -85,7 +84,7 @@ export class SpellDamageCalcNode extends ComputeNode {
           }
           heal_mult *= 1 + v / 100;
         }
-        const _heal_amount = part.power * getDefenseStats(stats)[0] * heal_mult;
+        const _heal_amount = (part.power as number) * (getDefenseStats(stats)[0] as number) * heal_mult;
         spell_result = {
           type: 'heal',
           heal_amount: _heal_amount,
@@ -115,6 +114,7 @@ export class SpellDamageCalcNode extends ComputeNode {
           if (!subpart) {
             continue;
           }
+          const hitCount = hits as number;
           if (spell_result.type) {
             if (subpart.type !== spell_result.type) {
               throw 'SpellCalc total subpart type mismatch';
@@ -124,8 +124,8 @@ export class SpellDamageCalcNode extends ComputeNode {
           }
 
           const effective_hits = part.tick_rounding
-            ? 1.0 / (Math.floor(1.0 / hits * 20) * 0.05)
-            : hits;
+            ? 1.0 / (Math.floor(1.0 / hitCount * 20) * 0.05)
+            : hitCount;
           if (spell_result.type === 'damage') {
             for (const key of dam_res_keys) {
               for (const i in spell_result.normal_min) {

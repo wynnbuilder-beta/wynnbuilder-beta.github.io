@@ -6,7 +6,7 @@ import type { AspectDatabase, AspectIdMap, AspectMap, AspectSpec, NoneAspect } f
 import type { PlayerClass } from '@/types/stats';
 import type { JsonPayload, RejectFn } from '@/types/loader';
 
-const ASPECT_DB_VERSION = 36;
+const ASPECT_DB_VERSION = 38;
 
 export let aspects: AspectDatabase = {};
 export let aspect_map = new Map<PlayerClass, AspectMap>();
