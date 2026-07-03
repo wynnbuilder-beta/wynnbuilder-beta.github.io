@@ -1,15 +1,6 @@
 import './bootstrap';
-import { loadLegacyScripts } from '@/lib/loadLegacyScripts';
-import { legacy } from './legacyPaths';
-
-await loadLegacyScripts([
-  legacy.utils,
-  legacy.buildUtils,
-  legacy.icons,
-  legacy.displayConstants,
-  legacy.display,
-  legacy.loadItem,
-  legacy.loadIng,
-  legacy.craft,
-  legacy.crafter,
-]);
+import '@/icons';
+import '@/display_constants';
+import '@/display';
+import '@/craft';
+import '@/crafter';

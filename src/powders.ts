@@ -2,8 +2,7 @@ import { attachGlobals } from './lib/attachGlobals';
 import type { ExpandedItem } from './types/item';
 import type { PowderSpecialEffectMap, PowderStats } from './types/stats';
 import { DAMAGE_KEYS, SKP_ELEMENTS } from './types/stats';
-
-declare function assert(arg: unknown, msg?: string): void;
+import { assert } from './utils';
 
 export const powderIDs = new Map<string, number>();
 export const powderNames = new Map<number, string>();

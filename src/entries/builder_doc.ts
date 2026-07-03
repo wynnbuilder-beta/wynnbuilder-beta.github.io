@@ -1,31 +1,19 @@
 import './bootstrap';
-import { loadLegacyScripts } from '@/lib/loadLegacyScripts';
-import { legacy } from './legacyPaths';
-
-const D3 = 'https://d3js.org/d3.v7.js';
-
-await loadLegacyScripts([
-  legacy.autoComplete,
-  legacy.macy,
-  legacy.utils,
-  legacy.buildUtils,
-  legacy.computationGraph,
-  legacy.icons,
-  legacy.displayConstants,
-  legacy.display,
-  legacy.loadItem,
-  legacy.loadIng,
-  legacy.loadTome,
-  legacy.loadAspect,
-  legacy.custom,
-  legacy.craft,
-  legacy.build,
-  legacy.builderConstants,
-  legacy.buildEncodeDecode,
-  legacy.atree,
-  legacy.aspects,
-  legacy.builderGraph,
-  legacy.builder,
-  D3,
-  legacy.renderComputeGraph,
-]);
+import '@/lib/vendor/autocomplete';
+import '@/lib/vendor/macy';
+import '@/computation_graph';
+import '@/icons';
+import '@/display_constants';
+import '@/display';
+import '@/craft';
+import '@/load_tome';
+import '@/load_aspect';
+import '@/custom';
+import '@/builder/build';
+import '@/builder/builder_constants';
+import '@/builder/build_encode_decode';
+import '@/builder/atree';
+import '@/builder/aspects';
+import '@/builder/builder_graph';
+import '@/builder/builder';
+import '@/debug/render_compute_graph';
