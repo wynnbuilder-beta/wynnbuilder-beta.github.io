@@ -396,7 +396,10 @@ export const ingredientQueryProps = (function () {
   }
 
   function maxId(names: string | string[], idKey: string): void {
-    prop(names, 'number', (i, ie) => (ie.get('ids') as Map<string, Map<string, number>>).get('maxRolls').get(idKey) || 0);
+    prop(names, 'number', (i, ie) => {
+      const ids = ie.get('ids') as Map<string, Map<string, number>> | undefined;
+      return ids?.get('maxRolls')?.get(idKey) ?? 0;
+    });
   }
 
   function map(names: string | string[], comps: QueryProp[], outType: QueryValueType, f: (...args: number[]) => number): void {
@@ -579,9 +582,10 @@ export const queryFuncs: Record<string, QueryFunc> = {
       let max_roll: Map<string, number>;
 
       if (itemExp.has('ids')) {
-        max_roll = (itemExp.get('ids') as Map<string, Map<string, number>>).get('maxRolls');
+        const ids = itemExp.get('ids') as Map<string, Map<string, number>> | undefined;
+        max_roll = ids?.get('maxRolls') ?? new Map();
       } else {
-        max_roll = itemExp.get('maxRolls') as Map<string, number>;
+        max_roll = (itemExp.get('maxRolls') as Map<string, number>) ?? new Map();
       }
 
       if (use_spell) {
