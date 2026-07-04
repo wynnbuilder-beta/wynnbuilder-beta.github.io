@@ -81,7 +81,6 @@ import {
   encodeBuild,
   player_build,
   setBuildPowders,
-  setPlayerBuild,
 } from './build_encode_decode';
 import {
   aspect_fields,
@@ -503,8 +502,6 @@ class BuildEncodeNode extends ComputeNode {
             input_map.get('def'),
             input_map.get('agi')
         ] as SkillpointVector;
-        // TODO: grr global state for copy button..
-        setPlayerBuild(build);
         setBuildPowders(powders);
         return encodeBuild(build, powders, skillpoints, atree, atree_state, aspects);
     }
@@ -1372,9 +1369,9 @@ export function registerBuilderInputNodes(): void {
                 
                 // Radiance only affects the skillpoints granted from items (and consu apparently?)
                 skp_order.forEach((skp, i) => {
-                    const build = player_build as Build;
-                    if ((build.total_item_skillpoints[i] || 0) > 0) {
-                        ret.set(skp, Math.floor((ret.get(skp) || 0) + build.total_item_skillpoints[i] * (boost-1)));
+                    if (!player_build) return;
+                    if ((player_build.total_item_skillpoints[i] || 0) > 0) {
+                        ret.set(skp, Math.floor((ret.get(skp) || 0) + player_build.total_item_skillpoints[i] * (boost-1)));
                     }
                 });
                 return ret;

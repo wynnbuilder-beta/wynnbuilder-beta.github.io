@@ -276,6 +276,32 @@ export const default_abils: Record<PlayerClass, ATreeAbility[]> = {
  * Return:
  * List of atree nodes.
  */
+/** Map ability display names to numeric ids for a class atree (includes defaults). */
+export function buildAbilNameLookup(
+  player_class: PlayerClass,
+  atree_order: ATree,
+): Map<string, number> {
+  const lookup = new Map<string, number>();
+  for (const abil of default_abils[player_class]) {
+    lookup.set(abil.display_name, abil.id);
+  }
+  for (const node of atree_order) {
+    lookup.set(node.ability.display_name, node.ability.id);
+  }
+  return lookup;
+}
+
+/** Resolve a base_abil or dependency reference from aspects/major-id JSON. */
+export function resolveAbilRef(
+  ref: string | number,
+  lookup: Map<string, number>,
+): number | undefined {
+  if (typeof ref === 'number') {
+    return ref;
+  }
+  return lookup.get(ref);
+}
+
 export function get_sorted_class_atree(
   atrees: AtreeDatabase | undefined,
   player_class: string,
@@ -524,6 +550,7 @@ export function registerAtreeGraph(): void {
             const atree_state = input_map.get('atree-state');
             const atree_order = input_map.get('atree');
     
+            const abil_name_lookup = buildAbilNameLookup(player_class, atree_order);
             let abils_merged = new Map();
             for (const abil of default_abils[player_class]) {
                 let tmp_abil = structuredClone(abil);
@@ -538,16 +565,17 @@ export function registerAtreeGraph(): void {
     
             function merge_abil(abil) {
                 if ('base_abil' in abil) {
-                    if (abils_merged.has(abil.base_abil)) {
+                    const base_id = resolveAbilRef(abil.base_abil, abil_name_lookup);
+                    if (base_id !== undefined && abils_merged.has(base_id)) {
                         // Merge abilities.
                         // TODO: What if there is more than one base abil?
-                        let base_abil = abils_merged.get(abil.base_abil);
+                        let base_abil = abils_merged.get(base_id);
                         if (abil.desc) {
                             if (Array.isArray(abil.desc)) { base_abil.desc = base_abil.desc.concat(abil.desc); }
                             else { base_abil.desc.push(abil.desc); }
                         }
     
-                        base_abil.effects = base_abil.effects.concat(abil.effects);
+                        base_abil.effects = base_abil.effects.concat(abil.effects ?? []);
                         for (let propname in abil.properties) {
                             if (propname in base_abil.properties) {
                                 base_abil.properties[propname] += abil.properties[propname];
@@ -564,6 +592,19 @@ export function registerAtreeGraph(): void {
                     }
                     abils_merged.set(abil.id, tmp_abil);
                 }
+            }
+    
+            function dependenciesSatisfied(dependencies: (string | number)[] | undefined): boolean {
+                if (dependencies === undefined) {
+                    return true;
+                }
+                for (const dep_ref of dependencies) {
+                    const dep_id = resolveAbilRef(dep_ref, abil_name_lookup);
+                    if (dep_id === undefined || !atree_state.get(dep_id)?.active) {
+                        return false;
+                    }
+                }
+                return true;
             }
     
             for (const node of atree_order) {
@@ -583,15 +624,8 @@ export function registerAtreeGraph(): void {
                     continue;
                 }
                 for (const abil of aspect.tiers[tier_num - 1].abilities) {
-                    if (abil.dependencies !== undefined) {
-                        let dep_satisfied = true;
-                        for (const dep_id of abil.dependencies) {
-                            if (!atree_state.get(dep_id).active) {
-                                dep_satisfied = false;
-                                break;
-                            }
-                        }
-                        if (!dep_satisfied) { continue; }
+                    if (!dependenciesSatisfied(abil.dependencies)) {
+                        continue;
                     }
                     merge_abil(abil); 
                 }
@@ -616,16 +650,8 @@ export function registerAtreeGraph(): void {
     
                             // Major IDs can have ability dependencies.
                             // By default they are always on.
-                            if (abil.dependencies !== undefined) {
-    
-                                let dep_satisfied = true;
-                                for (const dep_id of abil.dependencies) {
-                                    if (!atree_state.get(dep_id).active) {
-                                        dep_satisfied = false;
-                                        break;
-                                    }
-                                }
-                                if (!dep_satisfied) { continue; }
+                            if (!dependenciesSatisfied(abil.dependencies)) {
+                                continue;
                             }
                             merge_abil(abil);
                         }

@@ -20,6 +20,13 @@ export type ItemSearchResult = {
   sortKeys: unknown[];
 };
 
+/** Ingredient list page uses the same result shape with narrowed entry types. */
+export type IngredientSearchResult = {
+  item: Ingredient;
+  itemExp: ExpandedIngredient;
+  sortKeys: unknown[];
+};
+
 export type ItemSearchConfig = {
   mappings: {
     translate: Record<string, string>;
