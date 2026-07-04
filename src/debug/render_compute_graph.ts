@@ -250,7 +250,11 @@ function create_svg(data: { nodes: GraphNode[]; links: GraphLink[] }, redraw_fun
 
 set_export_button(svg, 'saveButton', 'saveLink');
 
+let renderComputeGraphPageInitialized = false;
+
 export async function initRenderComputeGraphPage(): Promise<void> {
+  if (renderComputeGraphPageInitialized) return;
+  renderComputeGraphPageInitialized = true;
   if (tryGetEditIdOutput() === undefined) {
     throw new Error('Call initBuilderPage() before initRenderComputeGraphPage()');
   }

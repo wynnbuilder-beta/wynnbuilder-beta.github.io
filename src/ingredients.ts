@@ -265,9 +265,15 @@ configureItemSearch({
   getStringFilterValues: () => [],
 });
 
+let ingredientsPageInitialized = false;
+
 export async function initIngredientsPage(): Promise<void> {
-  await ingredient_loader.load_init();
-  await item_loader.load_init();
-  await load_major_id_data(wynn_version_names[WYNN_VERSION_LATEST]);
+  if (ingredientsPageInitialized) return;
+  ingredientsPageInitialized = true;
+  await Promise.all([
+    ingredient_loader.load_init(),
+    item_loader.load_init(),
+    load_major_id_data(wynn_version_names[WYNN_VERSION_LATEST]),
+  ]);
   init_search();
 }

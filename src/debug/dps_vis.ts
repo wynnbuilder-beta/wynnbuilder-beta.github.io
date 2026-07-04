@@ -343,7 +343,11 @@ function wireDpsVisEvents(): void {
   document.getElementById('versionDropdown')?.addEventListener('change', changeVersion);
 }
 
+let dpsVisPageInitialized = false;
+
 export async function initDpsVisPage(): Promise<void> {
+  if (dpsVisPageInitialized) return;
+  dpsVisPageInitialized = true;
   setupDpsVisDom();
   const versionDropdown = document.getElementById('versionDropdown')!;
   for (let i = 0; i < wynn_version_names.length; i++) {

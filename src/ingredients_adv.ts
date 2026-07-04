@@ -71,9 +71,15 @@ configureAdvSearch({
   getQueryIdentifiers,
 });
 
+let ingredientsAdvPageInitialized = false;
+
 export async function initIngredientsAdvPage(): Promise<void> {
-  await ingredient_loader.load_init();
-  await item_loader.load_init();
-  await load_major_id_data(wynn_version_names[WYNN_VERSION_LATEST]);
+  if (ingredientsAdvPageInitialized) return;
+  ingredientsAdvPageInitialized = true;
+  await Promise.all([
+    ingredient_loader.load_init(),
+    item_loader.load_init(),
+    load_major_id_data(wynn_version_names[WYNN_VERSION_LATEST]),
+  ]);
   init_items_adv();
 }

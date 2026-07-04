@@ -62,8 +62,14 @@ configureAdvSearch({
   getQueryIdentifiers,
 });
 
+let itemsAdvPageInitialized = false;
+
 export async function initItemsAdvPage(): Promise<void> {
-  await item_loader.load_init();
-  await load_major_id_data(wynn_version_names[WYNN_VERSION_LATEST]);
+  if (itemsAdvPageInitialized) return;
+  itemsAdvPageInitialized = true;
+  await Promise.all([
+    item_loader.load_init(),
+    load_major_id_data(wynn_version_names[WYNN_VERSION_LATEST]),
+  ]);
   init_items_adv();
 }

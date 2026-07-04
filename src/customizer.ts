@@ -845,7 +845,11 @@ function full_range_to_base(min: number, max: number): number | null {
   return null;
 }
 
+let customPageInitialized = false;
+
 export async function initCustomPage(): Promise<void> {
+  if (customPageInitialized) return;
+  customPageInitialized = true;
   await Promise.all([
     ingredient_loader.load_init(),
     item_loader.load_init(),

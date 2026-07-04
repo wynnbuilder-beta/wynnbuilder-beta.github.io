@@ -720,6 +720,10 @@ function eraseTerritoryStats(): void {
   terr_stats_elem.innerHTML = '';
 }
 
+let mapPageInitialized = false;
+
 export async function initMapPage(): Promise<void> {
+  if (mapPageInitialized) return;
+  mapPageInitialized = true;
   await load_map_init(init_map);
 }

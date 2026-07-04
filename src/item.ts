@@ -75,9 +75,12 @@ export function toggleAmps(button_id: number): void {
   displayIDProbabilities('identification-probabilities', item, amp_state);
 }
 
+let itemPageInitialized = false;
+
 export async function initItemPage(): Promise<void> {
+  if (itemPageInitialized) return;
+  itemPageInitialized = true;
   const latest_ver_name = wynn_version_names[WYNN_VERSION_LATEST];
-  const load_promises = [item_loader.load_init(), load_major_id_data(latest_ver_name)];
-  await Promise.all(load_promises);
+  await Promise.all([item_loader.load_init(), load_major_id_data(latest_ver_name)]);
   init_itempage();
 }

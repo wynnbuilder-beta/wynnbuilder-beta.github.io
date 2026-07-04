@@ -298,7 +298,11 @@ configureItemSearch({
   getWeaponNames,
 });
 
+let itemsPageInitialized = false;
+
 export async function initItemsPage(): Promise<void> {
+  if (itemsPageInitialized) return;
+  itemsPageInitialized = true;
   await Promise.all([
     item_loader.load_init(),
     load_major_id_data(wynn_version_names[WYNN_VERSION_LATEST]),
