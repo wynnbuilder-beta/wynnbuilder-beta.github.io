@@ -37,7 +37,8 @@ import { POWDER_TIERS, powderSpecialStats } from './powders';
 import { make_elem, setHTML, ROMAN_NUMERAL_MAP } from './utils';
 import { tryGetAtreeMerge } from './builder/atree';
 import { getDefenseStats } from './builder/defense_stats';
-import type { ExpandedItem } from './types/item';
+import type { ExpandedItem, SetDefinition } from './types/item';
+import { isSetBonusStatValue } from './types/item';
 import type { SpellDefinition } from './types/stats';
 
 type DisplayStyle = 'positive' | 'negative' | null;
@@ -46,11 +47,6 @@ interface BuildDisplayContext {
   activeSetCounts: Iterable<[string, number]>;
   total_skillpoints: number[];
   base_skillpoints: number[];
-}
-
-interface SetValue {
-  bonuses: Record<string, number>[];
-  hidden?: boolean;
 }
 
 type DisplayMap = Map<string, any>;
@@ -95,7 +91,7 @@ export function displaySetBonuses(parent_id: string, build: BuildDisplayContext)
     parent_div.append(set_summary_elem);
 
     for (const [setName, count] of build.activeSetCounts) {
-        const active_set = sets.get(setName) as unknown as SetValue | undefined;
+        const active_set = sets.get(setName);
         if (!active_set || active_set.hidden) { continue; }
 
         let set_elem = make_elem('p', [], { id: "set-" + setName });
@@ -110,12 +106,14 @@ export function displaySetBonuses(parent_id: string, build: BuildDisplayContext)
         mock_item.set("minRolls", mock_minRolls);
         mock_item.set("maxRolls", mock_maxRolls);
         for (const id in bonus) {
+            const val = bonus[id];
+            if (!isSetBonusStatValue(val)) continue;
             if (rolledIDs.includes(id)) {
-                mock_minRolls.set(id, bonus[id]);
-                mock_maxRolls.set(id, bonus[id]);
+                mock_minRolls.set(id, val);
+                mock_maxRolls.set(id, val);
             }
             else {
-                mock_item.set(id, bonus[id]);
+                mock_item.set(id, val);
             }
         }
         mock_item.set("powders", []);
@@ -1059,7 +1057,7 @@ export function displayExpandedIngredient(ingred, parent_id) {
     }
 }
 
-export function displayExpandedSet(set_name: string, set_value: SetValue, parent_id: string, shown_tier: number): void {
+export function displayExpandedSet(set_name: string, set_value: SetDefinition, parent_id: string, shown_tier: number): void {
     let display_commands = sq2_item_display_commands;
 
     // Clear the parent div.
@@ -1099,11 +1097,13 @@ export function displayExpandedSet(set_name: string, set_value: SetValue, parent
                 div.appendChild(title_elem);
             }
             else if (nonRolledIDs.includes(id) || rolledIDs.includes(id)) {
-                if (set_value.bonuses[shown_tier] === undefined || set_value.bonuses[shown_tier][id] === undefined)
-                    continue;
+                const tierBonus = set_value.bonuses[shown_tier];
+                if (tierBonus === undefined) continue;
+                const statVal = tierBonus[id];
+                if (!isSetBonusStatValue(statVal)) continue;
 
                 let style = "positive";
-                if (set_value.bonuses[shown_tier][id] < 0) {
+                if (statVal < 0) {
                     style = "negative";
                 }
                 if (reversedIDs.includes(id)) {
@@ -1111,7 +1111,7 @@ export function displayExpandedSet(set_name: string, set_value: SetValue, parent
                 }
                 p_elem = document.createElement("div");
                 p_elem.classList.add("col", "text-nowrap");
-                displayFixedID(p_elem, id, set_value.bonuses[shown_tier][id], elemental_format, style);
+                displayFixedID(p_elem, id, statVal, elemental_format, style);
                 parent_div.appendChild(p_elem);
                 last_command = id;
             }

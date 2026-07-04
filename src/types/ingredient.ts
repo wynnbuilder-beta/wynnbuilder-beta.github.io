@@ -2,28 +2,70 @@
  * Ingredient and recipe data shapes.
  */
 
+export interface IngredientStatRange {
+  minimum: number;
+  maximum: number;
+}
+
+export interface IngredientPosMods {
+  left: number;
+  right: number;
+  above: number;
+  under: number;
+  touching: number;
+  notTouching: number;
+}
+
 export interface Ingredient {
   name?: string;
   displayName?: string;
+  type?: string;
+  icon?: string;
+  emblem?: string;
   tier?: number | string;
-  skills?: number[];
-  ids?: Record<string, number>;
-  [key: string]: unknown;
+  lvl?: number;
+  skills?: string[];
+  ids?: Record<string, IngredientStatRange>;
+  consumableIDs?: Record<string, number>;
+  itemIDs?: Record<string, number>;
+  posMods?: IngredientPosMods;
+  id?: number;
+  remapID?: unknown;
+  isPowder?: boolean;
+  pid?: number;
+}
+
+export interface RecipeMaterial {
+  item: string;
+  amount: number;
+}
+
+export interface RecipeStatRange {
+  minimum: number;
+  maximum: number;
 }
 
 export interface Recipe {
   name?: string;
-  materials?: Record<string, number>;
-  [key: string]: unknown;
+  type?: string;
+  skill?: string;
+  materials?: RecipeMaterial[];
+  healthOrDamage?: RecipeStatRange;
+  durability?: RecipeStatRange;
+  duration?: RecipeStatRange;
+  basicDuration?: RecipeStatRange;
+  lvl?: RecipeStatRange;
+  id?: number;
 }
 
-export type IngredientMap = Map<string, Ingredient>;
-export type RecipeMap = Map<string, Recipe>;
+/** displayName → ingredient from load_ing.init_maps(). */
+export type IngredientLookupMap = Map<string, Ingredient>;
+export type RecipeLookupMap = Map<string, Recipe>;
 
-export interface IngredientRemotePayload {
-  [id: string]: Ingredient;
-}
+/** Remote baseline/compressed payload — array of ingredients. */
+export type IngredientRemotePayload = Ingredient[];
 
 export interface RecipeRemotePayload {
-  recipes: Record<string, Recipe>;
+  recipes: Recipe[];
+  version?: number | string;
 }

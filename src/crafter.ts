@@ -145,7 +145,7 @@ export function calculateCraft(): void {
 
   let recipeName = getValue('recipe-choice') === '' ? 'Potion' : getValue('recipe-choice');
   const levelrange = getValue('level-choice') === '' ? '117-119' : getValue('level-choice');
-  const maxlevel = levelrange.split('-').slice(1);
+  const maxlevel = Number(levelrange.split('-')[1]);
   const recipe = expandRecipe(recipeMap.get(recipeName + '-' + levelrange)!);
   const mat_tiers: number[] = [];
   for (let i = 1; i < 3; i++) {
@@ -216,7 +216,7 @@ export function calculateCraft(): void {
         '!';
       warning_elem.appendChild(p);
     }
-    if ((ingred.get('lvl') as number) > (maxlevel as unknown as number)) {
+    if ((ingred.get('lvl') as number) > maxlevel) {
       const p = document.createElement('p');
       p.textContent =
         'WARNING: ' + ingred.get('name') + ' is too high level for level range ' + levelrange + '!';

@@ -21,9 +21,9 @@ function displayAllSetBonuses(parent_id: string, set_name: unknown): void {
   if (setValue) {
     displayExpandedSet(
       set_name as string,
-      setValue as unknown as Parameters<typeof displayExpandedSet>[1],
+      setValue,
       parent_id,
-      (setValue as { bonuses: unknown[] }).bonuses.length - 1,
+      setValue.bonuses.length - 1,
     );
   }
 }

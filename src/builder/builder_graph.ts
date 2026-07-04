@@ -33,7 +33,7 @@ import {
   idSuffixes,
 } from '@/display_constants';
 import { itemBGPositions } from '@/display';
-import { itemMap, none_items, sets } from '@/load_item';
+import { itemMap, none_items, getActiveSetBonus } from '@/load_item';
 import { recipeMap } from '@/load_ing';
 import { tomeMap, none_tomes } from '@/load_tome';
 import { manaInputChanged, initManaCalcListeners } from '@/mana_calc';
@@ -111,19 +111,7 @@ import {
   zip3,
 } from '@/utils';
 import type { ATree, RenderedATree } from '@/types/atree';
-import type { SetBonusTier } from '@/types/item';
 import type { SkillpointVector, SpellDefinition } from '@/types/stats';
-
-interface SetBonusEntry {
-  bonuses: SetBonusTier[];
-}
-
-function getActiveSetBonus(setName: string, count: number): SetBonusTier | undefined {
-  const setData = sets.get(setName);
-  if (!setData) return undefined;
-  if (Array.isArray(setData)) return setData[count - 1];
-  return (setData as unknown as SetBonusEntry).bonuses?.[count - 1];
-}
 
 const preScaleAggNodeRef = createRegistered<ComputeNode>('pre_scale_agg_node');
 export function getPreScaleAggNode(): ComputeNode { return preScaleAggNodeRef.get(); }

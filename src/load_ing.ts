@@ -6,6 +6,10 @@ import type { JsonPayload, RejectFn } from '@/types/loader';
 
 const ING_DB_VERSION = 53;
 
+function asIngredientList(source: Ingredient[] | Record<string, Ingredient>): Ingredient[] {
+  return Array.isArray(source) ? source : Object.values(source);
+}
+
 const ROMAN_NUMERAL_MAP = new Map<number, string>([
   [1, 'I'],
   [2, 'II'],
@@ -16,8 +20,8 @@ const ROMAN_NUMERAL_MAP = new Map<number, string>([
   [7, 'VII'],
 ]);
 
-export let ings: Ingredient[] | Record<string, Ingredient>;
-export let recipes: Recipe[] | Record<string, Recipe>;
+export let ings: Ingredient[];
+export let recipes: Recipe[];
 
 export let ingMap = new Map<string, Ingredient>();
 export let ingList: string[] = [];
@@ -57,10 +61,10 @@ export class IngredientLoader extends Loader {
   }
 
   async process_old_version(data: JsonPayload) {
-    const payload = data as [Record<string, Ingredient>, RecipeRemotePayload];
-    ings = payload[0];
-    for (const id in ings) {
-      clean_ing(ings[id]);
+    const payload = data as [Ingredient[] | Record<string, Ingredient>, RecipeRemotePayload];
+    ings = asIngredientList(payload[0]);
+    for (const ing of ings) {
+      clean_ing(ing);
     }
     recipes = payload[1].recipes;
   }
@@ -73,20 +77,20 @@ export class IngredientLoader extends Loader {
   }
 
   process_remote(data: JsonPayload, tsx: IDBTransaction, reject: RejectFn) {
-    const payload = data as [Record<string, Ingredient>, RecipeRemotePayload];
+    const payload = data as [Ingredient[], RecipeRemotePayload];
     ings = payload[0];
     recipes = payload[1].recipes;
     const ings_store = tsx.objectStore('ing_db');
-    for (const id in ings) {
-      clean_ing(ings[id]);
-      const add_ing_req = ings_store.add(ings[id], id);
+    for (const [id, ing] of ings.entries()) {
+      clean_ing(ing);
+      const add_ing_req = ings_store.add(ing, id);
       add_ing_req.onerror = (err) => {
         reject('ADD INGREDIENT ERROR? ' + err);
       };
     }
     const recipes_store = tsx.objectStore('recipe_db');
-    for (const recipe in recipes) {
-      recipes_store.add((recipes as Record<string, Recipe>)[recipe], recipe);
+    for (const [id, recipe] of recipes.entries()) {
+      recipes_store.add(recipe, id);
       (recipes_store as unknown as { onerror: (err: Event) => void }).onerror = (err) => {
         reject('ADD INGREDIENT ERROR? ' + err);
       };
@@ -168,12 +172,12 @@ export class IngredientLoader extends Loader {
       }
     }
 
-    for (const ing of ings as Ingredient[]) {
+    for (const ing of ings) {
       ingMap.set(ing.displayName!, ing);
       ingList.push(ing.displayName!);
       ingIDMap.set(ing.id as number, ing.displayName!);
     }
-    for (const recipe of recipes as Recipe[]) {
+    for (const recipe of recipes) {
       recipeMap.set(recipe.name!, recipe);
       recipeList.push(recipe.name!);
       recipeIDMap.set(recipe.id as number, recipe.name!);

@@ -136,7 +136,7 @@ export const CRAFTER_ENC: CrafterEnc = {
 // An array which is the inverse of CRAFTER_ENC.CRAFTED_STK_SPD to map ID => name
 CRAFTER_ENC.CRAFTED_ATK_SPD_ID = Object.keys(CRAFTER_ENC.CRAFTED_ATK_SPD).slice(0, -1);
 
-type IngredientMap = Map<string, unknown>;
+type ExpandedIngredientMap = Map<string, unknown>;
 
 /**
  * @param craft
@@ -204,7 +204,7 @@ export function decodeCraft({ cursor, hash }: DecodeCraftArgs): Craft | undefine
   cursor.advanceBy(CRAFTER_ENC.CRAFTED_VERSION_BITLEN);
 
   // Decode ingredients
-  const ings: IngredientMap[] = [];
+  const ings: ExpandedIngredientMap[] = [];
   for (let i = 0; i < CRAFTER_ENC.NUM_INGS; ++i) {
     const ing = ingMap.get(ingIDMap.get(cursor.advanceBy(CRAFTER_ENC.ING_ID_BITLEN))!);
     ings.push(expandIngredient(ing!));
@@ -268,7 +268,7 @@ export function getCraftFromHash(hash: string): Craft | undefined {
     const version = name.substring(0, 1);
     name = name.substring(1);
     if (version === '1') {
-      const ingreds: IngredientMap[] = [];
+      const ingreds: ExpandedIngredientMap[] = [];
       for (let i = 0; i < 6; i++) {
         ingreds.push(
           expandIngredient(ingMap.get(ingIDMap.get(Base64.toInt(name.substring(2 * i, 2 * i + 2)))!)!),
@@ -305,7 +305,7 @@ function statStr(map: ExpandedItem, key: string): string {
 export class Craft {
   recipe: ExpandedItem;
   mat_tiers: number[];
-  ingreds: IngredientMap[];
+  ingreds: ExpandedIngredientMap[];
   statMap: ExpandedItem;
   atkSpd: CraftAttackSpeed;
   hash: string;
@@ -318,7 +318,7 @@ export class Craft {
   constructor(
     recipe: ExpandedItem,
     mat_tiers: number[],
-    ingreds: IngredientMap[],
+    ingreds: ExpandedIngredientMap[],
     attackSpeed: CraftAttackSpeed,
     hash: string,
   ) {

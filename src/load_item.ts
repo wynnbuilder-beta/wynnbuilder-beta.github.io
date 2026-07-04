@@ -1,12 +1,18 @@
 import { item_fields, item_types, str_item_fields } from '@/build_utils';
 import { Loader } from '@/loader';
-import type { ItemRemotePayload, ItemStatMap, MajorId, SetBonusData } from '@/types/item';
+import type { ItemRemotePayload, ItemStatMap, MajorId, SetBonusData, SetBonusTier } from '@/types/item';
 import type { JsonPayload, RejectFn } from '@/types/loader';
 
 const ITEM_DB_VERSION = 195;
 
 export let items: ItemStatMap[];
 export let sets = new Map<string, SetBonusData>();
+
+export function getActiveSetBonus(setName: string, count: number): SetBonusTier | undefined {
+  const setData = sets.get(setName);
+  if (!setData || count < 1) return undefined;
+  return setData.bonuses[count - 1];
+}
 export let itemMap = new Map<string, ItemStatMap>();
 export let idMap = new Map<number, string>();
 export let redirectMap = new Map<number, string>();
@@ -154,8 +160,7 @@ export class ItemLoader extends Loader {
       }
     }
     for (const [set_name, set_data] of sets) {
-      const set_items = (set_data as { items: string[] }).items;
-      for (const item_name of set_items) {
+      for (const item_name of set_data.items) {
         itemMap.get(item_name).set = set_name;
       }
     }

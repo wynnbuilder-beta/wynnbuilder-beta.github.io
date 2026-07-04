@@ -8,15 +8,9 @@ import {
 } from './load_item';
 import { make_elem } from './utils';
 
-interface SetDisplayData {
-  hidden?: boolean;
-  bonuses: unknown[];
-}
-
 function renderSets(): void {
   const set_parent = document.getElementById('search-results')!;
-  for (const [key, value] of sets) {
-    const setData = value as unknown as SetDisplayData;
+  for (const [key, setData] of sets) {
     if (setData.hidden === true) {
       continue;
     }
@@ -33,7 +27,7 @@ function renderSets(): void {
 
     displayExpandedSet(
       key,
-      setData as Parameters<typeof displayExpandedSet>[1],
+      setData,
       bckgrdbox.id,
       setData.bonuses.length - 1,
     );

@@ -23,6 +23,7 @@ import { NUM_ASPECTS } from '@/types/aspect';
 import type { AspectTuple } from '@/types/aspect';
 import type { ATree, ATreeNode, RenderedATree } from '@/types/atree';
 import type { BuildItemRef, EncodingConstants, PlayerBuild } from '@/types/build';
+import { TOME_SLOT_COUNT } from '@/types/build';
 import type { DecodedSkillpoints, SkillpointVector } from '@/types/stats';
 import type { PlayerClass } from '@/types/stats';
 import {
@@ -568,12 +569,9 @@ function decodeTomes(cursor: BitVectorCursor): Array<string | null> {
             tomes.push(null);
             break;
           case D.TOME_SLOT_FLAG.USED: {
-            let id = cursor.advanceBy(D.TOME_ID_BITLEN);
-            if (tomeRedirectMap.has(id)) {
-              tomes.push(tomeIDMap.get(tomeRedirectMap.get(id)!));
-            } else {
-              tomes.push(tomeIDMap.get(id)!);
-            }
+            const id = cursor.advanceBy(D.TOME_ID_BITLEN);
+            const lookupId = tomeRedirectMap.has(id) ? tomeRedirectMap.get(id)! : id;
+            tomes.push(tomeIDMap.get(lookupId) ?? null);
             break;
           }
         }
@@ -646,7 +644,9 @@ function decodeAspects(cursor: BitVectorCursor, cls: PlayerClass): Array<[string
           case D.ASPECT_SLOT_FLAG.USED: {
             const aspectID = cursor.advanceBy(D.ASPECT_ID_BITLEN);
             const aspectTier = cursor.advanceBy(D.ASPECT_TIER_BITLEN);
-            aspects.push([aspect_id_map.get(cls)!.get(aspectID)!.displayName, aspectTier + 1]);
+            const clsAspects = aspect_id_map.get(cls);
+            const aspect = clsAspects?.get(aspectID);
+            aspects.push(aspect ? [aspect.displayName, aspectTier + 1] : null);
             break;
           }
         }
@@ -798,7 +798,7 @@ function decodePowdersLegacy(powder_info: string): [string[], string] {
 export async function decodeHashLegacy(url_tag: string): Promise<DecodedSkillpoints> {
   //default values
   const equipment: Array<string | null> = [null, null, null, null, null, null, null, null, null];
-  const tomes: Array<string | null> = [null, null, null, null, null, null, null, null];
+  const tomes: Array<string | null> = Array(TOME_SLOT_COUNT).fill(null);
   let powdering = ['', '', '', '', ''];
   const info = url_tag.split('_');
   const version = info[0];
