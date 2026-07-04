@@ -1212,10 +1212,12 @@ const buildDispNodeRef = createRegistered<BuildDisplayNode>('build_disp_node');
 export function getBuildDispNode(): BuildDisplayNode { return buildDispNodeRef.get(); }
 export function tryGetBuildDispNode(): BuildDisplayNode | undefined { return buildDispNodeRef.tryGet(); }
 
-let graphRegistered = false;
+let builderInputNodesRegistered = false;
 
-export function registerBuilderGraph(): void {
-    if (graphRegistered) return;
+/** Register builder-only input nodes (armor powder, boosts, raid buff, powder special, radiance). */
+export function registerBuilderInputNodes(): void {
+    if (builderInputNodesRegistered) return;
+    builderInputNodesRegistered = true;
 
     armorPowderNodeRef.set(new (class extends ComputeNode {
         constructor() { super('builder-armor-powder-input'); }
@@ -1232,6 +1234,13 @@ export function registerBuilderGraph(): void {
         }
     })());
 
+    const boostToggleElems = new Map<string, HTMLElement>();
+    for (const key of damageMultipliers.keys()) {
+        const elem = document.getElementById(key + "-boost");
+        if (elem) boostToggleElems.set(key, elem);
+    }
+    const judgementBoostElem = document.getElementById('judgement-boost');
+
     boostsNodeRef.set(new (class extends ComputeNode {
         constructor() { super('builder-boost-input'); }
 
@@ -1242,7 +1251,7 @@ export function registerBuilderGraph(): void {
             let def_boost = 0;
             let weaken_boost = 0;
             for (const [key, value] of damageMultipliers) {
-                let elem = document.getElementById(key + "-boost");
+                const elem = boostToggleElems.get(key);
                 if (!elem) {
                     continue;
                 }
@@ -1261,7 +1270,7 @@ export function registerBuilderGraph(): void {
             res.set('defMult.Potion', 100 * def_boost);
             res.set('defMult.AbilityWeaken', 100 * weaken_boost);
 
-            if (document.getElementById('judgement-boost')?.classList.contains("toggleOn")) {
+            if (judgementBoostElem?.classList.contains("toggleOn")) {
                 res.set('damMult.Judgement', 20);
                 res.set('defMult.Judgement', 20);
             }
@@ -1317,22 +1326,26 @@ export function registerBuilderGraph(): void {
         }
     })());
 
+    const radianceBoostElem = document.getElementById('radiance-boost')!;
+    const divineHonorBoostElem = document.getElementById('divinehonor-boost')!;
+    const shineBoostElem = document.getElementById('shine-boost')!;
+
     radianceNodeRef.set(new (class extends ComputeNode {
         constructor() { super('radiance-node->:('); }
 
         compute_func(input_map) {
             const statmap = [...input_map.values()][0] as Map<string, number>;
             var boost = 1;
-            if (document.getElementById('radiance-boost').classList.contains("toggleOn")) {
+            if (radianceBoostElem.classList.contains("toggleOn")) {
                 boost += 0.15;
             }
-            if (document.getElementById('divinehonor-boost').classList.contains("toggleOn")) {
+            if (divineHonorBoostElem.classList.contains("toggleOn")) {
                 boost += 0.05;
             }
-            if (document.getElementById('shine-boost').classList.contains("toggleOn")) {
+            if (shineBoostElem.classList.contains("toggleOn")) {
                 boost += 0.05;
             }
-            if (document.getElementById('judgement-boost').classList.contains("toggleOn")) {
+            if (judgementBoostElem?.classList.contains("toggleOn")) {
                 boost = 1.4;
             }
 
@@ -1365,18 +1378,23 @@ export function registerBuilderGraph(): void {
             }
         }
     })());
+}
 
+/** Register all builder compute graph nodes (input nodes + ability tree). */
+export function registerBuilderGraph(): void {
+    registerBuilderInputNodes();
     registerAtreeGraph();
-    graphRegistered = true;
 }
 
 let graphWired = false;
 
 /**
+ * Wire registered builder nodes into the compute graph and run the initial update cascade.
+ *
  * Parameters:
- *  save_skp:   bool    True if skillpoints are modified away from skp engine defaults.
+ *  skillpoints: skillpoint overrides from decodeHash(), or null for defaults.
  */
-export function builder_graph_init(skillpoints: number[] | null) {
+export function wireBuilderGraph(skillpoints: number[] | null) {
     if (graphWired) return;
     graphWired = true;
 
