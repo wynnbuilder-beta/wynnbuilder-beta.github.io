@@ -2,6 +2,7 @@
  * Core item and set data shapes.
  */
 
+import type { ATreeAbility } from './atree';
 import type { ItemTier, SkillpointVector } from './stats';
 
 export interface ItemStatMap extends Record<string, unknown> {
@@ -46,10 +47,15 @@ export function isSetBonusStatValue(value: unknown): value is number {
   return typeof value === 'number';
 }
 
+export interface MajorIdAbility extends ATreeAbility {
+  class?: string;
+}
+
 export interface MajorId {
   displayName: string;
   description: string;
-  abilities: unknown[];
+  hidden?: boolean;
+  abilities: MajorIdAbility[];
 }
 
 export interface ItemRemotePayload {

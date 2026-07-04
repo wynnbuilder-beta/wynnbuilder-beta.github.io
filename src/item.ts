@@ -16,11 +16,12 @@ import { displayExpandedItem, displayExpandedSet } from '@/display';
 import { apply_weapon_powders } from '@/powders';
 import type { ExpandedItem } from '@/types/item';
 
-function displayAllSetBonuses(parent_id: string, set_name: unknown): void {
-  const setValue = sets.get(set_name as string);
+function displayAllSetBonuses(parent_id: string, set_name: string | null | undefined): void {
+  if (!set_name) return;
+  const setValue = sets.get(set_name);
   if (setValue) {
     displayExpandedSet(
-      set_name as string,
+      set_name,
       setValue,
       parent_id,
       setValue.bonuses.length - 1,
@@ -53,7 +54,7 @@ function init_itempage(): void {
   displayAdditionalInfo('additional-info', item);
   displayIDCosts('identification-costs', item);
   if (item.get('set') && sets.get(item.get('set') as string)) {
-    displayAllSetBonuses('set-bonus-info', item.get('set'));
+    displayAllSetBonuses('set-bonus-info', item.get('set') as string | null | undefined);
   }
   displayIDProbabilities('identification-probabilities', item, amp_state);
 }

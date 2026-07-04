@@ -7,11 +7,13 @@ import {
   baseDamageMultiplier,
   skillpoint_damage_mult,
   skillPointsToPercentage,
+  statNum,
 } from './build_utils';
 import { damage_keys, damage_present_key } from './powders';
 import type { ExpandedItem } from './types/item';
 import type {
   AttackSpeed,
+  BuildStatMap,
   DamageRange,
   SpellDamageResult,
   SpellDefinition,
@@ -21,10 +23,6 @@ import { SKP_ELEMENTS, SKP_ORDER } from './types/stats';
 
 type DamagePair = DamageRange;
 type BaseDpsResult = number | DamageRange;
-
-function statNum(stats: Map<string, unknown>, key: string): number {
-  return (stats.get(key) as number) ?? 0;
-}
 
 export function get_base_dps(item: ExpandedItem): BaseDpsResult {
   const attack_speed_mult = baseDamageMultiplier[attackSpeeds.indexOf(item.get('atkSpd') as AttackSpeed)];
@@ -50,7 +48,7 @@ export function get_base_dps(item: ExpandedItem): BaseDpsResult {
 }
 
 export function calculateSpellDamage(
-  stats: Map<string, unknown>,
+  stats: BuildStatMap,
   weapon: ExpandedItem,
   _conversions: number[],
   use_spell_damage: boolean,
@@ -136,7 +134,7 @@ export function calculateSpellDamage(
   const skill_boost = [0];
   for (let i in SKP_ORDER) {
     const skp = SKP_ORDER[Number(i)];
-    skill_boost.push(skillPointsToPercentage(stats.get(skp) as number) * skillpoint_damage_mult[Number(i)]);
+    skill_boost.push(skillPointsToPercentage(statNum(stats, skp)) * skillpoint_damage_mult[Number(i)]);
   }
   const static_boost = (statNum(stats, specific_boost_str.toLowerCase() + 'Pct') + statNum(stats, 'damPct')) / 100;
 
@@ -200,7 +198,7 @@ export function calculateSpellDamage(
   const total_dam_norm: DamageRange = [0, 0];
   const total_dam_crit: DamageRange = [0, 0];
   const damages_results: [number, number, number, number][] = [];
-  const mult_map = stats.get('damMult') as Map<string, number>;
+  const mult_map = stats.get('damMult');
   let damage_mult = 1;
 
   const ele_damage_mult = [1, 1, 1, 1, 1, 1];
@@ -230,7 +228,7 @@ export function calculateSpellDamage(
       damage_mult *= 1 + v / 100;
     }
   }
-  const crit_mult = ignore_str ? 0 : 1 + (stats.get('critDamPct') as number) / 100;
+  const crit_mult = ignore_str ? 0 : 1 + statNum(stats, 'critDamPct') / 100;
 
   for (let i in damage_elements) {
     damages[Number(i)][0] *= ele_damage_mult[Number(i)];

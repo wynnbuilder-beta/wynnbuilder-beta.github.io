@@ -1,7 +1,9 @@
-import { ComputeNode } from '@/computation_graph';
+import { ComputeNode, getComputeInput, type ComputeInputMap } from '@/computation_graph';
 import { calculateSpellDamage } from '@/damage_calc';
-import type { SpellDefinition } from '@/types/stats';
+import type { SpellDefinition, BuildStatMap } from '@/types/stats';
+import type { ExpandedItem } from '@/types/item';
 import { getDefenseStats } from './defense_stats';
+import type { Build } from './build';
 
 /**
  * Compute spell damage of spell parts.
@@ -14,11 +16,12 @@ export class SpellDamageCalcNode extends ComputeNode {
     this.spell = spell;
   }
 
-  compute_func(input_map) {
-    const weapon = input_map.get('build').weapon.statMap;
+  compute_func(input_map: ComputeInputMap) {
+    const build = getComputeInput<Build>(input_map, 'build');
+    const weapon = build.weapon.statMap as ExpandedItem;
     const spell = this.spell;
     const spell_parts = spell.parts;
-    const stats = input_map.get('stats');
+    const stats = getComputeInput<BuildStatMap>(input_map, 'stats');
     let display_spell_results = [];
     const spell_result_map = new Map();
     let use_speed: boolean | string = 'use_atkspd' in spell ? spell.use_atkspd : true;
@@ -84,7 +87,7 @@ export class SpellDamageCalcNode extends ComputeNode {
           }
           heal_mult *= 1 + v / 100;
         }
-        const _heal_amount = (part.power as number) * (getDefenseStats(stats)[0] as number) * heal_mult;
+        const _heal_amount = (part.power as number) * getDefenseStats(stats)[0] * heal_mult;
         spell_result = {
           type: 'heal',
           heal_amount: _heal_amount,

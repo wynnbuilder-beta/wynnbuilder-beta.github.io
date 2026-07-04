@@ -660,7 +660,11 @@ class BitVectorCursor {
 class EncodingBitVector extends BitVector {
     bitcodeMap: Record<string, Record<string, number>>;
 
-    constructor(data: string | number, length?: number, bitcodeMap = ENC) {
+    constructor(
+        data: string | number,
+        length?: number,
+        bitcodeMap: object | null = ENC,
+    ) {
         super(data, length);
         this.bitcodeMap = bitcodeMap as Record<string, Record<string, number>>;
     }

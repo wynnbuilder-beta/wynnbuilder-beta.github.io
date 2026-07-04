@@ -105,9 +105,9 @@ export function apply_to_fit(skillpoints: SkillpointVector, item: SkillpointEqui
   return applied;
 }
 
-function assignItemSet(item: SkillpointEquipItem, setName: unknown): void {
+function assignItemSet(item: SkillpointEquipItem, setName: string | null | undefined): void {
   Object.defineProperty(item, 'set', {
-    value: setName as string | null | undefined,
+    value: setName,
     writable: true,
     configurable: true,
   });
@@ -122,7 +122,7 @@ export function calculate_skillpoints(
   const total_item_skillpoints: SkillpointVector = [0, 0, 0, 0, 0];
   weapon.skillpoints = weapon.get('skillpoints') as SkillpointVector;
   weapon.reqs = weapon.get('reqs') as SkillpointVector;
-  assignItemSet(weapon, weapon.get('set'));
+  assignItemSet(weapon, weapon.get('set') as string | null | undefined);
   for (const i in SKP_ORDER) {
     total_item_skillpoints[Number(i)] += weapon.skillpoints[Number(i)];
   }
@@ -130,7 +130,7 @@ export function calculate_skillpoints(
   for (const item of equipment) {
     item.skillpoints = item.get('skillpoints') as SkillpointVector;
     item.reqs = item.get('reqs') as SkillpointVector;
-    assignItemSet(item, item.get('set'));
+    assignItemSet(item, item.get('set') as string | null | undefined);
     if (item.get('crafted')) {
       crafted_items.push(item);
     }

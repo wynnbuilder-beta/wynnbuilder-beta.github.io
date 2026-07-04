@@ -153,6 +153,9 @@ export interface SpellDefinition {
 export interface ComputedSpellDamagePart {
   type: 'damage';
   name: string;
+  display?: boolean;
+  is_spell?: boolean;
+  multipliers?: number[];
   normal_min: number[];
   normal_max: number[];
   normal_total: DamageRange;
@@ -164,6 +167,7 @@ export interface ComputedSpellDamagePart {
 export interface ComputedSpellHealPart {
   type: 'heal';
   name: string;
+  display?: boolean;
   heal_amount: number;
 }
 
@@ -236,6 +240,96 @@ export type BuildStaticStatId =
   | 'damMobs'
   | 'defMobs';
 
+/** Per-element + neutral damage boost stat IDs initialized in initBuildStats. */
+export type BuildDamageStatId =
+  | 'eMdPct'
+  | 'eMdRaw'
+  | 'eSdPct'
+  | 'eSdRaw'
+  | 'eDamPct'
+  | 'eDamRaw'
+  | 'eDamAddMin'
+  | 'eDamAddMax'
+  | 'tMdPct'
+  | 'tMdRaw'
+  | 'tSdPct'
+  | 'tSdRaw'
+  | 'tDamPct'
+  | 'tDamRaw'
+  | 'tDamAddMin'
+  | 'tDamAddMax'
+  | 'wMdPct'
+  | 'wMdRaw'
+  | 'wSdPct'
+  | 'wSdRaw'
+  | 'wDamPct'
+  | 'wDamRaw'
+  | 'wDamAddMin'
+  | 'wDamAddMax'
+  | 'fMdPct'
+  | 'fMdRaw'
+  | 'fSdPct'
+  | 'fSdRaw'
+  | 'fDamPct'
+  | 'fDamRaw'
+  | 'fDamAddMin'
+  | 'fDamAddMax'
+  | 'aMdPct'
+  | 'aMdRaw'
+  | 'aSdPct'
+  | 'aSdRaw'
+  | 'aDamPct'
+  | 'aDamRaw'
+  | 'aDamAddMin'
+  | 'aDamAddMax'
+  | 'nMdPct'
+  | 'nMdRaw'
+  | 'nSdPct'
+  | 'nSdRaw'
+  | 'nDamPct'
+  | 'nDamRaw'
+  | 'nDamAddMin'
+  | 'nDamAddMax'
+  | 'mdPct'
+  | 'mdRaw'
+  | 'sdPct'
+  | 'sdRaw'
+  | 'damPct'
+  | 'damRaw'
+  | 'damAddMin'
+  | 'damAddMax'
+  | 'rMdPct'
+  | 'rMdRaw'
+  | 'rSdPct'
+  | 'rSdRaw'
+  | 'rDamPct'
+  | 'rDamRaw'
+  | 'rDamAddMin'
+  | 'rDamAddMax'
+  | 'healPct'
+  | 'critDamPct';
+
+/** Per-element defense percent stats (etwfa order). */
+export type BuildElementDefPctStatId =
+  | 'eDefPct'
+  | 'tDefPct'
+  | 'wDefPct'
+  | 'fDefPct'
+  | 'aDefPct';
+
+/** HP, healing, defense, and misc numeric build stats. */
+export type BuildResourceStatId =
+  | 'hpBonus'
+  | 'hprRaw'
+  | 'hprPct'
+  | 'classDef'
+  | 'agiDef'
+  | 'rDefPct'
+  | 'poisonPct'
+  | 'poison'
+  | 'maxMana'
+  | 'atkTier';
+
 /** Wynn2 per-element damage/stat ID suffix groups. */
 export type ElementStatSuffix =
   | 'MdPct'
@@ -248,18 +342,53 @@ export type ElementStatSuffix =
   | 'DamAddMax';
 
 /** Aggregated build stats produced by Build.initBuildStats(). */
-export interface BuildStatMap extends Map<string, unknown> {
-  get(key: string): unknown;
+export type BuildStatMap = Map<string, unknown> & {
   get(key: 'hp'): number;
+  get(key: 'str'): number;
+  get(key: 'dex'): number;
+  get(key: 'int'): number;
+  get(key: 'def'): number;
+  get(key: 'agi'): number;
+  get(key: 'eDef'): number;
+  get(key: 'tDef'): number;
+  get(key: 'wDef'): number;
+  get(key: 'fDef'): number;
+  get(key: 'aDef'): number;
+  get(key: 'damMobs'): number;
+  get(key: 'defMobs'): number;
+  get(key: 'healPct'): number;
+  get(key: 'critDamPct'): number;
+  get(key: 'damPct'): number;
+  get(key: 'sdPct'): number;
+  get(key: 'mdPct'): number;
+  get(key: 'damRaw'): number;
+  get(key: 'agiDef'): number;
+  get(key: 'hpBonus'): number;
+  get(key: 'classDef'): number;
+  get(key: 'hprRaw'): number;
+  get(key: 'hprPct'): number;
+  get(key: 'rDefPct'): number;
+  get(key: 'eDefPct'): number;
+  get(key: 'tDefPct'): number;
+  get(key: 'wDefPct'): number;
+  get(key: 'fDefPct'): number;
+  get(key: 'aDefPct'): number;
+  get(key: 'poisonPct'): number;
+  get(key: 'poison'): number;
+  get(key: 'maxMana'): number;
+  get(key: 'atkTier'): number;
   get(key: 'atkSpd'): AttackSpeed | undefined;
-  get(key: 'str' | 'dex' | 'int' | 'def' | 'agi'): number;
-  get(key: 'damMult' | 'defMult' | 'healMult' | 'manaMult'): MultiplierStatMap;
+  get(key: 'damMult'): MultiplierStatMap;
+  get(key: 'defMult'): MultiplierStatMap;
+  get(key: 'healMult'): MultiplierStatMap;
+  get(key: 'manaMult'): MultiplierStatMap;
   get(key: 'activeMajorIDs'): Set<string>;
-  get(key: 'critDamPct'): number | undefined;
-  get(key: 'mr' | 'ms'): number | undefined;
+  get(key: 'mr'): number | undefined;
+  get(key: 'ms'): number | undefined;
   get(key: 'bloodPactCost'): number | undefined;
   get(key: 'activateGeneralist'): boolean | undefined;
-}
+  get(key: string): unknown;
+};
 
 /** Mana cycle entry after calculateMana preprocessing: [cost, manaGain, spellIndex]. */
 export type ManaCycleEntry = [number, number, number];

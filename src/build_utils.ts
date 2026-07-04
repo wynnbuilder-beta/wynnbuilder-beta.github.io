@@ -2,9 +2,16 @@
  * File containing utility functions that are useful for the builder page.
  */
 
-import type { Ingredient, Recipe } from './types/ingredient';
+import type { Ingredient, Recipe, ExpandedIngredient, ExpandedRecipe } from './types/ingredient';
 import type { ItemStatMap } from './types/item';
-import type { AttackSpeed, ItemTier, PlayerClass, SkillpointId, WeaponType } from './types/stats';
+import type {
+  AttackSpeed,
+  BuildStatMap,
+  ItemTier,
+  PlayerClass,
+  SkillpointId,
+  WeaponType,
+} from './types/stats';
 
 /*Turns the input amount of skill points into a float precision percentage.
  * @param skp - the integer skillpoint count to be converted
@@ -651,7 +658,7 @@ export class Item {
 
 /* Takes in an ingredient object and returns an equivalent Map().
  */
-export function expandIngredient(ing: Ingredient): Map<string, unknown> {
+export function expandIngredient(ing: Ingredient): ExpandedIngredient {
   const expandedIng = new Map<string, unknown>();
   const mapIds = ['consumableIDs', 'itemIDs', 'posMods'] as const;
   for (const id of mapIds) {
@@ -684,7 +691,7 @@ export function expandIngredient(ing: Ingredient): Map<string, unknown> {
 
 /* Takes in a recipe object and returns an equivalent Map().
  */
-export function expandRecipe(recipe: Recipe): Map<string, unknown> {
+export function expandRecipe(recipe: Recipe): ExpandedRecipe {
   const expandedRecipe = new Map<string, unknown>();
   const normIDs = ['name', 'skill', 'type', 'id'] as const;
   for (const id of normIDs) {
@@ -781,6 +788,11 @@ export function type_to_skill(t: string): string | null {
     default:
       return null;
   }
+}
+
+/** Numeric lookup for dynamic stat keys on build stat maps. */
+export function statNum(stats: BuildStatMap | Map<string, unknown>, key: string): number {
+  return (stats.get(key) as number) ?? 0;
 }
 
 /**

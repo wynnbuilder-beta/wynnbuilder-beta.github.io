@@ -1,25 +1,32 @@
-import type { ComputeDirtyState } from './types/computation';
+import type { ComputeDirtyState, ComputeInputMap } from './types/computation';
 
-export let all_nodes = new Set<ComputeNode>();
+export type { ComputeInputMap } from './types/computation';
+
+export let all_nodes = new Set<ComputeNode<unknown>>();
 export let node_debug_stack: string[] = [];
 export let COMPUTE_GRAPH_DEBUG = true;
 
+/** Read a typed value from a compute node input map. */
+export function getComputeInput<T>(input_map: ComputeInputMap, key: string): T {
+  return input_map.get(key) as T;
+}
+
 export class NodeInput {
-  node: ComputeNode;
+  node: ComputeNode<unknown>;
   translation: string;
   is_dirty: boolean;
 
-  constructor(node: ComputeNode, translation = node.name) {
+  constructor(node: ComputeNode<unknown>, translation = node.name) {
     this.node = node;
     this.translation = translation;
     this.is_dirty = false;
   }
 }
 
-export class ComputeNode {
+export class ComputeNode<TValue = unknown> {
   inputs = new Map<string, NodeInput>();
-  children: ComputeNode[] = [];
-  value: unknown = null;
+  children: ComputeNode<unknown>[] = [];
+  value: TValue = null as TValue;
   name: string;
   update_task: ReturnType<typeof setTimeout> | null = null;
   fail_cb = false;
@@ -44,7 +51,7 @@ export class ComputeNode {
       node_debug_stack.push(this.name);
     }
     if (this.dirty == 2) {
-      const calc_inputs = new Map<string, unknown>();
+      const calc_inputs: ComputeInputMap = new Map();
       for (const input of this.inputs.values()) {
         if (input.node.dirty) {
           if (COMPUTE_GRAPH_DEBUG) {
@@ -99,15 +106,15 @@ export class ComputeNode {
     return this;
   }
 
-  get_value(): unknown {
+  get_value(): TValue {
     return this.value;
   }
 
-  compute_func(_input_map: Map<string, unknown>): unknown {
+  compute_func(_input_map: ComputeInputMap): TValue {
     throw 'no compute func specified';
   }
 
-  link_to(parent_node: ComputeNode, link_name?: string): this {
+  link_to(parent_node: ComputeNode<unknown>, link_name?: string): this {
     const input = new NodeInput(parent_node, link_name ?? parent_node.name);
     if (parent_node.dirty || (parent_node.value === null && !this.fail_cb)) {
       this.inputs_dirty_count += 1;
@@ -118,7 +125,7 @@ export class ComputeNode {
     return this;
   }
 
-  remove_link(parent_node: ComputeNode): this {
+  remove_link(parent_node: ComputeNode<unknown>): this {
     const was_dirty = this.inputs.get(parent_node.name)!.is_dirty;
     this.inputs.delete(parent_node.name);
     if (was_dirty) {
@@ -131,8 +138,8 @@ export class ComputeNode {
   }
 }
 
-export class ValueCheckComputeNode extends ComputeNode {
-  valid_val: unknown = null;
+export class ValueCheckComputeNode<TValue = unknown> extends ComputeNode<TValue> {
+  valid_val: TValue = null as TValue;
 
   update(): this {
     if (this.inputs_dirty_count != 0) {
@@ -145,7 +152,7 @@ export class ValueCheckComputeNode extends ComputeNode {
       node_debug_stack.push(this.name);
     }
 
-    const calc_inputs = new Map<string, unknown>();
+    const calc_inputs: ComputeInputMap = new Map();
     for (const input of this.inputs.values()) {
       calc_inputs.set(input.translation, input.node.value);
     }
@@ -167,7 +174,7 @@ export class ValueCheckComputeNode extends ComputeNode {
     return this;
   }
 
-  mark_dirty(_dirty_state?: unknown): this {
+  mark_dirty(_dirty_state: ComputeDirtyState = 1): this {
     return super.mark_dirty(1);
   }
 }
@@ -181,7 +188,7 @@ export function setGraphLiveUpdate(live: boolean): void {
 /**
  * Schedule a ComputeNode to be updated.
  */
-export function calcSchedule(node: ComputeNode, timeout: number): void {
+export function calcSchedule(node: ComputeNode<unknown>, timeout: number): void {
   if (node.update_task !== null) {
     clearTimeout(node.update_task);
   }
@@ -197,13 +204,13 @@ export function calcSchedule(node: ComputeNode, timeout: number): void {
   }, timeout);
 }
 
-export class PrintNode extends ComputeNode {
+export class PrintNode extends ComputeNode<null> {
   constructor(name: string) {
     super(name);
     this.fail_cb = true;
   }
 
-  compute_func(input_map: Map<string, unknown>): null {
+  compute_func(input_map: ComputeInputMap): null {
     console.log([this.name, input_map]);
     return null;
   }
@@ -213,7 +220,7 @@ export class PrintNode extends ComputeNode {
  * Node for getting an input from an input field.
  * Fires updates whenever the input field is updated.
  */
-export class InputNode extends ValueCheckComputeNode {
+export class InputNode extends ValueCheckComputeNode<unknown> {
   input_field: HTMLInputElement;
 
   constructor(name: string, input_field: HTMLInputElement) {
@@ -227,7 +234,7 @@ export class InputNode extends ValueCheckComputeNode {
     });
   }
 
-  compute_func(_input_map: Map<string, unknown>): unknown {
+  compute_func(_input_map: ComputeInputMap): unknown {
     return this.input_field.value;
   }
 }
@@ -235,23 +242,23 @@ export class InputNode extends ValueCheckComputeNode {
 /**
  * Passthrough node for simple aggregation.
  */
-export class PassThroughNode extends ComputeNode {
-  breakout_nodes = new Map<string, ComputeNode>();
+export class PassThroughNode extends ComputeNode<ComputeInputMap> {
+  breakout_nodes = new Map<string, ComputeNode<unknown>>();
 
-  compute_func(input_map: Map<string, unknown>): Map<string, unknown> {
+  compute_func(input_map: ComputeInputMap): ComputeInputMap {
     return input_map;
   }
 
-  get_node(sub_input: string): ComputeNode {
+  get_node(sub_input: string): ComputeNode<unknown> {
     if (this.breakout_nodes.has(sub_input)) {
       return this.breakout_nodes.get(sub_input)!;
     }
     const _name = this.name;
-    const ret = new (class extends ComputeNode {
+    const ret = new (class extends ComputeNode<unknown> {
       constructor() {
         super('passthrough-' + _name + '-' + sub_input);
       }
-      compute_func(input_map: Map<string, unknown>): unknown {
+      compute_func(input_map: ComputeInputMap): unknown {
         return (input_map.get(_name) as Map<string, unknown>).get(sub_input);
       }
     })().link_to(this);

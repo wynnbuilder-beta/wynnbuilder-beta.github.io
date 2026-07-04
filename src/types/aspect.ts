@@ -2,6 +2,7 @@
  * Aspect types.
  */
 
+import type { ATreeEffect } from './atree';
 import type { PlayerClass } from './stats';
 
 export type AspectTierName = 'Normal' | 'Legendary' | 'Fabled' | 'Mythic';
@@ -15,7 +16,7 @@ export const NUM_ASPECTS = 5;
 export interface AspectAbilityOverride {
   base_abil: string;
   properties?: Record<string, number>;
-  effects?: unknown[];
+  effects?: ATreeEffect[];
 }
 
 /** One tier row inside an aspect definition (from aspects.json). */
