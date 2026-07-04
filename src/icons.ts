@@ -46,5 +46,4 @@ attachGlobals({
       newIcons = v as boolean;
     },
   ),
-  toggleIcons,
 });

@@ -2,6 +2,7 @@ import { cpSync, existsSync, mkdirSync } from 'node:fs';
 import { dirname, resolve } from 'node:path';
 import { defineConfig, type Plugin } from 'vite';
 import sirv from 'sirv';
+import { sidebarPartialPlugin } from './scripts/vite-plugin-sidebar';
 
 const root = resolve(__dirname);
 
@@ -100,5 +101,5 @@ export default defineConfig({
       input: pages,
     },
   },
-  plugins: [wynnbuilderStatic()],
+  plugins: [sidebarPartialPlugin(root), wynnbuilderStatic()],
 });
