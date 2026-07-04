@@ -40,6 +40,8 @@ import {
 } from '@/utils';
 import { load_atree_data } from './atree';
 import { aspect_agg_node } from './aspects';
+import { buildToPlayerBuild } from './build_adapter';
+import type { Build } from './build';
 import {
   aspectInputs,
   aspectTierInputs,
@@ -64,6 +66,8 @@ export function setBuildPowders(powders: number[][] | undefined): void {
 export function setAtreeData(data: BitVector | null): void {
   atree_data = data;
 }
+
+export { buildToPlayerBuild } from './build_adapter';
 
 interface BitVectorLike {
   length: number;
@@ -414,7 +418,7 @@ function encodeHeader(encoding_version: number): EncodingBitVector {
  * Encodes the build according to the spec in `ENCODING.md` and returns the resulting BitVector.
  */
 export function encodeBuild(
-  build: PlayerBuild | undefined,
+  build: Build | undefined,
   powders: number[][],
   skillpoints: SkillpointVector,
   atree: ATree,
@@ -422,15 +426,17 @@ export function encodeBuild(
   aspects: AspectTuple[],
 ): EncodingBitVector | undefined {
   if (!build) return;
+  const playerBuild = buildToPlayerBuild(build);
+  setPlayerBuild(playerBuild);
 
   const finalVec = new EncodingBitVector(0, 0);
 
   const vecs = [
     encodeHeader(wynn_version_id),
-    encodeEquipment([...build.equipment, build.weapon], powders, wynn_version_id),
-    encodeTomes(build.tomes, powders, wynn_version_id),
-    encodeSp(skillpoints, build.total_skillpoints, wynn_version_id),
-    encodeLevel(build.level, wynn_version_id),
+    encodeEquipment([...playerBuild.equipment, playerBuild.weapon], powders, wynn_version_id),
+    encodeTomes(playerBuild.tomes, powders, wynn_version_id),
+    encodeSp(skillpoints, playerBuild.total_skillpoints, wynn_version_id),
+    encodeLevel(playerBuild.level, wynn_version_id),
     encodeAspects(aspects, wynn_version_id),
     encodeAtree(atree, atree_state, wynn_version_id),
   ];

@@ -10,7 +10,7 @@ import {
   wynn_version_names,
 } from '@/load_item';
 import { ingredientQueryProps, queryFuncs } from '@/query';
-import { configureItemSearch, init_search, search_db, setItemSearchData } from '@/search';
+import { configureItemSearch, init_search, search_db, setItemSearchData, type IngredientSearchResult } from '@/search';
 import { make_elem } from '@/utils';
 import type { Ingredient } from '@/types/ingredient';
 import '@/lib/vendor/autocomplete';
@@ -169,13 +169,7 @@ const item_filters: string[] = [
   ...Object.keys(translate_mappings),
 ];
 
-type SearchResult = {
-  item: Record<string, unknown>;
-  itemExp: ExpandedIngredient;
-  sortKeys: unknown[];
-};
-
-export function display(ing_copy: SearchResult[]): void {
+export function display(ing_copy: IngredientSearchResult[]): void {
   const ing_parent = document.getElementById('search-results')!;
   for (const i in ing_copy) {
     if (Number(i) > 200) {

@@ -14,7 +14,10 @@ export const NUM_ASPECTS = 5;
 
 /** Property overrides applied by an aspect tier to a base ability. */
 export interface AspectAbilityOverride {
-  base_abil: string;
+  /** Display name in aspects.json; resolved to numeric id at merge time. */
+  base_abil: string | number;
+  /** Atree ability ids (or display names) that must be active for this override. */
+  dependencies?: (string | number)[];
   properties?: Record<string, number>;
   effects?: ATreeEffect[];
 }
