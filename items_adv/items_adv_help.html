@@ -13,15 +13,10 @@
         <link href="https://fonts.googleapis.com/css2?family=Nunito&display=swap" rel="stylesheet">
 
         <link href="https://fonts.googleapis.com/css2?family=Nunito&display=swap" rel="stylesheet">
-        <link href="/thirdparty/bootstrap.min.css" rel="stylesheet" integrity="sha384-1BmE4kWBq78iYhFldvKuhfTAU6auU8tT94WrHftjDbrCEXSU1oBoqyl2QvZ6jIW3" crossorigin="anonymous">
-    
-        <link rel="stylesheet" href="/thirdparty/autoComplete.min.css">
-    
-        
-        <link rel="stylesheet" href="../css/article.css">
-        <link rel="stylesheet" href="../css/styles.css">
-        <link rel="stylesheet" href="../css/sidebar.css">
-        <link rel="stylesheet" href="../css/wynnstyles.css">
+
+        <link rel="stylesheet" href="/src/lib/styles/common.css">
+        <link rel="stylesheet" href="/src/lib/styles/help.css">
+        <script type="module" src="/src/entries/items_adv_help.ts"></script>
     </head>
     <body class="all" style="overflow-y: scroll">
         <div id="main-sidebar" class="sidebar dark-7 dark-shadow">
@@ -68,7 +63,7 @@
                 <p>For comparisons, equality and non-equality are represented by the <code>=</code> and <code>!=</code> symbols. The two operands can be of any type, and the result will always be a boolean describing whether the operands are equal. String comparisons are case-insensitive.</p>
                 <pre class="hl-expr">{prop:type} {op:=} {str:"wand"} {op:|} {prop:cat} {op:!=} {str:"weapon"}</pre>
                 <p>The relational comparisons are given by <code>&lt;</code>, <code>&lt;=</code>, <code>&gt;=</code>, and <code>&gt;</code>. The two operands must be of some comparable type&mdash;booleans cannot be compared, so it's an error to pass them to a relational comparison.</p>
-                <pre class="hl-expr">{prop:str} {op:>=} {num:20} {op:&} {prop:lvl} {op:<} {num:80}</pre>
+                <pre class="hl-expr">{prop:str} {op:>=} {num:20} {op:&} {prop:lvl} {op:&lt;} {num:80}</pre>
                 <p>In addition to these comparison operators, there's also a &ldquo;contains&rdquo; operator <code>?=</code>, which checks whether a string contains a given substring or not. This allows for matching more loosely against strings; for example, if I wanted to see all the Hive master weapons, I could use the filter:</p>
                 <pre class="hl-expr">{prop:name} {op:?=} {str:"hive infused"}</pre>
                 <p>Some handy functions are also available, and can be called using a C-like syntax:</p>
@@ -224,7 +219,5 @@
               docsFns.append(genDocEntry(entry[0], entry[1], null, entry[2]));
             }
         </script>
-        <script type-"text/javascript" src="../js/redirect_fork.js"></script>
-        <script type="text/javascript" src="../js/icons.js"></script>
     </body>
 </html>

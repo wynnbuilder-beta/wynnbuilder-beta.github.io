@@ -1,0 +1,961 @@
+import { Item, baseDamageMultiplier, getOrNullToZero, skp_elements } from './build_utils';
+import { attachGlobals } from './lib/attachGlobals';
+import { apply_weapon_powders, powderIDs, powderLevelReq } from './powders';
+
+export type QueryValueType = 'string' | 'number' | 'boolean' | 'any';
+
+export interface QueryProp {
+  type: QueryValueType;
+  resolve: (item: Record<string, unknown>, itemExp: Map<string, unknown>) => unknown;
+}
+
+export interface QueryFunc {
+  type: QueryValueType;
+  fn: (item: Record<string, unknown>, itemExp: Map<string, unknown>, args: unknown[]) => unknown;
+}
+
+let saved_weapon_args: unknown[] | null;
+let weapon_choice: Item;
+
+function checkBool(v: unknown): boolean {
+  if (typeof v !== 'boolean') throw new Error(`Expected boolean, but got ${typeof v}`);
+  return v;
+}
+
+function checkNum(v: unknown): number {
+  if (typeof v === 'boolean') {
+    if (v) return 1;
+    return 0;
+  }
+  if (typeof v !== 'number') throw new Error(`Expected number, but got ${typeof v}`);
+  return v;
+}
+
+function checkStr(v: unknown): string {
+  if (typeof v !== 'string') throw new Error(`Expected string, but got ${typeof v}`);
+  return v;
+}
+
+function checkComparable(v: unknown): unknown {
+  if (typeof v === 'boolean') throw new Error('Boolean is not comparable');
+  return v;
+}
+
+interface CommonQueryHelpers {
+  prop: (names: string | string[], type: QueryValueType, resolve: QueryProp['resolve']) => void;
+  maxId: (names: string | string[], idKey: string) => void;
+  sum: (names: string | string[], ...comps: QueryProp[]) => void;
+  props: Record<string, QueryProp>;
+}
+
+// The shared queries between items and ingredients
+function commonQueryProps({ prop, maxId, sum, props }: CommonQueryHelpers): void {
+  sum(['skillpoints', 'skillpts', 'attributes', 'attrs'], props.str, props.dex, props.int, props.def, props.agi);
+
+  maxId(['earthdmg%', 'earthdam%', 'edmg%', 'edam%', 'edampct', 'edpct'], 'eDamPct');
+  maxId(['thunderdmg%', 'thunderdam%', 'tdmg%', 'tdam%', 'tdampct', 'tdpct'], 'tDamPct');
+  maxId(['waterdmg%', 'waterdam%', 'wdmg%', 'wdam%', 'wdampct', 'wdpct'], 'wDamPct');
+  maxId(['firedmg%', 'firedam%', 'fdmg%', 'fdam%', 'fdampct', 'fdpct'], 'fDamPct');
+  maxId(['airdmg%', 'airdam%', 'admg%', 'adam%', 'adampct', 'adpct'], 'aDamPct');
+  maxId(['elementaldmg%', 'elementaldam%', 'rdmg%', 'rdam%', 'rdampct', 'rdpct'], 'rDamPct');
+  maxId(['neutraldmg%', 'neutraldam%', 'ndmg%', 'ndam%', 'ndampct', 'ndpct'], 'nDamPct');
+  maxId(['dmg%', 'dam%', 'dampct', 'dpct'], 'damPct');
+  sum(
+    ['sumdmg%', 'sumdam%', 'totaldmg%', 'totaldam%', 'sumdampct', 'totaldampct'],
+    props.edampct,
+    props.tdampct,
+    props.wdampct,
+    props.fdampct,
+    props.adampct,
+    props.dampct,
+    props.rdampct,
+    props.ndampct,
+  );
+
+  maxId(['earthdmgraw', 'earthdamraw', 'edmgraw', 'edamraw', 'edraw'], 'eDamRaw');
+  maxId(['thunderdmgraw', 'thunderdamraw', 'tdmgraw', 'tdamraw', 'tdraw'], 'tDamRaw');
+  maxId(['waterdmgraw', 'waterdamraw', 'wdmgraw', 'wdamraw', 'wdraw'], 'wDamRaw');
+  maxId(['firedmgraw', 'firedamraw', 'fdmgraw', 'fdamraw', 'fdraw'], 'fDamRaw');
+  maxId(['airdmgraw', 'airdamraw', 'admgraw', 'adamraw', 'adraw'], 'aDamRaw');
+  maxId(['elementaldmgraw', 'elementaldamraw', 'rdmgraw', 'rdamraw', 'rdraw'], 'rDamRaw');
+  maxId(['ndamraw', 'ndmgraw', 'ndraw'], 'nDamRaw');
+  maxId(['dmgraw', 'damraw', 'draw'], 'damRaw');
+  sum(
+    ['sumdmgraw', 'sumdamraw', 'totaldmgraw', 'totaldamraw', 'sumdamraw', 'totaldamraw'],
+    props.edamraw,
+    props.tdamraw,
+    props.wdamraw,
+    props.fdamraw,
+    props.adamraw,
+    props.rdamraw,
+    props.ndamraw,
+    props.damraw,
+  );
+
+  maxId(['mainatkdmg', 'mainatkdam', 'mainatkdmg%', 'mainatkdam%', 'meleedmg', 'meleedam', 'meleedmg%', 'meleedam%', 'mdpct'], 'mdPct');
+  maxId(['emdpct'], 'eMdPct');
+  maxId(['tmdpct'], 'tMdPct');
+  maxId(['wmdpct'], 'wMdPct');
+  maxId(['fmdpct'], 'fMdPct');
+  maxId(['amdpct'], 'aMdPct');
+  maxId(['nmdpct'], 'nMdPct');
+  maxId(['rmdpct'], 'rMdPct');
+  sum(
+    ['summeleedmg%', 'summeleedam%', 'totalmeleedmg%', 'totalmeleedam%', 'summeleedampct', 'totalmeleedampct'],
+    props.mdpct,
+    props.emdpct,
+    props.tmdpct,
+    props.wmdpct,
+    props.fmdpct,
+    props.amdpct,
+    props.nmdpct,
+    props.nmdpct,
+    props.rmdpct,
+  );
+
+  maxId(['mainatkrawdmg', 'mainatkrawdam', 'mainatkneutraldmg', 'mainatkneutraldam', 'meleerawdmg', 'meleerawdam', 'meleeneutraldmg', 'meleeneutraldam', 'mdraw'], 'mdRaw');
+  maxId(['emdraw'], 'eMdRaw');
+  maxId(['tmdraw'], 'tMdRaw');
+  maxId(['wmdraw'], 'wMdRaw');
+  maxId(['fmdraw'], 'fMdRaw');
+  maxId(['amdraw'], 'aMdRaw');
+  maxId(['nmdraw'], 'nMdRaw');
+  maxId(['rmdraw'], 'rMdRaw');
+  sum(
+    ['summeleedmgraw', 'summeleedamraw', 'totalmeleedmgraw', 'totalmeleedamraw', 'summeleedamraw', 'totalmeleedamraw'],
+    props.emdraw,
+    props.tmdraw,
+    props.wmdraw,
+    props.fmdraw,
+    props.amdraw,
+    props.nmdraw,
+    props.rmdraw,
+    props.mdraw,
+  );
+
+  maxId(['spelldmg', 'spelldam', 'spelldmg%', 'spelldam%', 'sdpct'], 'sdPct');
+  maxId(['esdpct'], 'eSdPct');
+  maxId(['tsdpct'], 'tSdPct');
+  maxId(['wsdpct'], 'wSdPct');
+  maxId(['fsdpct'], 'fSdPct');
+  maxId(['asdpct'], 'aSdPct');
+  maxId(['nsdpct'], 'nSdPct');
+  maxId(['rsdpct'], 'rSdPct');
+  sum(
+    ['sumspelldmg%', 'sumspelldam%', 'totalspelldmg%', 'totalspelldam%', 'sumspelldampct', 'totalspelldampct'],
+    props.esdpct,
+    props.tsdpct,
+    props.wsdpct,
+    props.fsdpct,
+    props.asdpct,
+    props.nsdpct,
+    props.rsdpct,
+    props.sdpct,
+  );
+
+  maxId(['spellrawdmg', 'spellrawdam', 'spellneutraldmg', 'spellneutraldam', 'sdraw'], 'sdRaw');
+  maxId(['esdraw'], 'eSdRaw');
+  maxId(['tsdraw'], 'tSdRaw');
+  maxId(['wsdraw'], 'wSdRaw');
+  maxId(['fsdraw'], 'fSdRaw');
+  maxId(['asdraw'], 'aSdRaw');
+  maxId(['nsdraw'], 'nSdRaw');
+  maxId(['rainbowraw', 'rsdraw'], 'rSdRaw');
+  sum(
+    ['sumspelldmgraw', 'sumspelldamraw', 'totalspelldmgraw', 'totalspelldamraw', 'sumspelldamraw', 'totalspelldamraw'],
+    props.esdraw,
+    props.tsdraw,
+    props.wsdraw,
+    props.fsdraw,
+    props.asdraw,
+    props.nsdraw,
+    props.rsdraw,
+    props.sdraw,
+  );
+
+  maxId('critdampct', 'critDamPct');
+  maxId(['bonusattackspeed', 'bonusatkspd', 'attackspeedid', 'atkspdid', 'atktier'], 'atkTier');
+
+  maxId(['earthdef%', 'edef%', 'edefpct'], 'eDefPct');
+  maxId(['thunderdef%', 'tdef%', 'tdefpct'], 'tDefPct');
+  maxId(['waterdef%', 'wdef%', 'wdefpct'], 'wDefPct');
+  maxId(['firedef%', 'fdef%', 'fdefpct'], 'fDefPct');
+  maxId(['airdef%', 'adef%', 'adefpct'], 'aDefPct');
+  maxId(['eledef%', 'rdef%', 'rdefpct'], 'rDefPct');
+  sum(['sumdef%', 'totaldef%', 'sumdefpct', 'totaldefpct'], props.edefpct, props.tdefpct, props.wdefpct, props.fdefpct, props.adefpct);
+
+  maxId(['bonushealth', 'healthid', 'bonushp', 'hpid', 'hpbonus'], 'hpBonus');
+
+  maxId(['hpregen', 'hpr', 'hr', 'hprraw'], 'hprRaw');
+  maxId(['hpregen%', 'hpr%', 'hr%', 'hprpct'], 'hprPct');
+  maxId(['lifesteal', 'ls'], 'ls');
+  maxId(['manaregen', 'mr'], 'mr');
+  maxId(['manasteal', 'ms'], 'ms');
+
+  maxId(['walkspeed', 'movespeed', 'ws', 'spd'], 'spd');
+  maxId('sprint', 'sprint');
+  maxId(['sprintregen', 'sprintreg'], 'sprintReg');
+  maxId(['jumpheight', 'jh'], 'jh');
+
+  maxId(['spellcost1', 'rawspellcost1', 'spcost1', 'spraw1'], 'spRaw1');
+  maxId(['spellcost1%', 'spcost1%', 'sppct1'], 'spPct1');
+  maxId(['spellcost2', 'rawspellcost2', 'spcost2', 'spraw2'], 'spRaw2');
+  maxId(['spellcost2%', 'spcost2%', 'sppct2'], 'spPct2');
+  maxId(['spellcost3', 'rawspellcost3', 'spcost3', 'spraw3'], 'spRaw3');
+  maxId(['spellcost3%', 'spcost3%', 'sppct3'], 'spPct3');
+  maxId(['spellcost4', 'rawspellcost4', 'spcost4', 'spraw4'], 'spRaw4');
+  maxId(['spellcost4%', 'spcost4%', 'sppct4'], 'spPct4');
+  sum(
+    ['sumspellcost', 'totalspellcost', 'sumrawspellcost', 'totalrawspellcost', 'sumspcost', 'totalspcost', 'sumspraw', 'totalspraw'],
+    props.spraw1,
+    props.spraw2,
+    props.spraw3,
+    props.spraw4,
+  );
+  sum(
+    ['sumspellcost%', 'totalspellcost%', 'sumspcost%', 'totalspcost%', 'sumsppct', 'totalsppct'],
+    props.sppct1,
+    props.sppct2,
+    props.sppct3,
+    props.sppct4,
+  );
+
+  maxId(['exploding', 'expl', 'expd'], 'expd');
+  maxId('poison', 'poison');
+  maxId('thorns', 'thorns');
+  maxId(['reflection', 'refl', 'ref'], 'ref');
+  maxId(['soulpointregen', 'spr', 'spregen'], 'spRegen');
+  maxId(['lootbonus', 'lb'], 'lb');
+  maxId(['xpbonus', 'xpb', 'xb'], 'xpb');
+  maxId(['stealing', 'esteal'], 'eSteal');
+  maxId(['lq', 'quality'], 'lq');
+  maxId('gxp', 'gXp');
+  maxId('gspd', 'gSpd');
+  maxId(['healeff', 'healpct'], 'healPct');
+  maxId('kb', 'kb');
+  maxId('weakenenemy', 'weakenEnemy');
+  maxId('slowenemy', 'slowEnemy');
+  maxId('maxmana', 'maxMana');
+  maxId(['mainattackrange', 'meleerange'], 'mainAttackRange');
+}
+
+export const itemQueryProps = (function () {
+  const props: Record<string, QueryProp> = {};
+
+  function prop(names: string | string[], type: QueryValueType, resolve: QueryProp['resolve']): void {
+    if (Array.isArray(names)) {
+      for (const name of names) {
+        props[name] = { type, resolve };
+      }
+    } else {
+      props[names] = { type, resolve };
+    }
+  }
+
+  function maxId(names: string | string[], idKey: string): void {
+    prop(names, 'number', (i, ie) => (ie.get('maxRolls') as Map<string, number>).get(idKey) || 0);
+  }
+
+  function rangeAll(names: string[], getProp: (i: Record<string, unknown>, ie: Map<string, unknown>) => string | undefined): void {
+    prop(
+      names.map((s) => s + 'max'),
+      'number',
+      (i, ie) => {
+        const range = getProp(i, ie);
+        if (!range) return 0;
+        const ndx = range.indexOf('-');
+        return parseInt(range.substring(ndx + 1), 10);
+      },
+    );
+    prop(
+      names.map((s) => s + 'min'),
+      'number',
+      (i, ie) => {
+        const range = getProp(i, ie);
+        if (!range) return 0;
+        const ndx = range.indexOf('-');
+        return parseInt(range.substring(0, ndx), 10);
+      },
+    );
+    prop(names, 'number', (i, ie) => {
+      const range = getProp(i, ie);
+      if (!range) return 0;
+      const ndx = range.indexOf('-');
+      return (parseInt(range.substring(0, ndx), 10) + parseInt(range.substring(ndx + 1), 10)) / 2;
+    });
+    prop(
+      names.map((s) => s + 'avg'),
+      'number',
+      (i, ie) => {
+        const range = getProp(i, ie);
+        if (!range) return 0;
+        const ndx = range.indexOf('-');
+        return (parseInt(range.substring(0, ndx), 10) + parseInt(range.substring(ndx + 1), 10)) / 2;
+      },
+    );
+  }
+
+  function map(names: string | string[], comps: QueryProp[], outType: QueryValueType, f: (...args: number[]) => number): void {
+    return prop(names, outType, (i, ie) => {
+      const args: number[] = [];
+      for (let k = 0; k < comps.length; k++) args.push(comps[k].resolve(i, ie) as number);
+      return f.apply(null, args);
+    });
+  }
+
+  function sum(names: string | string[], ...comps: QueryProp[]): void {
+    return map(names, comps, 'number', (...summands) => {
+      let total = 0;
+      for (let i = 0; i < summands.length; i++) total += summands[i];
+      return total;
+    });
+  }
+
+  prop('name', 'string', (i) => (i.displayName as string) || (i.name as string));
+  prop('lore', 'string', (i) => (i.lore as string) || '');
+  prop('type', 'string', (i) => i.type as string);
+  prop('set', 'string', (i) => (i.set as string) || '');
+  prop(['cat', 'category'], 'string', (i) => i.category as string);
+  const tierIndices: Record<string, number> = { Normal: 0, Unique: 1, Set: 2, Rare: 3, Legendary: 4, Fabled: 5, Mythic: 6 };
+  prop(['rarityname', 'raritystr', 'tiername', 'tierstr'], 'string', (i) => i.tier as string);
+  prop(['rarity', 'tier'], 'number', (i) => tierIndices[i.tier as string]);
+  prop(['majid', 'majorid'], 'string', (i) => (((i.majorIds as string[]) || [''])[0] || '') as string);
+  prop(['majids', 'majorids'], 'number', (i) => ((i.majorIds as string[]) || []).length);
+  prop(['drop', 'droptype'], 'string', (i) => {
+    const dropInfo = i.dropInfo as { type?: string | string[] } | undefined;
+    if (dropInfo && Array.isArray(dropInfo.type)) {
+      return dropInfo.type[0] || '';
+    }
+    return (dropInfo?.type as string) || (i.drop as string) || '';
+  });
+  prop(['restrict', 'restriction'], 'string', (i) => (i.restrict as string) || '');
+  prop(['itemid', 'id'], 'number', (i) => i.id as number);
+
+  prop('str', 'number', (i) => i.str as number);
+  prop('dex', 'number', (i) => i.dex as number);
+  prop('int', 'number', (i) => i.int as number);
+  prop('def', 'number', (i) => i.def as number);
+  prop('agi', 'number', (i) => i.agi as number);
+
+  commonQueryProps({ prop, maxId, sum, props });
+  prop(['level', 'lvl', 'combatlevel', 'combatlvl'], 'number', (i) => i.lvl as number);
+  prop(['strmin', 'strreq'], 'number', (i) => i.strReq as number);
+  prop(['dexmin', 'dexreq'], 'number', (i) => i.dexReq as number);
+  prop(['intmin', 'intreq'], 'number', (i) => i.intReq as number);
+  prop(['defmin', 'defreq'], 'number', (i) => i.defReq as number);
+  prop(['agimin', 'agireq'], 'number', (i) => i.agiReq as number);
+  sum(['summin', 'sumreq', 'totalmin', 'totalreq'], props.strmin, props.dexmin, props.intmin, props.defmin, props.agimin);
+
+  rangeAll(['neutraldmg', 'neutraldam', 'ndmg', 'ndam'], (i) => i.nDam as string);
+  rangeAll(['earthdmg', 'earthdam', 'edmg', 'edam'], (i) => i.eDam as string);
+  rangeAll(['thunderdmg', 'thunderdam', 'tdmg', 'tdam'], (i) => i.tDam as string);
+  rangeAll(['waterdmg', 'waterdam', 'wdmg', 'wdam'], (i) => i.wDam as string);
+  rangeAll(['firedmg', 'firedam', 'fdmg', 'fdam'], (i) => i.fDam as string);
+  rangeAll(['airdmg', 'airdam', 'admg', 'adam'], (i) => i.aDam as string);
+  sum(['sumdmg', 'sumdam', 'totaldmg', 'totaldam'], props.ndam, props.edam, props.tdam, props.wdam, props.fdam, props.adam);
+  prop(['averagedps', 'adps', 'dps', 'basedps'], 'number', (i) => (i.averageDps as number) || 0);
+
+  const atkSpdIndices: Record<string, number> = { SUPER_SLOW: -3, VERY_SLOW: -2, SLOW: -1, NORMAL: 0, FAST: 1, VERY_FAST: 2, SUPER_FAST: 3 };
+  prop(['attackspeed', 'atkspd'], 'number', (i) => (i.atkSpd ? atkSpdIndices[i.atkSpd as string] : 0));
+  sum(['sumattackspeed', 'totalattackspeed', 'sumatkspd', 'totalatkspd', 'sumatktier', 'totalatktier'], props.atkspd, props.atktier);
+
+  prop(['earthdef', 'edef'], 'number', (i) => (i.eDef as number) || 0);
+  prop(['thunderdef', 'tdef'], 'number', (i) => (i.tDef as number) || 0);
+  prop(['waterdef', 'wdef'], 'number', (i) => (i.wDef as number) || 0);
+  prop(['firedef', 'fdef'], 'number', (i) => (i.fDef as number) || 0);
+  prop(['airdef', 'adef'], 'number', (i) => (i.aDef as number) || 0);
+  sum(['sumdef', 'totaldef'], props.edef, props.tdef, props.wdef, props.fdef, props.adef);
+
+  prop(['health', 'hp'], 'number', (i) => (i.hp as number) || 0);
+  sum(['sumhealth', 'sumhp', 'totalhealth', 'totalhp'], props.hp, props.hpid);
+
+  prop(['powderslots', 'powders', 'slots', 'sockets'], 'number', (i) => (i.slots as number) || 0);
+
+  return props;
+})();
+
+export const ingredientQueryProps = (function () {
+  const props: Record<string, QueryProp> = {};
+
+  function prop(names: string | string[], type: QueryValueType, resolve: QueryProp['resolve']): void {
+    if (Array.isArray(names)) {
+      for (const name of names) {
+        props[name] = { type, resolve };
+      }
+    } else {
+      props[names] = { type, resolve };
+    }
+  }
+
+  function typeProp(names: string[], idKey: string): void {
+    prop(names, 'boolean', (i, ie) => (ie.get('skills') as unknown[]).filter((s) => s === idKey).length > 0);
+  }
+
+  function modProp(names: string[], idKey: string): void {
+    prop(names, 'boolean', (i, ie) => (ie.get('posMods') as Map<string, number>).get(idKey) || 0);
+  }
+
+  function maxId(names: string | string[], idKey: string): void {
+    prop(names, 'number', (i, ie) => (ie.get('ids') as Map<string, Map<string, number>>).get('maxRolls').get(idKey) || 0);
+  }
+
+  function map(names: string | string[], comps: QueryProp[], outType: QueryValueType, f: (...args: number[]) => number): void {
+    return prop(names, outType, (i, ie) => {
+      const args: number[] = [];
+      for (let k = 0; k < comps.length; k++) args.push(comps[k].resolve(i, ie) as number);
+      return f.apply(null, args);
+    });
+  }
+
+  function sum(names: string | string[], ...comps: QueryProp[]): void {
+    return map(names, comps, 'number', (...summands) => {
+      let total = 0;
+      for (let i = 0; i < summands.length; i++) total += summands[i];
+      return total;
+    });
+  }
+
+  prop('name', 'string', (i) => (i.displayName as string) || (i.name as string));
+  const starIndices: Record<number, string> = { 0: 'zero', 1: 'one', 2: 'two', 3: 'three' };
+  prop(['starsname', 'starsstr', 'tiername', 'tierstr'], 'string', (i) => starIndices[i.tier as number]);
+  prop(['stars', 'tier'], 'number', (i) => i.tier as number);
+  prop(['level', 'lvl', 'combatlevel', 'combatlvl'], 'number', (i) => i.lvl as number);
+
+  for (const entry of [
+    ['armouring', 'helmet', 'chestplate'],
+    ['tailoring', 'leggings', 'boots'],
+    ['weaponsmithing', 'spear', 'dagger'],
+    ['woodworking', 'bow', 'relik', 'wand'],
+    ['jeweling', 'ring', 'bracelet', 'necklace'],
+    ['cooking', 'food'],
+    ['alchemism', 'potion'],
+    ['scribing', 'scroll'],
+  ]) {
+    typeProp(entry, entry[0].toUpperCase());
+  }
+
+  for (const entry of [['left'], ['right'], ['above', 'top'], ['under', 'bottom'], ['touching', 'touch'], ['notTouching', 'notTouch']]) {
+    modProp(
+      entry.map((i) => i.toLowerCase()),
+      entry[0],
+    );
+  }
+
+  maxId('str', 'str');
+  maxId('dex', 'dex');
+  maxId('int', 'int');
+  maxId('def', 'def');
+  maxId('agi', 'agi');
+
+  prop(['strmin', 'strreq'], 'number', (i) => (i['itemIDs'] as Record<string, number>).strReq);
+  prop(['dexmin', 'dexreq'], 'number', (i) => (i['itemIDs'] as Record<string, number>).dexReq);
+  prop(['intmin', 'intreq'], 'number', (i) => (i['itemIDs'] as Record<string, number>).intReq);
+  prop(['defmin', 'defreq'], 'number', (i) => (i['itemIDs'] as Record<string, number>).defReq);
+  prop(['agimin', 'agireq'], 'number', (i) => (i['itemIDs'] as Record<string, number>).agiReq);
+
+  prop(['durability'], 'number', (i) => (i['itemIDs'] as Record<string, number>).dura || 0);
+
+  prop(['charges'], 'number', (i) => (i['consumableIDs'] as Record<string, number>).charges || 0);
+  prop(['duration'], 'number', (i) => (i['consumableIDs'] as Record<string, number>).dura || 0);
+
+  sum(['summin', 'sumreq', 'totalmin', 'totalreq'], props.strmin, props.dexmin, props.intmin, props.defmin, props.agimin);
+
+  commonQueryProps({ prop, maxId, sum, props });
+
+  return props;
+})();
+
+export const queryFuncs: Record<string, QueryFunc> = {
+  max: {
+    type: 'number',
+    fn: function (_item, _itemExp, args) {
+      if (args.length < 1) throw new Error('Not enough args to max()');
+      let runningMax = -Infinity;
+      for (let i = 0; i < args.length; i++) {
+        if (checkNum(args[i]) > runningMax) runningMax = args[i] as number;
+      }
+      return runningMax;
+    },
+  },
+  min: {
+    type: 'number',
+    fn: function (_item, _itemExp, args) {
+      if (args.length < 1) throw new Error('Not enough args to min()');
+      let runningMin = Infinity;
+      for (let i = 0; i < args.length; i++) {
+        if (checkNum(args[i]) < runningMin) runningMin = args[i] as number;
+      }
+      return runningMin;
+    },
+  },
+  floor: {
+    type: 'number',
+    fn: function (_item, _itemExp, args) {
+      if (args.length < 1) throw new Error('Not enough args to floor()');
+      return Math.floor(checkNum(args[0]));
+    },
+  },
+  ceil: {
+    type: 'number',
+    fn: function (_item, _itemExp, args) {
+      if (args.length < 1) throw new Error('Not enough args to ceil()');
+      return Math.ceil(checkNum(args[0]));
+    },
+  },
+  round: {
+    type: 'number',
+    fn: function (_item, _itemExp, args) {
+      if (args.length < 1) throw new Error('Not enough args to round()');
+      return Math.round(checkNum(args[0]));
+    },
+  },
+  sqrt: {
+    type: 'number',
+    fn: function (_item, _itemExp, args) {
+      if (args.length < 1) throw new Error('Not enough args to sqrt()');
+      return Math.sqrt(checkNum(args[0]));
+    },
+  },
+  abs: {
+    type: 'number',
+    fn: function (_item, _itemExp, args) {
+      if (args.length < 1) throw new Error('Not enough args to abs()');
+      return Math.abs(checkNum(args[0]));
+    },
+  },
+  contains: {
+    type: 'boolean',
+    fn: function (_item, _itemExp, args) {
+      if (args.length < 2) throw new Error('Not enough args to contains()');
+      return checkStr(args[0]).toLowerCase().includes(checkStr(args[1]).toLowerCase());
+    },
+  },
+  atkspdmod: {
+    type: 'number',
+    fn: function (_item, _itemExp, args) {
+      if (args.length < 1) throw new Error('Not enough args to atkSpdMod()');
+      switch (checkNum(args[0])) {
+        case 2:
+          return 3.1;
+        case 1:
+          return 2.5;
+        case 0:
+          return 2.05;
+        case -1:
+          return 1.5;
+        case -2:
+          return 0.83;
+      }
+      if ((args[0] as number) <= -3) return 0.51;
+      if ((args[0] as number) >= 3) return 4.3;
+      throw new Error('Invalid argument to atkSpdMod()');
+    },
+  },
+  weapondmgbonus: {
+    type: 'number',
+    fn: function (item, itemExp, args) {
+      if (args.length < 3) throw new Error('Not enough args to weaponDmgBonus()');
+      let damage_weight = 0;
+      if (saved_weapon_args == null || saved_weapon_args[0] != args[0] || saved_weapon_args[1] != args[1]) {
+        saved_weapon_args = args;
+        weapon_choice = new Item(itemMap.get(args[0] as string));
+
+        let input = (args[1] as string).trim();
+        const powdering: number[] = [];
+        while (input) {
+          const first = input.slice(0, 2).toLowerCase();
+          const powder = powderIDs.get(first);
+          if (powder === undefined) {
+            break;
+          } else {
+            powdering.push(powder);
+          }
+          input = input.slice(2);
+        }
+        weapon_choice.statMap.set('powders', powdering);
+        apply_weapon_powders(weapon_choice.statMap);
+      }
+      const use_spell = args[2];
+      let max_roll: Map<string, number>;
+
+      if (itemExp.has('ids')) {
+        max_roll = (itemExp.get('ids') as Map<string, Map<string, number>>).get('maxRolls');
+      } else {
+        max_roll = itemExp.get('maxRolls') as Map<string, number>;
+      }
+
+      if (use_spell) {
+        const damage_elements = ['n'].concat(skp_elements);
+        for (const ele of damage_elements) {
+          const dmg_range = weapon_choice.statMap.get(ele + 'Dam_') as [number, number] | undefined;
+          if (!dmg_range) continue;
+          const avg_dmg = (dmg_range[0] + dmg_range[1]) / 2;
+          if (avg_dmg == 0) {
+            continue;
+          }
+          const atkspd_idx: Record<string, number> = { SUPER_SLOW: 0, VERY_SLOW: 1, SLOW: 2, NORMAL: 3, FAST: 4, VERY_FAST: 5, SUPER_FAST: 6 };
+          const avg_dps = avg_dmg * baseDamageMultiplier[atkspd_idx[weapon_choice.statMap.get('atkSpd') as string]];
+
+          let pct_damage_boost =
+            getOrNullToZero(max_roll, ele + 'DamPct') +
+            getOrNullToZero(max_roll, ele + 'SdPct') +
+            getOrNullToZero(max_roll, 'damPct') +
+            getOrNullToZero(max_roll, 'sdPct');
+          if (ele != 'n') {
+            pct_damage_boost += getOrNullToZero(max_roll, 'rDamPct') + getOrNullToZero(max_roll, 'rSdPct');
+          }
+          damage_weight += (avg_dps / 100) * pct_damage_boost + getOrNullToZero(max_roll, ele + 'DamRaw') + getOrNullToZero(max_roll, ele + 'SdRaw');
+        }
+        damage_weight +=
+          getOrNullToZero(max_roll, 'damRaw') + getOrNullToZero(max_roll, 'sdRaw') + getOrNullToZero(max_roll, 'rSdRaw') + getOrNullToZero(max_roll, 'rDamRaw');
+      } else {
+        const damage_elements = ['n'].concat(skp_elements);
+        for (const ele of damage_elements) {
+          const dmg_range = weapon_choice.statMap.get(ele + 'Dam_') as [number, number] | undefined;
+          if (!dmg_range) continue;
+          const avg_dmg = (dmg_range[0] + dmg_range[1]) / 2;
+          if (avg_dmg == 0) {
+            continue;
+          }
+          let pct_damage_boost =
+            getOrNullToZero(max_roll, ele + 'DamPct') +
+            getOrNullToZero(max_roll, ele + 'MdPct') +
+            getOrNullToZero(max_roll, 'damPct') +
+            getOrNullToZero(max_roll, 'mdPct');
+          if (ele != 'n') {
+            pct_damage_boost += getOrNullToZero(max_roll, 'rDamPct') + getOrNullToZero(max_roll, 'rMdPct');
+          }
+          damage_weight += (avg_dmg / 100) * pct_damage_boost + getOrNullToZero(max_roll, ele + 'DamRaw') + getOrNullToZero(max_roll, ele + 'MdRaw');
+        }
+        damage_weight +=
+          getOrNullToZero(max_roll, 'damRaw') + getOrNullToZero(max_roll, 'mdRaw') + getOrNullToZero(max_roll, 'rMdRaw') + getOrNullToZero(max_roll, 'rDamRaw');
+      }
+
+      return damage_weight;
+    },
+  },
+  leveltopowderavgdmg: {
+    type: 'number',
+    fn: function (_item, _itemExp, args) {
+      if (args.length < 1) throw new Error('Not enough args to levelToPowderAvgDmg()');
+      for (let i = powderLevelReq.length; i >= 0; i--) {
+        if ((args[0] as number) >= powderLevelReq[i]) {
+          return [4.5, 6.5, 8, 8.5, 10, 11.5, 13][i];
+        }
+      }
+      return 0;
+    },
+  },
+};
+
+function staticCheck(expType: QueryValueType, term: Term): void {
+  if (expType === 'any' || expType === term.type) {
+    return;
+  }
+  if (expType === 'number' && term.type === 'boolean') {
+    return;
+  }
+  throw new Error(`Expected ${expType}, but got ${term.type}`);
+}
+
+export class Term {
+  type: QueryValueType;
+
+  constructor(type: QueryValueType) {
+    this.type = type;
+  }
+
+  resolve(_item: Record<string, unknown>, _itemExt: Map<string, unknown>): unknown {
+    throw new Error('Abstract method!');
+  }
+}
+
+class LiteralTerm extends Term {
+  value: unknown;
+
+  constructor(type: QueryValueType, value: unknown) {
+    super(type);
+    this.value = value;
+  }
+
+  resolve(_item: Record<string, unknown>, _itemExt: Map<string, unknown>): unknown {
+    return this.value;
+  }
+}
+
+export class BoolLitTerm extends LiteralTerm {
+  constructor(value: boolean) {
+    super('boolean', value);
+  }
+}
+
+export class NumLitTerm extends LiteralTerm {
+  constructor(value: number) {
+    super('number', value);
+  }
+}
+
+export class StrLitTerm extends LiteralTerm {
+  constructor(value: string) {
+    super('string', value);
+  }
+}
+
+class BinaryOpTerm extends Term {
+  left: Term;
+  right: Term;
+
+  constructor(type: QueryValueType, leftType: QueryValueType, left: Term, rightType: QueryValueType, right: Term) {
+    super(type);
+    staticCheck(leftType, left);
+    staticCheck(rightType, right);
+    this.left = left;
+    this.right = right;
+  }
+
+  resolve(item: Record<string, unknown>, itemExt: Map<string, unknown>): unknown {
+    return this.apply(this.left.resolve(item, itemExt), this.right.resolve(item, itemExt));
+  }
+
+  apply(_a: unknown, _b: unknown): unknown {
+    throw new Error('Abstract method!');
+  }
+}
+
+class LogicalTerm extends BinaryOpTerm {
+  constructor(left: Term, right: Term) {
+    super('boolean', 'boolean', left, 'boolean', right);
+  }
+}
+
+export class ConjTerm extends LogicalTerm {
+  apply(a: unknown, b: unknown): boolean {
+    return (a as boolean) && (b as boolean);
+  }
+}
+
+export class DisjTerm extends LogicalTerm {
+  apply(a: unknown, b: unknown): boolean {
+    return (a as boolean) || (b as boolean);
+  }
+}
+
+class EqualityTerm extends BinaryOpTerm {
+  constructor(left: Term, right: Term) {
+    super('boolean', 'any', left, 'any', right);
+  }
+
+  apply(a: unknown, b: unknown): unknown {
+    return typeof a === 'string' && typeof b === 'string' ? this.compare(a.toLowerCase(), b.toLowerCase()) : this.compare(a, b);
+  }
+
+  compare(_a: unknown, _b: unknown): boolean {
+    throw new Error('Abstract method!');
+  }
+}
+
+export class EqTerm extends EqualityTerm {
+  compare(a: unknown, b: unknown): boolean {
+    return a === b;
+  }
+}
+
+export class NeqTerm extends EqualityTerm {
+  compare(a: unknown, b: unknown): boolean {
+    return a !== b;
+  }
+}
+
+export class ContainsTerm extends BinaryOpTerm {
+  constructor(left: Term, right: Term) {
+    super('boolean', 'string', left, 'string', right);
+  }
+
+  apply(a: unknown, b: unknown): boolean {
+    return (a as string).toLowerCase().includes((b as string).toLowerCase());
+  }
+}
+
+class InequalityTerm extends BinaryOpTerm {
+  constructor(left: Term, right: Term) {
+    super('boolean', 'any', left, 'any', right);
+  }
+
+  apply(a: unknown, b: unknown): unknown {
+    checkComparable(a);
+    checkComparable(b);
+    return typeof a === 'string' && typeof b === 'string' ? this.compare(a.toLowerCase(), b.toLowerCase()) : this.compare(a, b);
+  }
+
+  compare(_a: unknown, _b: unknown): boolean {
+    throw new Error('Abstract method!');
+  }
+}
+
+export class LeqTerm extends InequalityTerm {
+  compare(a: unknown, b: unknown): boolean {
+    return (a as number | string) <= (b as number | string);
+  }
+}
+
+export class LtTerm extends InequalityTerm {
+  compare(a: unknown, b: unknown): boolean {
+    return (a as number | string) < (b as number | string);
+  }
+}
+
+export class GtTerm extends InequalityTerm {
+  compare(a: unknown, b: unknown): boolean {
+    return (a as number | string) > (b as number | string);
+  }
+}
+
+export class GeqTerm extends InequalityTerm {
+  compare(a: unknown, b: unknown): boolean {
+    return (a as number | string) >= (b as number | string);
+  }
+}
+
+class ArithmeticTerm extends BinaryOpTerm {
+  constructor(left: Term, right: Term) {
+    super('number', 'number', left, 'number', right);
+  }
+}
+
+export class AddTerm extends ArithmeticTerm {
+  apply(a: unknown, b: unknown): number {
+    return (a as number) + (b as number);
+  }
+}
+
+export class SubTerm extends ArithmeticTerm {
+  apply(a: unknown, b: unknown): number {
+    return (a as number) - (b as number);
+  }
+}
+
+export class MulTerm extends ArithmeticTerm {
+  apply(a: unknown, b: unknown): number {
+    return (a as number) * (b as number);
+  }
+}
+
+export class DivTerm extends ArithmeticTerm {
+  apply(a: unknown, b: unknown): number {
+    return (a as number) / (b as number);
+  }
+}
+
+export class ExpTerm extends ArithmeticTerm {
+  apply(a: unknown, b: unknown): number {
+    return (a as number) ** (b as number);
+  }
+}
+
+class UnaryOpTerm extends Term {
+  inVal: Term;
+
+  constructor(type: QueryValueType, inType: QueryValueType, inVal: Term) {
+    super(type);
+    staticCheck(inType, inVal);
+    this.inVal = inVal;
+  }
+
+  resolve(item: Record<string, unknown>, itemExt: Map<string, unknown>): unknown {
+    return this.apply(this.inVal.resolve(item, itemExt));
+  }
+
+  apply(_x: unknown): unknown {
+    throw new Error('Abstract method!');
+  }
+}
+
+export class NegTerm extends UnaryOpTerm {
+  constructor(inVal: Term) {
+    super('number', 'number', inVal);
+  }
+
+  apply(x: unknown): number {
+    return -(x as number);
+  }
+}
+
+export class InvTerm extends UnaryOpTerm {
+  constructor(inVal: Term) {
+    super('boolean', 'boolean', inVal);
+  }
+
+  apply(x: unknown): boolean {
+    return !(x as boolean);
+  }
+}
+
+export class FnCallTerm extends Term {
+  fn: QueryFunc;
+  argExprs: Term[];
+
+  constructor(fn: QueryFunc, argExprs: Term[]) {
+    super(fn.type);
+    this.fn = fn;
+    this.argExprs = argExprs;
+  }
+
+  resolve(item: Record<string, unknown>, itemExt: Map<string, unknown>): unknown {
+    const argVals: unknown[] = [];
+    for (const argExpr of this.argExprs) {
+      argVals.push(argExpr.resolve(item, itemExt));
+    }
+    return this.fn.fn(item, itemExt, argVals);
+  }
+}
+
+export class PropTerm extends Term {
+  prop: QueryProp;
+
+  constructor(prop: QueryProp) {
+    super(prop.type);
+    this.prop = prop;
+  }
+
+  resolve(item: Record<string, unknown>, itemExt: Map<string, unknown>): unknown {
+    return this.prop.resolve(item, itemExt);
+  }
+}
+
+export function compareLexico(
+  ia: Record<string, unknown>,
+  keysA: unknown[],
+  ib: Record<string, unknown>,
+  keysB: unknown[],
+): number {
+  for (let i = 0; i < keysA.length; i++) {
+    let aKey = keysA[i];
+    let bKey = keysB[i];
+    if (typeof aKey !== typeof bKey) throw new Error(`Incomparable types ${typeof aKey} and ${typeof bKey}`);
+    switch (typeof aKey) {
+      case 'string':
+        aKey = (aKey as string).toLowerCase();
+        bKey = (bKey as string).toLowerCase();
+        if (aKey < bKey) return -1;
+        if (aKey > bKey) return 1;
+        break;
+      case 'number':
+        aKey = isNaN(aKey as number) ? 0 : aKey;
+        bKey = isNaN(bKey as number) ? 0 : bKey;
+        if ((aKey as number) < (bKey as number)) return 1;
+        if ((aKey as number) > (bKey as number)) return -1;
+        break;
+      default:
+        throw new Error(`Incomparable type ${typeof aKey}`);
+    }
+  }
+  return (ib.lvl as number) - (ia.lvl as number);
+}
+
+attachGlobals({
+  itemQueryProps,
+  ingredientQueryProps,
+  queryFuncs,
+  compareLexico,
+  BoolLitTerm,
+});

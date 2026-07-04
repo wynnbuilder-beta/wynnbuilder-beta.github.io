@@ -14,17 +14,10 @@
     <link href="https://fonts.googleapis.com/css2?family=Nunito&display=swap" rel="stylesheet">
 
     <link href="https://fonts.googleapis.com/css2?family=Nunito&display=swap" rel="stylesheet">
-    <link href="/thirdparty/bootstrap.min.css" rel="stylesheet"
-        integrity="sha384-1BmE4kWBq78iYhFldvKuhfTAU6auU8tT94WrHftjDbrCEXSU1oBoqyl2QvZ6jIW3" crossorigin="anonymous">
 
-    <link rel="stylesheet"
-        href="/thirdparty/autoComplete.min.css">
-
-
-    <link rel="stylesheet" href="../css/sq2bs.css">
-    <link rel="stylesheet" href="../css/sidebar.css">
-    <link rel="stylesheet" href="../css/wynnstyles.css">
-    <link rel="stylesheet" href="../css/dev.css">
+    <link rel="stylesheet" href="/src/lib/styles/common.css">
+    <link rel="stylesheet" href="/src/lib/styles/dev.css">
+    <script type="module" src="/src/entries/dev.ts"></script>
 </head>
 
 <body id="body" class="all" style="overflow-y: scroll">
@@ -167,7 +160,7 @@
                         The tree structure defining the ability tree can be found in a json file (the hand-edited source is <code>data/baseline/atree_constants.json</code>; the minified form is generated to <code>data/temp/atree_constants_min.json</code>). The file defines connections between the ability tree nodes: Each node has an unordered list of parent nodes, and an ordered list of child nodes.
                     </p>
                     <p>
-                        A reference implementation of the encoding/decoding algorithms can be found in <code>js/builder/build_encode_decode.js</code>. A pseudocode description of the algorithms is given here:
+                        A reference implementation of the encoding/decoding algorithms can be found in <code>src/builder/build_encode_decode.ts</code>. A pseudocode description of the algorithms is given here:
                     </p>
                     <code style="white-space: pre">
 // Encode an ability tree configuration into a binary blob.
@@ -1031,9 +1024,6 @@ function decode(tree_data, tree_state, tree_bitvector):
         <!-- <div class="row section" title="Test Section">
         </div> -->
     </div>
-    <script type-"text/javascript" src="../js/redirect_fork.js"></script>
-    <script type="text/javascript" src="../js/dev.js"></script>
-    <script type="text/javascript" src="../js/icons.js"></script>
 </body>
 
 </html>
