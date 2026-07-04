@@ -3,7 +3,6 @@
  * TODO: split this file into separate parts for each "component".
  */
 
-import { attachGlobals } from './lib/attachGlobals';
 import {
   attackSpeeds,
   baseDamageMultiplier,
@@ -1948,26 +1947,4 @@ export function initItemHoverPopups(eq_keys) {
     });
 }
 
-attachGlobals({
-  itemBGPositions,
-  apply_elemental_format,
-  displaySetBonuses,
-  displayBuildStats,
-  displayExpandedItem,
-  displayRecipeStats,
-  displayCraftStats,
-  displayExpandedIngredient,
-  displayExpandedSet,
-  displayNextCosts,
-  displayRolledID,
-  displayFixedID,
-  displayPoisonDamage,
-  displayDefenseStats,
-  displayPowderSpecials,
-  getSpellCost,
-  getBaseSpellCost,
-  displaySpellDamage,
-  addClickableArrow,
-  toggle_spell_tab,
-  initItemHoverPopups,
-});
+;

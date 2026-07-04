@@ -1,5 +1,3 @@
-import { attachGlobals } from '@/lib/attachGlobals';
-
 interface AtlasElement extends HTMLDivElement {
   vx: number;
   vy: number;
@@ -215,6 +213,9 @@ function runAtlas(): void {
 
 setInterval(runAtlas, dt);
 
-attachGlobals({
-  atlasClick,
-});
+/** Wire static HTML controls on the atlas page (replaces inline onclick). */
+function wireAtlasEvents(): void {
+  document.querySelector('button.atlas')?.addEventListener('click', atlasClick);
+}
+
+wireAtlasEvents();

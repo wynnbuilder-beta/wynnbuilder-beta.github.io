@@ -1,4 +1,3 @@
-import { attachGlobals } from '@/lib/attachGlobals';
 import {
   Base64,
   BitVector,
@@ -764,11 +763,4 @@ function statNum(statMap: Map<string, unknown>, key: string): number {
   return typeof val === 'number' ? val : 0;
 }
 
-attachGlobals({
-  ci_save_order,
-  encodeCustom,
-  encodeCustomLegacy,
-  decodeCustom,
-  getCustomFromHash,
-  Custom,
-});
+;

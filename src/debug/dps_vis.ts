@@ -1,6 +1,5 @@
 import * as d3 from 'd3';
-import { attachGlobals } from '@/lib/attachGlobals';
-import { WYNN_VERSION_LATEST, setWynnVersionId, wynn_version_names } from '@/load_item';
+import { WYNN_VERSION_LATEST, setWynnVersionId, wynn_version_id, wynn_version_names } from '@/load_item';
 import { make_elem, zip2 } from '@/utils';
 
 type DpsPoint = [string, number, unknown, string, number, number, number, number, [string, string][]];
@@ -331,4 +330,12 @@ function changeVersion() {
   void plotData();
 }
 
-attachGlobals({ setData, togglePowder, changeVersion });
+function wireDpsVisEvents(): void {
+  for (const type of ['wand', 'spear', 'dagger', 'bow', 'relik'] as const) {
+    document.getElementById(type)?.addEventListener('click', () => setData(type));
+  }
+  document.getElementById('powderToggle')?.addEventListener('click', togglePowder);
+  document.getElementById('versionDropdown')?.addEventListener('change', changeVersion);
+}
+
+wireDpsVisEvents();

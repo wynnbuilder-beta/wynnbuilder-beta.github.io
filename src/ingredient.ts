@@ -1,4 +1,3 @@
-import { attachGlobals, live } from '@/lib/attachGlobals';
 import { expandIngredient } from '@/build_utils';
 import { displayExpandedIngredient } from '@/display';
 import { displayAdditionalInfo } from '@/item_display';
@@ -24,12 +23,4 @@ void (async function () {
   init_itempage();
 })();
 
-attachGlobals({
-  item: live(
-    () => item,
-    (v) => {
-      item = v as Map<string, unknown>;
-    },
-  ),
-  init_itempage,
-});
+;

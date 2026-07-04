@@ -2,7 +2,6 @@
  * File containing utility functions that are useful for the builder page.
  */
 
-import { attachGlobals } from './lib/attachGlobals';
 import type { ItemStatMap } from './types/item';
 import type { AttackSpeed, ItemTier, PlayerClass, SkillpointId, WeaponType } from './types/stats';
 
@@ -792,45 +791,4 @@ export function getOrNullToZero(map: Map<string, unknown>, key: string): number 
   return 0;
 }
 
-attachGlobals({
-  skillPointsToPercentage,
-  skillpoint_final_mult,
-  skillpoint_damage_mult,
-  levelToSkillPoints,
-  levelToHPBase,
-  skp_order,
-  skill,
-  skp_elements,
-  damageClasses,
-  armorTypes,
-  accessoryTypes,
-  weaponTypes,
-  consumableTypes,
-  tome_types,
-  tome_type_map,
-  attackSpeeds,
-  baseDamageMultiplier,
-  classes,
-  wep_to_class,
-  tiers,
-  all_types,
-  item_types,
-  elementIcons,
-  skpReqs,
-  item_fields,
-  str_item_fields,
-  reversetranslations,
-  translations,
-  nonRolledIDs,
-  rolledIDs,
-  reversedIDs,
-  ingFields,
-  expandItem,
-  Item,
-  expandIngredient,
-  expandRecipe,
-  idRound,
-  merge_stat,
-  type_to_skill,
-  getOrNullToZero,
-});
+;

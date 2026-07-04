@@ -1,5 +1,5 @@
-import { attachGlobals } from './lib/attachGlobals';
 import type { JsonPayload, LoaderPaths, RejectFn } from './types/loader';
+import { sleep } from './utils';
 
 /**
  * An interface encapsulating common behaviour in the loading of data from remote and local databases.
@@ -252,4 +252,4 @@ export class Loader {
   }
 }
 
-attachGlobals({ Loader });
+;

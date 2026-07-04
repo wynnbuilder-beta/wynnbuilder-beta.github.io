@@ -1,8 +1,9 @@
 /*
  * File for display commands specific to the single item page.
  */
-import { attachGlobals } from './lib/attachGlobals';
 import { idPrefixes, idSuffixes } from './display_constants';
+import { itemMap } from '@/load_item';
+import { ingMap } from '@/load_ing';
 import { reversedIDs, rolledIDs } from './build_utils';
 import { toggleAmps } from './item';
 import { make_elem, ROMAN_NUMERAL_MAP, toggleButton } from './utils';
@@ -570,8 +571,4 @@ function stringCDF(id: string, val: number, base: number, amp: number): void {
   cdfEl.appendChild(b3);
 }
 
-attachGlobals({
-  displayIDCosts,
-  displayAdditionalInfo,
-  displayIDProbabilities,
-});
+;

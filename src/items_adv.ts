@@ -1,5 +1,4 @@
 import { expandItem } from '@/build_utils';
-import { attachGlobals } from '@/lib/attachGlobals';
 import { displayExpandedItem } from '@/display';
 import { item_loader, items, load_major_id_data, WYNN_VERSION_LATEST, wynn_version_names } from '@/load_item';
 import { apply_weapon_powders } from '@/powders';
@@ -68,8 +67,4 @@ void (async function () {
   init_items_adv();
 })();
 
-attachGlobals({
-  getQueryIdentifiers,
-  generateEntries,
-  display,
-});
+;

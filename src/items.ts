@@ -1,4 +1,3 @@
-import { attachGlobals } from '@/lib/attachGlobals';
 import { expandItem } from '@/build_utils';
 import { displayExpandedItem } from '@/display';
 import { ExprParser } from '@/expr_parser';
@@ -302,14 +301,4 @@ void (async function () {
   init_search();
 })();
 
-attachGlobals({
-  translate_mappings,
-  special_mappings,
-  string_mappings,
-  weapon_expression_mappings,
-  types,
-  search_tiers,
-  display,
-  filter_types_tiers,
-  init_values,
-});
+;

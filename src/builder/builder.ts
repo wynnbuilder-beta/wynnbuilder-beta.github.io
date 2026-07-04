@@ -1,4 +1,3 @@
-import { attachGlobals } from '@/lib/attachGlobals';
 import { damageClasses, skp_order } from '@/build_utils';
 import { initItemHoverPopups } from '@/display';
 import { elem_colors } from '@/display_constants';
@@ -6,8 +5,9 @@ import Macy from 'macy';
 import { itemLists, itemMap } from '@/load_item';
 import { tomeLists, tomeMap } from '@/load_tome';
 import { powderSpecialStats } from '@/powders';
-import { collapse_element, gen_slider_labeled, hardReload, setValue, toggleButton } from '@/utils';
+import { collapse_element, gen_slider_labeled, hardReload, setValue } from '@/utils';
 import { decodeHash, decodeHashLegacy, encodeBuildLegacy, player_build } from './build_encode_decode';
+import { wireBuilderEvents } from '@/builder/events';
 import { create_autocomplete } from './autocomplete';
 import {
   equipment_inputs,
@@ -307,6 +307,7 @@ async function init(): Promise<void> {
       break;
     }
   }
+  wireBuilderEvents();
 }
 
 window.onerror = function (message, _source, _lineno, _colno, error) {
@@ -317,13 +318,3 @@ window.onerror = function (message, _source, _lineno, _colno, error) {
 void (async function () {
   await init();
 })();
-
-attachGlobals({
-  populateBuildList,
-  saveBuild,
-  loadBuild,
-  resetFields,
-  toggleID,
-  toggleButton,
-  collapse_element,
-});

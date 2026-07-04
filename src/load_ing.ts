@@ -1,5 +1,4 @@
 import { damageClasses, skp_order } from '@/build_utils';
-import { attachGlobals, live } from '@/lib/attachGlobals';
 import { Loader } from '@/loader';
 import { POWDER_TIERS } from '@/powders';
 import type { Ingredient, Recipe, RecipeRemotePayload } from '@/types/ingredient';
@@ -196,37 +195,4 @@ export const ingredient_loader = new IngredientLoader(
   ING_DB_VERSION,
 );
 
-attachGlobals({
-  IngredientLoader,
-  ingredient_loader,
-  ing_loader: ingredient_loader,
-  ings: live(
-    () => ings,
-    (v) => {
-      ings = v as Ingredient[] | Record<string, Ingredient>;
-    },
-  ),
-  recipes: live(
-    () => recipes,
-    (v) => {
-      recipes = v as Recipe[] | Record<string, Recipe>;
-    },
-  ),
-  ingMap,
-  ingList,
-  recipeMap: live(
-    () => recipeMap,
-    (v) => {
-      recipeMap = v as Map<string, Recipe>;
-    },
-  ),
-  recipeList,
-  ingIDMap,
-  recipeIDMap: live(
-    () => recipeIDMap,
-    (v) => {
-      recipeIDMap = v as Map<number, string>;
-    },
-  ),
-  clean_ing,
-});
+;

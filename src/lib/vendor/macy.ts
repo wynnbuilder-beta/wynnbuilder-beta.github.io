@@ -1,4 +1,3 @@
 import MacyLib from 'macy';
-import { attachGlobals } from '@/lib/attachGlobals';
 
-attachGlobals({ Macy: MacyLib });
+export default MacyLib;

@@ -1,5 +1,5 @@
 
-import { attachGlobals } from './lib/attachGlobals';
+import { sets } from '@/load_item';
 import type { ExpandedItem } from './types/item';
 import type { SkillpointCalculationResult, SkillpointVector } from './types/stats';
 import { SKP_ORDER } from './types/stats';
@@ -274,7 +274,7 @@ export function calculate_skillpoints(
   );
 
   for (const [set_name, count] of best_activeSetCounts) {
-    const setData = sets.get(set_name) as SetBonusEntry;
+    const setData = sets.get(set_name) as unknown as SetBonusEntry;
     const bonus = setData.bonuses[count - 1];
     for (const i in SKP_ORDER) {
       const delta = (bonus[SKP_ORDER[Number(i)]] as number) || 0;
@@ -289,12 +289,4 @@ export function calculate_skillpoints(
   return [best_order, best_skillpoints, final_skillpoints, best_total, best_activeSetCounts, total_item_skillpoints];
 }
 
-attachGlobals({
-  apply_skillpoints,
-  vadd5,
-  can_equip,
-  fix_should_pop,
-  check_under_100,
-  apply_to_fit,
-  calculate_skillpoints,
-});
+;

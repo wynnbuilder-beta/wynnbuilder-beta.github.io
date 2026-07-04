@@ -1,4 +1,3 @@
-import { attachGlobals, live } from '@/lib/attachGlobals';
 import { expandItem } from '@/build_utils';
 import {
   item_loader,
@@ -80,20 +79,4 @@ void (async function () {
   init_itempage();
 })();
 
-attachGlobals({
-  ITEM_BUILD_VERSION,
-  item: live(
-    () => item,
-    (v) => {
-      item = v as ExpandedItem;
-    },
-  ),
-  amp_state: live(
-    () => amp_state,
-    (v) => {
-      amp_state = v as number;
-    },
-  ),
-  init_itempage,
-  toggleAmps,
-});
+;

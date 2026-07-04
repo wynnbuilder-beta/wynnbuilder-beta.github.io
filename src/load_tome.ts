@@ -5,7 +5,6 @@
  */
 
 import { tome_types } from '@/build_utils';
-import { attachGlobals, live } from '@/lib/attachGlobals';
 import { Loader } from '@/loader';
 import { clean_item } from '@/load_item';
 import type { ItemStatMap } from '@/types/item';
@@ -131,33 +130,4 @@ export class TomeLoader extends Loader {
 
 export const tome_loader = new TomeLoader('tome_db', ['tome_db'], TOME_DB_VERSION);
 
-attachGlobals({
-  TomeLoader,
-  tome_loader,
-  tomes: live(
-    () => tomes,
-    (v) => {
-      tomes = v as ItemStatMap[];
-    },
-  ),
-  tomeMap: live(
-    () => tomeMap,
-    (v) => {
-      tomeMap = v as Map<string, ItemStatMap>;
-    },
-  ),
-  tomeIDMap: live(
-    () => tomeIDMap,
-    (v) => {
-      tomeIDMap = v as Map<number, string>;
-    },
-  ),
-  tomeRedirectMap: live(
-    () => tomeRedirectMap,
-    (v) => {
-      tomeRedirectMap = v as Map<number, number>;
-    },
-  ),
-  tomeLists,
-  none_tomes,
-});
+;

@@ -1,4 +1,3 @@
-import { attachGlobals, live } from '@/lib/attachGlobals';
 import { all_types, expandIngredient, expandRecipe } from '@/build_utils';
 import {
   Craft,
@@ -43,22 +42,41 @@ export function init_crafter(): void {
     const hash_input = document.getElementById('hash-input') as HTMLInputElement;
     hash_input.addEventListener('input', (ev) => handleHashInput(hash_input, ev));
 
-    for (let i = 1; i < 4; ++i) {
-      document.getElementById('mat-1-' + i)!.addEventListener('click', () => calculateCraftSchedule());
-      document.getElementById('mat-2-' + i)!.addEventListener('click', () => calculateCraftSchedule());
-    }
     for (let i = 1; i < 7; ++i) {
       document.getElementById('ing-choice-' + i)!.addEventListener('input', () => calculateCraftSchedule());
     }
-    for (const str of ['slow', 'normal', 'fast']) {
-      document.getElementById(str + '-atk-button')!.addEventListener('click', () => calculateCraftSchedule());
-    }
 
+    wireCrafterEvents();
     populateFields();
     decodeCraftPopulateFields(ing_url_tag);
   } catch (error) {
     console.log(error);
   }
+}
+
+/** Wire static HTML controls on the crafter page (replaces inline onclick). */
+function wireCrafterEvents(): void {
+  for (const buttonId of atkSpdButtons) {
+    document.getElementById(buttonId)?.addEventListener('click', () => {
+      toggleAtkSpd(buttonId);
+      calculateCraftSchedule();
+    });
+  }
+
+  for (let i = 1; i < 3; i++) {
+    for (let j = 1; j < 4; j++) {
+      const buttonId = `mat-${i}-${j}`;
+      document.getElementById(buttonId)?.addEventListener('click', () => {
+        toggleMaterial(buttonId);
+        calculateCraftSchedule();
+      });
+    }
+  }
+
+  document.getElementById('reset-button')?.addEventListener('click', resetFields);
+  document.getElementById('copy-hash-button')?.addEventListener('click', copyRecipeHash);
+  document.getElementById('copy-button')?.addEventListener('click', copyRecipe);
+  document.getElementById('share-button')?.addEventListener('click', shareRecipe);
 }
 
 export function handleHashInput(hash_input: HTMLInputElement, inputEvent: Event): void {
@@ -402,26 +420,4 @@ void (async function () {
   init_crafter();
 })();
 
-attachGlobals({
-  ING_BUILD_VERSION,
-  player_craft: live(
-    () => player_craft,
-    (v) => {
-      player_craft = v as Craft | undefined;
-    },
-  ),
-  init_crafter,
-  handleHashInput,
-  updateMaterials,
-  toggleAtkSpd,
-  calculateCraftSchedule,
-  calculateCraft,
-  decodeCraftPopulateFields,
-  populateFields,
-  copyRecipeHash,
-  copyRecipe,
-  shareRecipe,
-  toggleMaterial,
-  updateCraftedImage,
-  resetFields,
-});
+;

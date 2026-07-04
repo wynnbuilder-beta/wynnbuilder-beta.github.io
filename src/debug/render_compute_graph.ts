@@ -2,6 +2,7 @@ import * as d3 from 'd3';
 import { all_nodes } from '@/computation_graph';
 import { edit_id_output } from '@/builder/builder_graph';
 import type { ComputeNode } from '@/computation_graph';
+import { sleep } from '@/utils';
 
 function set_export_button(
   svg: d3.Selection<SVGGElement, unknown, HTMLElement, unknown>,
