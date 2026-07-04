@@ -5,7 +5,6 @@ import type { Loader } from './loader';
 declare global {
   interface Window {
     Loader: typeof Loader;
-    toggleIcons?: () => void;
     toggle_tab?: (id: string) => void;
     opera?: string;
   }
