@@ -87,7 +87,11 @@ function initSections(): void {
   }
 }
 
+let wynnfoPageInitialized = false;
+
 export function initWynnfoPage(): void {
+  if (wynnfoPageInitialized) return;
+  wynnfoPageInitialized = true;
   initSections();
 
   for (const [title, pdf] of pdfs) {

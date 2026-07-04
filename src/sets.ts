@@ -34,7 +34,11 @@ function renderSets(): void {
   }
 }
 
+let setsPageInitialized = false;
+
 export async function initSetsPage(): Promise<void> {
+  if (setsPageInitialized) return;
+  setsPageInitialized = true;
   await Promise.all([item_loader.load_init(), load_major_id_data(wynn_version_names[WYNN_VERSION_LATEST])]);
   renderSets();
 }

@@ -18,7 +18,11 @@ function init_itempage(): void {
   }
 }
 
+let ingredientPageInitialized = false;
+
 export async function initIngredientPage(): Promise<void> {
-  await Promise.resolve(ingredient_loader.load_init());
+  if (ingredientPageInitialized) return;
+  ingredientPageInitialized = true;
+  await ingredient_loader.load_init();
   init_itempage();
 }

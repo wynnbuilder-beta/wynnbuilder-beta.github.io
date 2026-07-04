@@ -24,7 +24,11 @@ function toggleSection(section: HTMLElement): void {
   }
 }
 
+let devPageInitialized = false;
+
 export function initDevPage(): void {
+  if (devPageInitialized) return;
+  devPageInitialized = true;
   const sections = document.getElementsByClassName('section');
 
   for (const section of sections) {

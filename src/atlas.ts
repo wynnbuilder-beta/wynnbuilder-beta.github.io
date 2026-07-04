@@ -216,7 +216,11 @@ function wireAtlasEvents(): void {
   document.querySelector('button.atlas')?.addEventListener('click', atlasClick);
 }
 
+let atlasPageInitialized = false;
+
 export function initAtlasPage(): void {
+  if (atlasPageInitialized) return;
+  atlasPageInitialized = true;
   setTitle();
   setInterval(runAtlas, dt);
   wireAtlasEvents();

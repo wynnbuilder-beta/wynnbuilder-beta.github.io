@@ -414,7 +414,11 @@ export function resetFields(): void {
   calculateCraft();
 }
 
+let crafterPageInitialized = false;
+
 export async function initCrafterPage(): Promise<void> {
+  if (crafterPageInitialized) return;
+  crafterPageInitialized = true;
   await ingredient_loader.load_init();
   init_crafter();
 }
