@@ -5,11 +5,12 @@
         <link rel="preconnect" href="https://fonts.gstatic.com">
         <link href="https://fonts.googleapis.com/css2?family=Nunito&display=swap" rel="stylesheet">
 
-        <link rel="stylesheet" href="/css/styles.css">
-        <link rel="stylesheet" href="/css/article.css">
         <link rel="icon" href="./media/memes/agony.png">
         <link rel="manifest" href="manifest.json">
         <title>Base DPS Visualizer</title>
+        <link rel="stylesheet" href="/src/lib/styles/common.css">
+        <link rel="stylesheet" href="/src/lib/styles/dps_vis.css">
+        <script type="module" src="/src/entries/dps_vis.ts"></script>
     </head>
     <body class="all" style="height: 95%; overflow: auto; display: flex; flex-direction: column">
         <header class="header nomarginp">
@@ -26,40 +27,40 @@
         <table style="padding-bottom:20px">
             <tr>
                 <td>
-                    <button class = "button-narrow" id = "wand" onclick = "setData('wand')">
+                    <button class = "button-narrow" id = "wand">
                         wands
                     </button>
                 </td>
                 <td>
-                    <button class = "button-narrow" id = "spear" onclick = "setData('spear')">
+                    <button class = "button-narrow" id = "spear">
                         spears
                     </button>
                 </td>
                 <td>
-                    <button class = "button-narrow" id = "dagger" onclick = "setData('dagger')">
+                    <button class = "button-narrow" id = "dagger">
                         daggers
                     </button>
                 </td>
                 <td>
-                    <button class = "button-narrow" id = "bow" onclick = "setData('bow')">
+                    <button class = "button-narrow" id = "bow">
                         bows
                     </button>
                 </td>
                 <td>
-                    <button class = "button-narrow" id = "relik" onclick = "setData('relik')">
+                    <button class = "button-narrow" id = "relik">
                         reliks
                     </button>
                 </td>
                 <td>
                 </td>
                 <td>
-                    <button class = "button-narrow" id = "powderToggle" onclick = "togglePowder()">
+                    <button class = "button-narrow" id = "powderToggle">
                         prepowder (true)
                     </button>
                 </td>
                 <td>
                     <label class = "button-narrow" for="versionDropdown">Change Version</label>
-                    <select class = "button-narrow" id = "versionDropdown" onchange="changeVersion()">
+                    <select class = "button-narrow" id = "versionDropdown">
                     </select>
                 </td>
             </tr>
@@ -67,14 +68,5 @@
         <p id="info">
             SELECTED ITEM TYPE: wand
         </p>
-
-        <script type-"text/javascript" src="../js/redirect_fork.js"></script>
-        <script src="https://d3js.org/d3.v7.js"></script>
-        <script type="text/javascript" src="/js/utils.js"></script>
-        <script type="text/javascript" src="/js/loadheader.js"></script>
-        <script type="text/javascript" src="/js/icons.js"></script>
-        <script type="text/javascript" src="/js/loader.js"></script>
-        <script type="text/javascript" src="/js/load_item.js"></script>
-        <script type="text/javascript" src="/js/debug/dps_vis.js"></script>
     </body>
 </html>

@@ -2,6 +2,13 @@
 *.bat
 *.json
 !data/**/*.json
+!package.json
+!package-lock.json
+!tsconfig.json
+!tsconfig.*.json
+
+node_modules/
+dist/
 data/temp/
 sets/
 
@@ -9,8 +16,8 @@ sets/
 *.iml
 .editor_log.txt
 
-bin/
-lib/
+/bin/
+/lib/
 pyvenv.cfg
 
 __pycache__

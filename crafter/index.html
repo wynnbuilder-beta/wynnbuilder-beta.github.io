@@ -10,80 +10,12 @@
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Nunito&display=swap" rel="stylesheet">
-    <link href="/thirdparty/bootstrap.min.css" rel="stylesheet" integrity="sha384-1BmE4kWBq78iYhFldvKuhfTAU6auU8tT94WrHftjDbrCEXSU1oBoqyl2QvZ6jIW3" crossorigin="anonymous">
-
-    <link rel="stylesheet" href="/thirdparty/autoComplete.min.css">
-
-    
-    <link rel="stylesheet" href="../css/sq2bs.css">
-    <link rel="stylesheet" href="../css/sidebar.css">
-    <link rel="stylesheet" href="../css/wynnstyles.css">
+    <link rel="stylesheet" href="/src/lib/styles/common.css">
+    <script type="module" src="/src/entries/crafter.ts"></script>
 </head>
     <body id = "body" class = "text-light d-flex justify-content-center">
-        <div id="main-sidebar" class="sidebar dark-7 dark-shadow">
-            <a href = "../builder/"><img src="../media/icons/new/builder.png" alt = "WynnBuilder" title = "WynnBuilder"><b>WynnBuilder</b></a>
-            <a href = ""><img src = "../media/icons/new/crafter.png" alt = "WynnCrafter" title = "WynnCrafter"><b>WynnCrafter</b></a>
-            <a href = "../items/"><img src = "../media/icons/new/searcher.png" alt = "WynnAtlas" title = "WynnAtlas"><b>WynnAtlas</b></a>
-            <a href = "../custom/"><img src = "../media/icons/new/custom.png" alt = "WynnCustom" title = "WynnCustom"><b>WynnCustom</b></a>
-            <a href = "../map/"><img src = "../media/icons/new/compass.png" alt = "WynnGPS" title = "WynnGPS"><b>WynnGPS</b></a>
-            <a href = "../wynnfo/"><img src = "../media/icons/new/book.png" alt = "Wynnfo" title = "Wynnfo"><b>Wynnfo</b></a>
-            <a onclick = "toggleIcons()"><img src = "../media/icons/new/reload.png" alt = "" title = "Swap items on page"><b>Swap Icon Style</b></a>
-            <hr/>
-            <a href = "https://nori.fish/wynn/build/" target = "_blank"><img src = "../media/icons/new/nori_build.png" alt = "Build Search" title = "Build Search by Nori-Wynn"><b>Build Search</b></a>
-            <a href = "https://nori.fish/wynn/recipe/" target = "_blank"><img src = "../media/icons/new/nori_recipe.png" alt = "Recipe Search" title = "Recipe Search by Nori-Wynn"><b>Recipe Search</b></a>
-            <a href = "https://discord.gg/CGavnAnerv" target = "_blank"><img src = "../media/icons/discord.png" alt = "WB Discord" title = "WB Discord"><b>WB Discord</b></a>
-        </div>
-        <div id="mobile-navbar" class="navbar dark-5 dark-shadow fixed-top d-lg-none pb-0">
-            <div class="container-fluid scaled-font justify-content-center" style="height: 5vh;">
-                <div class="navbar-brand mx-auto scaled-font" style="height: 100%;">
-                    <img src="../media/icons/new/crafter.png" alt="" style="height: 100%;">
-                    <span>WynnCrafter</span>
-                </div>
-                <button class="btn dropdown-toggle dark-2 px-4 text-white scaled-font border-dark border-3" onclick="toggle_tab('mobile-navbar-dropdown');"></button>
-            </div>
-            <div class="container-fluid scaled-font dark-3 px-3 py-3" id="mobile-navbar-dropdown" style="display: none;">
-                <a href="../builder/" class="w-100 mb-3 text-white" style="height: 5vh; text-decoration: none;">
-                    <img src="../media/icons/new/builder.png" alt="" style="height: 100%;">
-                    <span>WynnBuilder</span>
-                </a>
-                <a href="../crafter/" class="w-100 mb-3 text-white" style="height: 5vh; text-decoration: none;">
-                    <img src="../media/icons/new/crafter.png" alt="" style="height: 100%;">
-                    <span>WynnCrafter</span>
-                </a>
-                <a href="../items/" class="w-100 mb-3 text-white" style="height: 5vh; text-decoration: none;">
-                    <img src="../media/icons/new/searcher.png" alt="" style="height: 100%;">
-                    <span>WynnAtlas</span>
-                </a>
-                <a href="../custom/" class="w-100 mb-3 text-white" style="height: 5vh; text-decoration: none;">
-                    <img src="../media/icons/new/custom.png" alt="" style="height: 100%;">
-                    <span>WynnCustom</span>
-                </a>
-                <a href="../map/" class="w-100 mb-3 text-white" style="height: 5vh; text-decoration: none;">
-                    <img src="../media/icons/new/compass.png" alt="" style="height: 100%;">
-                    <span>WynnGPS</span>
-                </a>
-                <a href="../wynnfo/" class="w-100 mb-3 text-white" style="height: 5vh; text-decoration: none;">
-                    <img src="../media/icons/new/book.png" alt="" style="height: 100%;">
-                    <span>WynnFo</span>
-                </a>
-                <a onclick = "toggleIcons()" class="w-100 mb-3 text-white" style="height: 5vh; text-decoration: none;">
-                    <img src="../media/icons/new/reload.png" alt="" style="height: 100%;">
-                    <span>Swap Icon Style</span>
-                </a>
-                <a href="https://nori.fish/wynn/build/" class="w-100 mb-3 text-white" style="height: 5vh; text-decoration: none;">
-                    <img src="../media/icons/new/nori_build.png" alt="" style="height: 100%;">
-                    <span>Build Search</span>
-                </a>
-                <a href="https://nori.fish/wynn/recipe/" class="w-100 mb-3 text-white" style="height: 5vh; text-decoration: none;">
-                    <img src="../media/icons/new/nori_recipe.png" alt="" style="height: 100%;">
-                    <span>Recipe Search</span>
-                </a>
-                <a href="https://discord.gg/CGavnAnerv" class="w-100 mb-3 text-white" style="height: 5vh; text-decoration: none;">
-                    <img src="../media/icons/discord.png" alt="" style="height: 100%;">
-                    <span>Discord</span>
-                </a>
-            </div>
-        </div>
+        <!-- @sidebar active=crafter mobile=branded -->
+    
         <div class="container mt-lg-2" style="margin-top: 6vh;">
             <div class="row row-cols-1 row-cols-lg-3 gy-5">
                 <div class="col col-lg-5">
@@ -130,17 +62,17 @@
                                 <div class="col mb-2">
                                     <div class="row justify-content-center">
                                         <div class="col-auto px-2">
-                                            <button class = "button rounded scaled-font fw-bold text-light dark-5" id = "slow-atk-button" onclick = "toggleAtkSpd('slow-atk-button')">
+                                            <button class = "button rounded scaled-font fw-bold text-light dark-5" id = "slow-atk-button">
                                                 Slow
                                             </button>
                                         </div>
                                         <div class="col-auto px-2">
-                                            <button class = "button rounded scaled-font fw-bold text-light dark-5" id = "normal-atk-button" onclick = "toggleAtkSpd('normal-atk-button')">
+                                            <button class = "button rounded scaled-font fw-bold text-light dark-5" id = "normal-atk-button">
                                                 Normal
                                             </button>
                                         </div>
                                         <div class="col-auto px-2">
-                                            <button class = "button rounded scaled-font fw-bold text-light dark-5" id = "fast-atk-button" onclick = "toggleAtkSpd('fast-atk-button')">
+                                            <button class = "button rounded scaled-font fw-bold text-light dark-5" id = "fast-atk-button">
                                                 Fast
                                             </button>
                                         </div>
@@ -154,13 +86,13 @@
                                     <p class = "mb-0 scaled-font fw-bold text-center" id = "mat-1">Mat 1 Tier:</p>
                                 </div>
                                 <div class = "col px-0">
-                                    <button class = "button Star rounded scaled-font fw-bold text-light dark-5" id = "mat-1-1" onclick = "toggleMaterial('mat-1-1')">1</button>
+                                    <button class = "button Star rounded scaled-font fw-bold text-light dark-5" id = "mat-1-1">1</button>
                                 </div>
                                 <div class = "col px-0">
-                                    <button class = "button Star rounded scaled-font fw-bold text-light dark-5" id = "mat-1-2" onclick = "toggleMaterial('mat-1-2')">2</button>
+                                    <button class = "button Star rounded scaled-font fw-bold text-light dark-5" id = "mat-1-2">2</button>
                                 </div>
                                 <div class = "col px-0">
-                                    <button class = "button Star rounded scaled-font fw-bold text-light dark-5" id = "mat-1-3" onclick = "toggleMaterial('mat-1-3')">3</button>
+                                    <button class = "button Star rounded scaled-font fw-bold text-light dark-5" id = "mat-1-3">3</button>
                                 </div>
                             </div>                                
                         </div>
@@ -170,13 +102,13 @@
                                     <p class = "mb-0 scaled-font fw-bold text-center" id = "mat-2">Mat 2 Tier:</p>
                                 </div>
                                 <div class = "col px-0">
-                                    <button class = "button Star rounded scaled-font fw-bold text-light dark-5" id = "mat-2-1" onclick = "toggleMaterial('mat-2-1')">1</button>
+                                    <button class = "button Star rounded scaled-font fw-bold text-light dark-5" id = "mat-2-1">1</button>
                                 </div>
                                 <div class = "col px-0">
-                                    <button class = "button Star rounded scaled-font fw-bold text-light dark-5" id = "mat-2-2" onclick = "toggleMaterial('mat-2-2')">2</button>
+                                    <button class = "button Star rounded scaled-font fw-bold text-light dark-5" id = "mat-2-2">2</button>
                                 </div>
                                 <div class = "col px-0">
-                                    <button class = "button Star rounded scaled-font fw-bold text-light dark-5" id = "mat-2-3" onclick = "toggleMaterial('mat-2-3')">3</button>
+                                    <button class = "button Star rounded scaled-font fw-bold text-light dark-5" id = "mat-2-3">3</button>
                                 </div>
                             </div>                                
                         </div>
@@ -255,22 +187,22 @@
                     </div>
                     <div class = "row rounded dark-shadow dark-6 mt-3 p-2 align-items-center justify-content-center">
                         <div class = "col-auto mx-auto">
-                            <button class = "button rounded scaled-font fw-bold text-light dark-5" id = "reset-button" onclick = "resetFields()">
+                            <button class = "button rounded scaled-font fw-bold text-light dark-5" id = "reset-button">
                             Reset
                             </button>
                         </div>
                         <div class = "col-auto mx-auto">
-                            <button class = "button rounded scaled-font fw-bold text-light dark-5" id = "copy-hash-button" onclick = "copyRecipeHash()">
+                            <button class = "button rounded scaled-font fw-bold text-light dark-5" id = "copy-hash-button">
                             Copy Hash
                             </button>
                         </div>
                         <div class = "col-auto mx-auto">
-                            <button class = "button rounded scaled-font fw-bold text-light dark-5" id = "copy-button" onclick = "copyRecipe()">
+                            <button class = "button rounded scaled-font fw-bold text-light dark-5" id = "copy-button">
                             Copy Short
                             </button>
                         </div>
                         <div class = "col-auto mx-auto">
-                            <button class = "button rounded scaled-font fw-bold text-light dark-5" id = "share-button" onclick = "shareRecipe()">
+                            <button class = "button rounded scaled-font fw-bold text-light dark-5" id = "share-button">
                             Copy Long
                             </button>
                         </div>
@@ -338,19 +270,5 @@
                 </div>
             </div>
         </div>
-        <script type-"text/javascript" src="../js/redirect_fork.js"></script>
-        <script type="text/javascript" src="../js/utils.js"></script>
-        <script type="text/javascript" src="../js/build_utils.js"></script>
-        <script type="text/javascript" src="../js/icons.js"></script>       
-        <script type="text/javascript" src="../js/powders.js"></script>
-        <script type="text/javascript" src="../js/skillpoints.js"></script>
-        <script type="text/javascript" src="../js/damage_calc.js"></script>
-        <script type="text/javascript" src="../js/display_constants.js"></script>
-        <script type="text/javascript" src="../js/display.js"></script>
-        <script type="text/javascript" src="../js/loader.js"></script>
-        <script type="text/javascript" src="../js/load_item.js"></script>
-        <script type="text/javascript" src="../js/load_ing.js"></script>
-        <script type="text/javascript" src="../js/craft.js"></script>
-        <script type="text/javascript" src="../js/crafter.js"></script>
     </body>
 </html>

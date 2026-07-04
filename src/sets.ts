@@ -1,0 +1,44 @@
+import { displayExpandedSet } from './display';
+import {
+  item_loader,
+  load_major_id_data,
+  sets,
+  WYNN_VERSION_LATEST,
+  wynn_version_names,
+} from './load_item';
+import { make_elem } from './utils';
+
+function renderSets(): void {
+  const set_parent = document.getElementById('search-results')!;
+  for (const [key, setData] of sets) {
+    if (setData.hidden === true) {
+      continue;
+    }
+
+    const box = make_elem('div', ['ing-stats', 'col-lg-3', 'p-2', 'col-sm-6'], { id: 'set' + key });
+
+    const bckgrdbox = make_elem(
+      'div',
+      ['rounded', 'g-0', 'dark-7', 'border', 'border-dark', 'dark-shadow', 'p-3', 'col-auto'],
+      { id: 'set' + key + 'b' },
+    );
+    box.append(bckgrdbox);
+    set_parent.appendChild(box);
+
+    displayExpandedSet(
+      key,
+      setData,
+      bckgrdbox.id,
+      setData.bonuses.length - 1,
+    );
+  }
+}
+
+let setsPageInitialized = false;
+
+export async function initSetsPage(): Promise<void> {
+  if (setsPageInitialized) return;
+  setsPageInitialized = true;
+  await Promise.all([item_loader.load_init(), load_major_id_data(wynn_version_names[WYNN_VERSION_LATEST])]);
+  renderSets();
+}
