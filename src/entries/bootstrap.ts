@@ -1,5 +1,4 @@
-/** Shared styles and globals used by every app page. */
-import '@/lib/styles/common';
+/** Shared globals used by every app page. Styles load via <link> in each HTML entry. */
 import '@/redirect_fork';
 import '@/utils';
 import '@/build_utils';

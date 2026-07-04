@@ -1,5 +1,4 @@
 import './bootstrap';
-import '@/lib/styles/search';
 import '@/lib/vendor/autocomplete';
 import '@/icons';
 import '@/display_constants';
