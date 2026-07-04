@@ -87,7 +87,7 @@ function initSections(): void {
   }
 }
 
-function init(): void {
+export function initWynnfoPage(): void {
   initSections();
 
   for (const [title, pdf] of pdfs) {
@@ -172,5 +172,3 @@ function init(): void {
     pre.appendChild(ul);
   }
 }
-
-init();

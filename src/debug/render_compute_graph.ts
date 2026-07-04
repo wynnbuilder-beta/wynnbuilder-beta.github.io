@@ -1,8 +1,7 @@
 import * as d3 from 'd3';
 import { all_nodes } from '@/computation_graph';
-import { edit_id_output } from '@/builder/builder_graph';
+import { tryGetEditIdOutput } from '@/builder/builder_graph';
 import type { ComputeNode } from '@/computation_graph';
-import { sleep } from '@/utils';
 
 function set_export_button(
   svg: d3.Selection<SVGGElement, unknown, HTMLElement, unknown>,
@@ -251,9 +250,9 @@ function create_svg(data: { nodes: GraphNode[]; links: GraphLink[] }, redraw_fun
 
 set_export_button(svg, 'saveButton', 'saveLink');
 
-void (async function () {
-  while (edit_id_output === undefined) {
-    await sleep(500);
+export async function initRenderComputeGraphPage(): Promise<void> {
+  if (tryGetEditIdOutput() === undefined) {
+    throw new Error('Call initBuilderPage() before initRenderComputeGraphPage()');
   }
 
   function redraw() {
@@ -271,4 +270,4 @@ void (async function () {
   create_svg(data, redraw);
 
   console.log('render');
-})();
+}

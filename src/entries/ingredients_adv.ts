@@ -1,7 +1,5 @@
 import './bootstrap';
-import '@/icons';
-import '@/display_constants';
-import '@/expr_parser';
-import '@/search_adv';
-import '@/display';
-import '@/ingredients_adv';
+import { runPageInit } from '@/lib/runPageInit';
+import { initIngredientsAdvPage } from '@/ingredients_adv';
+
+runPageInit(initIngredientsAdvPage);

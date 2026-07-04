@@ -7,6 +7,9 @@ import { itemQueryProps, queryFuncs } from '@/query';
 import { configureItemSearch, init_search, setItemSearchData } from '@/search';
 import { make_elem } from '@/utils';
 import type { ExpandedItem } from '@/types/item';
+import '@/lib/vendor/autocomplete';
+import '@/drag_drop_touch';
+import '@/builder/build_encode_decode';
 
 const types: Record<string, boolean> = {
   bow: false,
@@ -295,10 +298,10 @@ configureItemSearch({
   getWeaponNames,
 });
 
-void (async function () {
-  void load_major_id_data(wynn_version_names[WYNN_VERSION_LATEST]);
-  await item_loader.load_init();
+export async function initItemsPage(): Promise<void> {
+  await Promise.all([
+    item_loader.load_init(),
+    load_major_id_data(wynn_version_names[WYNN_VERSION_LATEST]),
+  ]);
   init_search();
-})();
-
-;
+}

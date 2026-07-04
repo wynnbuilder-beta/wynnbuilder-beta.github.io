@@ -35,7 +35,7 @@ import { newIcons } from './icons';
 import { MAJOR_IDS, sets } from './load_item';
 import { POWDER_TIERS, powderSpecialStats } from './powders';
 import { make_elem, setHTML, ROMAN_NUMERAL_MAP } from './utils';
-import { atree_merge } from './builder/atree';
+import { tryGetAtreeMerge } from './builder/atree';
 import { getDefenseStats } from './builder/defense_stats';
 import type { ExpandedItem } from './types/item';
 import type { SpellDefinition } from './types/stats';
@@ -294,7 +294,7 @@ export function displayBuildStats(parent_id, build, command_group, stats) {
                         let prefix_elem = make_elem('b', [], { textContent: "\u279C Total Range: " });
 
                         let number_elem = make_elem('b', [style], {
-                            textContent: Math.round((atree_merge.value as Map<number, { properties: Record<string, number> }>).get(999)!.properties.range * (1 + 0.01 * id_val) * 10) / 10
+                            textContent: Math.round(((tryGetAtreeMerge()?.value as Map<number, { properties: Record<string, number> }> | undefined)?.get(999)?.properties.range ?? 0) * (1 + 0.01 * id_val) * 10) / 10
                         });
 
                         let suffix_elem = make_elem('b', [], {

@@ -71,11 +71,9 @@ configureAdvSearch({
   getQueryIdentifiers,
 });
 
-void (async function () {
+export async function initIngredientsAdvPage(): Promise<void> {
   await ingredient_loader.load_init();
   await item_loader.load_init();
   await load_major_id_data(wynn_version_names[WYNN_VERSION_LATEST]);
   init_items_adv();
-})();
-
-;
+}

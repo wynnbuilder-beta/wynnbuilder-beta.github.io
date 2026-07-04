@@ -1,4 +1,5 @@
 import './bootstrap';
-import '@/lib/vendor/bootstrap';
-import '@/icons';
-import '@/atlas';
+import { runPageInit } from '@/lib/runPageInit';
+import { initAtlasPage } from '@/atlas';
+
+runPageInit(initAtlasPage);

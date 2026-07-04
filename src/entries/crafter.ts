@@ -1,6 +1,5 @@
 import './bootstrap';
-import '@/icons';
-import '@/display_constants';
-import '@/display';
-import '@/craft';
-import '@/crafter';
+import { runPageInit } from '@/lib/runPageInit';
+import { initCrafterPage } from '@/crafter';
+
+runPageInit(initCrafterPage);

@@ -4,15 +4,44 @@ import { make_elem, zip2 } from '@/utils';
 
 type DpsPoint = [string, number, unknown, string, number, number, number, number, [string, string][]];
 
-d3.select('body')
-  .append('div')
-  .attr('style', 'width: 100%; min-height: 0px; flex-grow: 1')
-  .append('svg')
-  .attr('preserveAspectRatio', 'xMinYMin meet')
-  .classed('svg-content-responsive', true);
-const graph = d3.select<SVGSVGElement, unknown>('svg');
-
 const margin = { top: 20, right: 20, bottom: 35, left: 40 };
+
+let graph: d3.Selection<SVGSVGElement, unknown, HTMLElement, unknown>;
+let _xAxis: d3.Selection<SVGGElement, unknown, HTMLElement, unknown>;
+let _yAxis: d3.Selection<SVGGElement, unknown, HTMLElement, unknown>;
+let _grid1: d3.Selection<SVGGElement, unknown, HTMLElement, unknown>;
+let _grid2: d3.Selection<SVGGElement, unknown, HTMLElement, unknown>;
+let circles: d3.Selection<SVGGElement, unknown, HTMLElement, unknown>;
+let details: d3.Selection<SVGGElement, unknown, HTMLElement, unknown>;
+const tier_baselines = new Map<string, [d3.Selection<SVGPathElement, unknown, HTMLElement, unknown>, d3.Selection<SVGPathElement, unknown, HTMLElement, unknown>]>();
+
+function setupDpsVisDom(): void {
+  if (graph) return;
+
+  d3.select('body')
+    .append('div')
+    .attr('style', 'width: 100%; min-height: 0px; flex-grow: 1')
+    .append('svg')
+    .attr('preserveAspectRatio', 'xMinYMin meet')
+    .classed('svg-content-responsive', true);
+
+  graph = d3.select<SVGSVGElement, unknown>('svg');
+  _xAxis = graph.append('g');
+  _xAxis.append('text');
+  _yAxis = graph.append('g');
+  _yAxis.append('text');
+  _grid1 = graph.append('g');
+  _grid2 = graph.append('g');
+  circles = graph.append('g');
+  details = graph.append('g').attr('fill', '#444');
+  details.append('rect').attr('z', '100');
+
+  for (const tier of tiers_mod.keys()) {
+    const line_top = graph.append('path');
+    const line_bot = graph.append('path');
+    tier_baselines.set(tier, [line_top, line_bot]);
+  }
+}
 
 function bbox(): DOMRect {
   return (graph.node()!.parentNode as Element).getBoundingClientRect();
@@ -82,13 +111,6 @@ function grid(
     .remove();
 }
 
-const _xAxis = graph.append('g');
-_xAxis.append('text');
-const _yAxis = graph.append('g');
-_yAxis.append('text');
-const _grid1 = graph.append('g');
-const _grid2 = graph.append('g');
-
 let dps_getter_func: (d: DpsPoint) => number = (d) => d[4];
 let prepowder = true;
 const strDex = false;
@@ -120,12 +142,6 @@ async function plotData() {
   });
   redraw(current_data!);
 }
-void plotData();
-
-const versionDropdown = document.getElementById('versionDropdown')!;
-for (let i = 0; i < wynn_version_names.length; i++) {
-  versionDropdown.append(make_elem('option', [], { value: i, label: wynn_version_names[i] }));
-}
 
 const colorMap = new Map([
   ['Normal', '#fff'],
@@ -154,17 +170,6 @@ const weapon_type_mods = new Map([
   ['bow', 1.2],
   ['relik', 1.2],
 ]);
-const tier_baselines = new Map<string, [d3.Selection<SVGPathElement, unknown, any, any>, d3.Selection<SVGPathElement, unknown, any, any>]>();
-for (const tier of tiers_mod.keys()) {
-  const line_top = graph.append('path');
-  const line_bot = graph.append('path');
-  tier_baselines.set(tier, [line_top, line_bot]);
-}
-
-const circles = graph.append('g');
-
-const details = graph.append('g').attr('fill', '#444');
-details.append('rect').attr('z', '100');
 
 function showDetails(
   _event: MouseEvent,
@@ -338,4 +343,12 @@ function wireDpsVisEvents(): void {
   document.getElementById('versionDropdown')?.addEventListener('change', changeVersion);
 }
 
-wireDpsVisEvents();
+export async function initDpsVisPage(): Promise<void> {
+  setupDpsVisDom();
+  const versionDropdown = document.getElementById('versionDropdown')!;
+  for (let i = 0; i < wynn_version_names.length; i++) {
+    versionDropdown.append(make_elem('option', [], { value: i, label: wynn_version_names[i] }));
+  }
+  wireDpsVisEvents();
+  await plotData();
+}

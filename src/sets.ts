@@ -13,7 +13,7 @@ interface SetDisplayData {
   bonuses: unknown[];
 }
 
-function init_sets(): void {
+function renderSets(): void {
   const set_parent = document.getElementById('search-results')!;
   for (const [key, value] of sets) {
     const setData = value as unknown as SetDisplayData;
@@ -40,7 +40,7 @@ function init_sets(): void {
   }
 }
 
-void (async function () {
+export async function initSetsPage(): Promise<void> {
   await Promise.all([item_loader.load_init(), load_major_id_data(wynn_version_names[WYNN_VERSION_LATEST])]);
-  init_sets();
-})();
+  renderSets();
+}

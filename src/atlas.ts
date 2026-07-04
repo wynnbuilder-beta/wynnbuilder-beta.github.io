@@ -1,3 +1,5 @@
+import '@/lib/vendor/bootstrap';
+
 interface AtlasElement extends HTMLDivElement {
   vx: number;
   vy: number;
@@ -12,8 +14,6 @@ function setTitle(): void {
   header.classList.add('title');
   header.textContent = text;
 }
-
-setTitle();
 
 const flavortexts = [
   'JALA?? \n ATLAS?? \n ANYONE??',
@@ -211,11 +211,13 @@ function runAtlas(): void {
   }
 }
 
-setInterval(runAtlas, dt);
-
 /** Wire static HTML controls on the atlas page (replaces inline onclick). */
 function wireAtlasEvents(): void {
   document.querySelector('button.atlas')?.addEventListener('click', atlasClick);
 }
 
-wireAtlasEvents();
+export function initAtlasPage(): void {
+  setTitle();
+  setInterval(runAtlas, dt);
+  wireAtlasEvents();
+}

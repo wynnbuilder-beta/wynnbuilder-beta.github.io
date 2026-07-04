@@ -1,5 +1,5 @@
 import './bootstrap';
-import '@/lib/vendor/leaflet';
-import '@/icons';
-import '@/load_map';
-import '@/map';
+import { runPageInit } from '@/lib/runPageInit';
+import { initMapPage } from '@/map';
+
+runPageInit(initMapPage);

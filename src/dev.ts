@@ -1,4 +1,30 @@
-function init_dev(): void {
+function toggleSection(section: HTMLElement): void {
+  const down = section.classList.contains('down');
+  const arrow_elem = section.getElementsByClassName('arrow')[0] as HTMLElement;
+
+  if (down) {
+    section.classList.remove('down');
+    section.classList.add('up');
+    arrow_elem.style.transform = 'rotate(180deg)';
+
+    for (const elem of section.children) {
+      if (!elem.classList.contains('section-title')) {
+        (elem as HTMLElement).style.display = '';
+      }
+    }
+  } else {
+    section.classList.remove('up');
+    section.classList.add('down');
+    arrow_elem.style.transform = 'rotate(0deg)';
+    for (const elem of section.children) {
+      if (!elem.classList.contains('section-title')) {
+        (elem as HTMLElement).style.display = 'none';
+      }
+    }
+  }
+}
+
+export function initDevPage(): void {
   const sections = document.getElementsByClassName('section');
 
   for (const section of sections) {
@@ -32,32 +58,3 @@ function init_dev(): void {
     }
   }
 }
-
-function toggleSection(section: HTMLElement): void {
-  const down = section.classList.contains('down');
-  const arrow_elem = section.getElementsByClassName('arrow')[0] as HTMLElement;
-
-  if (down) {
-    section.classList.remove('down');
-    section.classList.add('up');
-    arrow_elem.style.transform = 'rotate(180deg)';
-
-    for (const elem of section.children) {
-      if (!elem.classList.contains('section-title')) {
-        (elem as HTMLElement).style.display = '';
-      }
-    }
-  } else {
-    section.classList.remove('up');
-    section.classList.add('down');
-    arrow_elem.style.transform = 'rotate(0deg)';
-    for (const elem of section.children) {
-      if (!elem.classList.contains('section-title')) {
-        (elem as HTMLElement).style.display = 'none';
-      }
-    }
-  }
-}
-
-init_dev();
-

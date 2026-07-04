@@ -1,10 +1,10 @@
 import { damageClasses, skp_order } from '@/build_utils';
 import { initItemHoverPopups } from '@/display';
 import { elem_colors } from '@/display_constants';
-import Macy from 'macy';
 import { itemLists, itemMap } from '@/load_item';
 import { tomeLists, tomeMap } from '@/load_tome';
 import { powderSpecialStats } from '@/powders';
+import Macy from 'macy';
 import { collapse_element, gen_slider_labeled, hardReload, setValue } from '@/utils';
 import { decodeHash, decodeHashLegacy, encodeBuildLegacy, player_build } from './build_encode_decode';
 import { wireBuilderEvents } from '@/builder/events';
@@ -19,15 +19,16 @@ import {
   weapon_keys,
 } from './builder_constants';
 import {
-  armor_powder_node,
-  boosts_node,
+  getArmorPowderNode,
+  getBoostsNode,
   builder_graph_init,
   damageMultipliers,
   edit_input_nodes,
   equip_inputs,
+  getPowderSpecialInput,
   item_final_nodes,
   powder_nodes,
-  powder_special_input,
+  registerBuilderGraph,
   specialNames,
 } from './builder_graph';
 
@@ -138,7 +139,7 @@ export function resetFields(): void {
   const nodes_to_reset = equip_inputs
     .concat(powder_nodes)
     .concat(edit_input_nodes)
-    .concat([powder_special_input, boosts_node, armor_powder_node]);
+    .concat([getPowderSpecialInput(), getBoostsNode(), getArmorPowderNode()]);
   for (const node of nodes_to_reset) {
     node.mark_dirty();
   }
@@ -230,7 +231,21 @@ function init_autocomplete(): void {
   }
 }
 
-async function init(): Promise<void> {
+function wireBuilderErrorDisplay(): void {
+  window.onerror = function (message, _source, _lineno, _colno, error) {
+    document.getElementById('err-box')!.textContent = String(message);
+    document.getElementById('stack-box')!.textContent = error?.stack ?? '';
+  };
+}
+
+let builderPageInitialized = false;
+
+export async function initBuilderPage(): Promise<void> {
+  if (builderPageInitialized) return;
+  builderPageInitialized = true;
+
+  wireBuilderErrorDisplay();
+  registerBuilderGraph();
   console.log('builder.js init');
 
   initEditableHighlightListeners();
@@ -253,7 +268,7 @@ async function init(): Promise<void> {
       color: elem_colors[i],
     });
     boost_parent.appendChild(slider_container);
-    document.getElementById(slider_id)!.addEventListener('change', () => armor_powder_node.mark_dirty().update());
+    document.getElementById(slider_id)!.addEventListener('change', () => getArmorPowderNode().mark_dirty().update());
   }
 
   try {
@@ -309,12 +324,3 @@ async function init(): Promise<void> {
   }
   wireBuilderEvents();
 }
-
-window.onerror = function (message, _source, _lineno, _colno, error) {
-  document.getElementById('err-box')!.textContent = String(message);
-  document.getElementById('stack-box')!.textContent = error?.stack ?? '';
-};
-
-void (async function () {
-  await init();
-})();
