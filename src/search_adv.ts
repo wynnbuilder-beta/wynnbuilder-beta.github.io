@@ -2,8 +2,15 @@ import { BoolLitTerm, compareLexico } from '@/query';
 import { ExprParser } from '@/expr_parser';
 import { setHTML } from '@/utils';
 import type { Term } from '@/query';
+import type { Ingredient } from '@/types/ingredient';
+import type { ItemStatMap } from '@/types/item';
 
-type SearchDbEntry = [Record<string, unknown>, Map<string, unknown>];
+type SearchRawEntry = Record<string, unknown> | Ingredient | ItemStatMap;
+type SearchDbEntry = [SearchRawEntry, Map<string, unknown>];
+
+function asSearchRecord(entry: SearchRawEntry): Record<string, unknown> {
+  return entry as Record<string, unknown>;
+}
 
 export type AdvSearchConfig = {
   loadData: () => { db: SearchDbEntry[]; parser: ExprParser };
@@ -330,11 +337,11 @@ export function init_items_adv(): void {
       for (let i = 0; i < searchDb.length; i++) {
         const item = searchDb[i][0];
         const itemExp = searchDb[i][1];
-        if (checkBool((searchFilterField.output as Term).resolve(item, itemExp))) {
+        if (checkBool((searchFilterField.output as Term).resolve(asSearchRecord(item), itemExp))) {
           searchResults.push({
-            item,
+            item: asSearchRecord(item),
             itemExp,
-            sortKeys: (searchSortField.output as SortOutput).resolve(item, itemExp),
+            sortKeys: (searchSortField.output as SortOutput).resolve(asSearchRecord(item), itemExp),
           });
         }
       }

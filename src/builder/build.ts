@@ -6,9 +6,10 @@
  */
 
 import { Item, levelToHPBase, levelToSkillPoints, skp_order } from '@/build_utils';
-import { sets } from '@/load_item';
+import { getActiveSetBonus } from '@/load_item';
 import { calculate_skillpoints } from '@/skillpoints';
 import type { BuildStatMap, SkillpointVector, WeaponType } from '@/types/stats';
+import { isSetBonusStatValue } from '@/types/item';
 import type { SkillpointEquipItem } from '@/skillpoints';
 
 export const classDefenseMultipliers = new Map<WeaponType, number>([
@@ -18,10 +19,6 @@ export const classDefenseMultipliers = new Map<WeaponType, number>([
   ['dagger', 1.0],
   ['spear', 1.0],
 ]);
-
-interface SetBonusEntry {
-  bonuses: Record<string, number>[];
-}
 
 export const build_errors: string[] = [];
 
@@ -207,14 +204,15 @@ export class Build {
     defMult.set('tome', statMap.get('defMobs') as number);
     statMap.set('activeMajorIDs', major_ids);
     for (const [setName, count] of this.activeSetCounts) {
-      const setData = sets.get(setName) as unknown as SetBonusEntry | undefined;
-      if (!setData) continue;
-      const bonus = setData.bonuses[count - 1];
+      const bonus = getActiveSetBonus(setName, count);
+      if (!bonus) continue;
       for (const id in bonus) {
+        const val = bonus[id];
+        if (!isSetBonusStatValue(val)) continue;
         if ((skp_order as readonly string[]).includes(id)) {
           // pass. Don't include skillpoints in ids
         } else {
-          statMap.set(id, ((statMap.get(id) as number) || 0) + bonus[id]);
+          statMap.set(id, ((statMap.get(id) as number) || 0) + val);
         }
       }
     }

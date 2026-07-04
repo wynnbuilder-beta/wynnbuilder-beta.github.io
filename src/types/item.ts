@@ -10,11 +10,11 @@ export interface ItemStatMap extends Record<string, unknown> {
   category?: string;
   type?: string;
   tier?: ItemTier | string;
-  level?: number;
+  lvl?: number;
   set?: string | null;
   quest?: string | null;
   id?: number;
-  fixID?: boolean;
+  fixID?: boolean | 0;
   slots?: number;
   skillpoints?: SkillpointVector | number[];
   reqs?: SkillpointVector | number[];
@@ -32,12 +32,19 @@ export interface ItemStatMap extends Record<string, unknown> {
 /** Expanded item used in builder/display (Map-based stat access). */
 export type ExpandedItem = Map<string, unknown>;
 
-export interface SetBonusTier {
-  stats?: Record<string, number>;
-  [key: string]: unknown;
+export type SetBonusTier = Record<string, number | boolean>;
+
+export interface SetDefinition {
+  items: string[];
+  bonuses: SetBonusTier[];
+  hidden?: boolean;
 }
 
-export type SetBonusData = SetBonusTier[] | Record<string, unknown>;
+export type SetBonusData = SetDefinition;
+
+export function isSetBonusStatValue(value: unknown): value is number {
+  return typeof value === 'number';
+}
 
 export interface MajorId {
   displayName: string;
@@ -47,7 +54,7 @@ export interface MajorId {
 
 export interface ItemRemotePayload {
   items: ItemStatMap[];
-  sets: Record<string, SetBonusData>;
+  sets: Record<string, SetDefinition>;
 }
 
 export interface ItemListEntry {

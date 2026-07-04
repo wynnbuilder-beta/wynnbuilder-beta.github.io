@@ -3,8 +3,15 @@ import { ExprParser } from '@/expr_parser';
 import autoComplete from '@tarekraafat/autocomplete.js';
 import { make_elem } from '@/utils';
 import type { Term } from '@/query';
+import type { Ingredient } from '@/types/ingredient';
+import type { ItemStatMap } from '@/types/item';
 
-type SearchDbEntry = [Record<string, unknown>, Map<string, unknown>];
+type SearchRawEntry = Record<string, unknown> | Ingredient | ItemStatMap;
+type SearchDbEntry = [SearchRawEntry, Map<string, unknown>];
+
+function asSearchRecord(entry: SearchRawEntry): Record<string, unknown> {
+  return entry as Record<string, unknown>;
+}
 
 export type ItemSearchResult = {
   item: Record<string, unknown>;
@@ -220,8 +227,12 @@ export function do_item_search(): void {
     for (let i = 0; i < search_db.length; ++i) {
       const item = search_db[i][0];
       const itemExp = search_db[i][1];
-      if (checkBool(filter_expr.resolve(item, itemExp))) {
-        results.push({ item, itemExp, sortKeys: sort_exprs.map((e) => e.resolve(item, itemExp)) });
+      if (checkBool(filter_expr.resolve(asSearchRecord(item), itemExp))) {
+        results.push({
+          item: asSearchRecord(item),
+          itemExp,
+          sortKeys: sort_exprs.map((e) => e.resolve(asSearchRecord(item), itemExp)),
+        });
       }
     }
     results.sort((a, b) => {

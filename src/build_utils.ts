@@ -2,6 +2,7 @@
  * File containing utility functions that are useful for the builder page.
  */
 
+import type { Ingredient, Recipe } from './types/ingredient';
 import type { ItemStatMap } from './types/item';
 import type { AttackSpeed, ItemTier, PlayerClass, SkillpointId, WeaponType } from './types/stats';
 
@@ -650,31 +651,32 @@ export class Item {
 
 /* Takes in an ingredient object and returns an equivalent Map().
  */
-export function expandIngredient(ing: Record<string, unknown>): Map<string, unknown> {
+export function expandIngredient(ing: Ingredient): Map<string, unknown> {
   const expandedIng = new Map<string, unknown>();
-  const mapIds = ['consumableIDs', 'itemIDs', 'posMods'];
+  const mapIds = ['consumableIDs', 'itemIDs', 'posMods'] as const;
   for (const id of mapIds) {
     const idMap = new Map<string, unknown>();
-    for (const key of Object.keys(ing[id] as Record<string, unknown>)) {
-      idMap.set(key, (ing[id] as Record<string, unknown>)[key]);
+    const source = ing[id] ?? {};
+    for (const key of Object.keys(source)) {
+      idMap.set(key, source[key as keyof typeof source]);
     }
     expandedIng.set(id, idMap);
   }
-  const normIds = ['lvl', 'name', 'displayName', 'tier', 'skills', 'id'];
+  const normIds = ['lvl', 'name', 'displayName', 'tier', 'skills', 'id'] as const;
   for (const id of normIds) {
     expandedIng.set(id, ing[id]);
   }
-  if (ing['isPowder']) {
-    expandedIng.set('isPowder', ing['isPowder']);
-    expandedIng.set('pid', ing['pid']);
+  if (ing.isPowder) {
+    expandedIng.set('isPowder', ing.isPowder);
+    expandedIng.set('pid', ing.pid);
   }
   const idMap = new Map<string, Map<string, number>>();
   idMap.set('minRolls', new Map());
   idMap.set('maxRolls', new Map());
   for (const field of ingFields) {
-    const val = ((ing['ids'] as Record<string, { minimum: number; maximum: number }>) || {})[field] || 0;
-    idMap.get('minRolls')!.set(field, (val as { minimum: number }).minimum ?? 0);
-    idMap.get('maxRolls')!.set(field, (val as { maximum: number }).maximum ?? 0);
+    const val = ing.ids?.[field];
+    idMap.get('minRolls')!.set(field, val?.minimum ?? 0);
+    idMap.get('maxRolls')!.set(field, val?.maximum ?? 0);
   }
   expandedIng.set('ids', idMap);
   return expandedIng;
@@ -682,30 +684,30 @@ export function expandIngredient(ing: Record<string, unknown>): Map<string, unkn
 
 /* Takes in a recipe object and returns an equivalent Map().
  */
-export function expandRecipe(recipe: Record<string, unknown>): Map<string, unknown> {
+export function expandRecipe(recipe: Recipe): Map<string, unknown> {
   const expandedRecipe = new Map<string, unknown>();
-  const normIDs = ['name', 'skill', 'type', 'id'];
+  const normIDs = ['name', 'skill', 'type', 'id'] as const;
   for (const id of normIDs) {
     expandedRecipe.set(id, recipe[id]);
   }
-  const rangeIDs = ['durability', 'lvl', 'healthOrDamage', 'duration', 'basicDuration'];
+  const rangeIDs = ['durability', 'lvl', 'healthOrDamage', 'duration', 'basicDuration'] as const;
   for (const id of rangeIDs) {
-    if (recipe[id]) {
-      const range = recipe[id] as { minimum: number; maximum: number };
+    const range = recipe[id];
+    if (range) {
       expandedRecipe.set(id, [range.minimum, range.maximum]);
     } else {
       expandedRecipe.set(id, [0, 0]);
     }
   }
-  const materials = recipe['materials'] as Array<{ item: unknown; amount: unknown }>;
+  const materials = recipe.materials ?? [];
   expandedRecipe.set('materials', [
-    new Map([
-      ['item', materials[0]['item']],
-      ['amount', materials[0]['amount']],
+    new Map<string, unknown>([
+      ['item', materials[0]?.item],
+      ['amount', materials[0]?.amount],
     ]),
-    new Map([
-      ['item', materials[1]['item']],
-      ['amount', materials[1]['amount']],
+    new Map<string, unknown>([
+      ['item', materials[1]?.item],
+      ['amount', materials[1]?.amount],
     ]),
   ]);
   return expandedRecipe;

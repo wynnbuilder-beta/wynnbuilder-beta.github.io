@@ -41,8 +41,8 @@ export type ItemTier =
 /** Five-element vector in skp_order (str, dex, int, def, agi). */
 export type SkillpointVector = [number, number, number, number, number];
 
-/** Nullable per-element manual skillpoint assignment from build decode. */
-export type DecodedSkillpoints = Array<number | null>;
+/** Nullable per-element manual skillpoint assignment from build decode; null = automatic. */
+export type DecodedSkillpoints = Array<number | null> | null;
 
 /** Result tuple from calculate_skillpoints(). */
 export type SkillpointCalculationResult = [

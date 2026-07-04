@@ -52,7 +52,7 @@ export type BuildPowderSets = [
 /** Numeric powder sets used during binary encoding. */
 export type EncodedPowderSets = PowderId[][];
 
-export const TOME_SLOT_COUNT = 8;
+export const TOME_SLOT_COUNT = 14;
 
 /** Kind flag written per equipment piece in binary encoding. */
 export enum EquipmentKind {

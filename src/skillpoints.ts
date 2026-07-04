@@ -1,5 +1,5 @@
 
-import { sets } from '@/load_item';
+import { getActiveSetBonus } from '@/load_item';
 import type { ExpandedItem } from './types/item';
 import type { SkillpointCalculationResult, SkillpointVector } from './types/stats';
 import { SKP_ORDER } from './types/stats';
@@ -10,10 +10,6 @@ export type SkillpointEquipItem = ExpandedItem & {
   reqs: SkillpointVector;
   set?: string | null;
 };
-
-interface SetBonusEntry {
-  bonuses: Record<string, unknown>[];
-}
 
 /**
  * Apply skillpoint bonuses from an item.
@@ -274,10 +270,11 @@ export function calculate_skillpoints(
   );
 
   for (const [set_name, count] of best_activeSetCounts) {
-    const setData = sets.get(set_name) as unknown as SetBonusEntry;
-    const bonus = setData.bonuses[count - 1];
+    const bonus = getActiveSetBonus(set_name, count);
+    if (!bonus) continue;
     for (const i in SKP_ORDER) {
-      const delta = (bonus[SKP_ORDER[Number(i)]] as number) || 0;
+      const val = bonus[SKP_ORDER[Number(i)]];
+      const delta = typeof val === 'number' ? val : 0;
       final_skillpoints[Number(i)] += delta;
       total_item_skillpoints[Number(i)] += delta;
     }
