@@ -1,2 +1,0 @@
-import '@css/article.css';
-import '@css/styles.css';

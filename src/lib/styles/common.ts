@@ -1,4 +1,0 @@
-import 'bootstrap/dist/css/bootstrap.min.css';
-import '@css/sq2bs.css';
-import '@css/sidebar.css';
-import '@css/wynnstyles.css';

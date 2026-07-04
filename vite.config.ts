@@ -1,16 +1,29 @@
+import { cpSync, existsSync, mkdirSync } from 'node:fs';
+import { dirname, resolve } from 'node:path';
 import { defineConfig, type Plugin } from 'vite';
-import { resolve } from 'path';
 import sirv from 'sirv';
 
 const root = resolve(__dirname);
 
-/** Static dirs served in dev and copied to dist (not processed by Vite). */
-const staticDirs = ['data', 'media', 'thirdparty'] as const;
+/** Static dirs copied to dist on build and served as-is in dev (not bundled by Vite). */
+const staticDirs = ['data', 'media'] as const;
 
-/** Serve /data, /media, and /thirdparty during dev. */
-function serveLegacyAssets(): Plugin {
+/** Root files copied to dist (not emitted by Vite). */
+const rootFiles = ['manifest.json', 'credits.txt'] as const;
+
+function copyPath(src: string, dest: string, recursive = false): void {
+  if (!existsSync(src)) {
+    console.warn(`skip missing: ${src}`);
+    return;
+  }
+  mkdirSync(dirname(dest), { recursive: true });
+  cpSync(src, dest, recursive ? { recursive: true } : undefined);
+}
+
+/** Dev static serving + post-build copy of game data and assets. */
+function wynnbuilderStatic(): Plugin {
   return {
-    name: 'serve-legacy-assets',
+    name: 'wynnbuilder-static',
     configureServer(server) {
       for (const dir of staticDirs) {
         server.middlewares.use(
@@ -18,10 +31,27 @@ function serveLegacyAssets(): Plugin {
           sirv(resolve(root, dir), { dev: true, etag: true }),
         );
       }
-      server.middlewares.use(
-        '/wynnfo',
-        sirv(resolve(root, 'wynnfo'), { dev: true, etag: true }),
-      );
+    },
+    closeBundle() {
+      const dist = resolve(root, 'dist');
+      mkdirSync(dist, { recursive: true });
+
+      for (const dir of staticDirs) {
+        copyPath(resolve(root, dir), resolve(dist, dir), true);
+        console.log(`copied ${dir}/ -> dist/${dir}/`);
+      }
+
+      for (const file of rootFiles) {
+        copyPath(resolve(root, file), resolve(dist, file));
+        console.log(`copied ${file} -> dist/${file}`);
+      }
+
+      const builderFull = resolve(dist, 'builder/index_full.html');
+      const builderIndex = resolve(dist, 'builder/index.html');
+      if (existsSync(builderFull)) {
+        cpSync(builderFull, builderIndex);
+        console.log('copied dist/builder/index_full.html -> dist/builder/index.html');
+      }
     },
   };
 }
@@ -70,5 +100,5 @@ export default defineConfig({
       input: pages,
     },
   },
-  plugins: [serveLegacyAssets()],
+  plugins: [wynnbuilderStatic()],
 });
