@@ -1,5 +1,4 @@
 import { aspect_map, none_aspect } from '@/load_aspect';
-import { attachGlobals, live } from '@/lib/attachGlobals';
 import { ComputeNode, calcSchedule, graph_live_update } from '@/computation_graph';
 import { isMobile, make_elem } from '@/utils';
 import { aspect_fields } from './builder_constants';
@@ -352,27 +351,4 @@ export class AspectInputDisplayNode extends ComputeNode {
   }
 }
 
-attachGlobals({
-  aspect_inputs: live(
-    () => aspect_inputs,
-    (v) => {
-      aspect_inputs = v as AspectInputNode[];
-    },
-  ),
-  aspect_agg_node: live(
-    () => aspect_agg_node,
-    (v) => {
-      aspect_agg_node = v as AspectAggregateNode | undefined;
-    },
-  ),
-  aspect_tiers,
-  num_aspects,
-  AspectAutocompleteInitNode,
-  AspectInputNode,
-  AspectTierInputNode,
-  AspectAggregateNode,
-  TooltipGeneratorNode,
-  generate_aspect_tooltip,
-  AspectRenderNode,
-  AspectInputDisplayNode,
-});
+;

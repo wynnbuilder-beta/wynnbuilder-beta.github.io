@@ -1,5 +1,3 @@
-import { attachGlobals } from '@/lib/attachGlobals';
-
 function init_dev(): void {
   const sections = document.getElementsByClassName('section');
 
@@ -63,7 +61,3 @@ function toggleSection(section: HTMLElement): void {
 
 init_dev();
 
-attachGlobals({
-  init_dev,
-  toggleSection,
-});

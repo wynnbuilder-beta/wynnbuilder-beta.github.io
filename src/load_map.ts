@@ -1,4 +1,3 @@
-import { attachGlobals, live } from '@/lib/attachGlobals';
 import { Loader } from '@/loader';
 import type { JsonPayload, RejectFn } from '@/types/loader';
 
@@ -170,41 +169,4 @@ export function save_map_data(): void {
   });
 }
 
-attachGlobals({
-  MapLoader,
-  map_loader,
-  terrs: live(
-    () => terrs,
-    (v) => {
-      terrs = v as Map<string, TerrLocation>;
-    },
-  ),
-  claims,
-  neighbors: live(
-    () => neighbors,
-    (v) => {
-      neighbors = v as Map<string, string[]>;
-    },
-  ),
-  resources: live(
-    () => resources,
-    (v) => {
-      resources = v as Map<string, TerrResourceEntry>;
-    },
-  ),
-  maplocs: live(
-    () => maplocs,
-    (v) => {
-      maplocs = v as MapLocEntry[];
-    },
-  ),
-  terrdata: live(
-    () => terrdata,
-    (v) => {
-      terrdata = v as Record<string, TerrDataEntry> | TerrDataEntry[];
-    },
-  ),
-  init_map_maps,
-  load_map_init,
-  save_map_data,
-});
+;

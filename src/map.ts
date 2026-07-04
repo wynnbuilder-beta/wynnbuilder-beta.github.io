@@ -1,5 +1,4 @@
 import { newIcons } from '@/icons';
-import { attachGlobals } from '@/lib/attachGlobals';
 import {
   claims,
   load_map_init,
@@ -107,6 +106,8 @@ function init_map(): void {
     warning.textContent = '';
     header.append(warning);
   }
+  wireMapEvents();
+
   console.log('Territory locations:', terrs);
   console.log('Claims:', claims);
   console.log('Territory Neighbors:', neighbors);
@@ -114,6 +115,33 @@ function init_map(): void {
   console.log('List of guilds on the map:', guilds);
   console.log('Guilds and their guild tags:', guildTags);
   console.log('Map locations:', maplocs);
+}
+
+/** Wire static HTML controls on the map page (replaces inline onclick). */
+function wireMapEvents(): void {
+  document.getElementById('territories-button')?.addEventListener('click', () => {
+    toggleButton('territories-button');
+    toggleTerritories();
+  });
+  document.getElementById('claims-button')?.addEventListener('click', () => {
+    toggleButton('claims-button');
+    toggleClaims();
+  });
+  document.getElementById('routes-button')?.addEventListener('click', () => {
+    toggleButton('routes-button');
+    toggleRoutes();
+  });
+  document.getElementById('resources-button')?.addEventListener('click', () => {
+    toggleButton('resources-button');
+    toggleResources();
+  });
+  document.getElementById('locations-button')?.addEventListener('click', () => {
+    toggleButton('locations-button');
+    toggleLocations();
+  });
+  document.getElementById('pull-button')?.addEventListener('click', () => {
+    void refreshData();
+  });
 }
 
 function placeMarker(lat: number, lng: number): void {
@@ -693,41 +721,4 @@ function eraseTerritoryStats(): void {
 
 void load_map_init(init_map);
 
-attachGlobals({
-  map,
-  marker,
-  guilds,
-  guildTags,
-  guildColors,
-  terrObjs,
-  claimObjs,
-  routeObjs,
-  resourceObjs,
-  locationObjs,
-  drawterrs,
-  drawclaims,
-  drawroutes,
-  drawresources,
-  drawlocations,
-  bounds,
-  map_url_base,
-  map_url_tag,
-  map_elem,
-  lat,
-  lng,
-  terrdata,
-  init_map,
-  placeMarker,
-  xytolatlng,
-  latlngtoxy,
-  toggleButton,
-  refreshData,
-  pullguilds,
-  toggleLocations,
-  toggleTerritories,
-  toggleClaims,
-  toggleRoutes,
-  toggleResources,
-  displayTerritoryStats,
-  eraseTerritoryStats,
-});
+;

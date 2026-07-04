@@ -1,4 +1,3 @@
-import { attachGlobals } from './lib/attachGlobals';
 import { atree_collect_spells } from './builder/atree';
 import { build_disp_node } from './builder/builder_graph';
 import { getSpellCost } from './display';
@@ -172,9 +171,4 @@ export function initManaCalcListeners(): void {
   manaStealCheck.addEventListener('change', scheduleBuildDisplayUpdate);
 }
 
-attachGlobals({
-  getCycle,
-  manaInputChanged,
-  calculateMana,
-  initManaCalcListeners,
-});
+;

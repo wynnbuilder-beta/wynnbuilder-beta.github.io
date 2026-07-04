@@ -3,7 +3,6 @@
  */
 
 import { skp_order } from '@/build_utils';
-import { attachGlobals } from '@/lib/attachGlobals';
 import type { WeaponType } from '@/types/stats';
 
 export const BUILD_VERSION = '7.0.20';
@@ -270,29 +269,4 @@ export const raid_buff_map = new Map<string, [string, number][]>([
   ['Isolated', [['hprRaw', -375], ['mr', -10]]],
 ]);
 
-attachGlobals({
-  BUILD_VERSION,
-  editable_item_fields,
-  clear_highlights,
-  initEditableHighlightListeners,
-  equipment_fields,
-  tome_fields,
-  aspect_fields,
-  equipment_names,
-  tome_names,
-  equipment_inputs,
-  build_fields,
-  tomeInputs,
-  aspectInputs,
-  aspectTierInputs,
-  powder_inputs,
-  weapon_keys,
-  armor_keys,
-  accessory_keys,
-  powderable_keys,
-  equipment_keys,
-  tome_keys,
-  spell_disp,
-  other_disp,
-  raid_buff_map,
-});
+;

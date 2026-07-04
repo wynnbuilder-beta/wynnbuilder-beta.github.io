@@ -2,7 +2,6 @@
  * File containing compute graph structure of the builder page.
  */
 
-import { attachGlobals, live } from '@/lib/attachGlobals';
 import {
   Item,
   merge_stat,
@@ -76,6 +75,7 @@ import {
   build_powders,
   decodeAtree,
   encodeBuild,
+  player_build,
   setBuildPowders,
   setPlayerBuild,
 } from './build_encode_decode';
@@ -1530,66 +1530,5 @@ export function builder_graph_init(skillpoints: number[] | null) {
     initManaCalcListeners();
 }
 
-attachGlobals({
-  armor_powder_node,
-  boosts_node,
-  raid_buff_node,
-  damageMultipliers,
-  updateRaidBuffs,
-  update_boosts,
-  specialNames,
-  powder_special_input,
-  updatePowderSpecials,
-  radiance_node,
-  update_radiance,
-  resetEditableIDs,
-  builder_graph_init,
-  edit_id_output: live(
-    () => edit_id_output,
-    (v) => {
-      edit_id_output = v as EditableIDSetterNode;
-    },
-  ),
-  pre_scale_agg_node: live(
-    () => pre_scale_agg_node,
-    (v) => {
-      pre_scale_agg_node = v as ComputeNode;
-    },
-  ),
-  item_final_nodes,
-  powder_nodes,
-  edit_input_nodes,
-  skp_inputs,
-  equip_inputs,
-  build_node: live(
-    () => build_node,
-    (v) => {
-      build_node = v as BuildAssembleNode;
-    },
-  ),
-  stat_agg_node: live(
-    () => stat_agg_node,
-    (v) => {
-      stat_agg_node = v as AggregateStatsNode;
-    },
-  ),
-  edit_agg_node: live(
-    () => edit_agg_node,
-    (v) => {
-      edit_agg_node = v as AggregateEditableIDNode;
-    },
-  ),
-  atree_graph_creator: live(
-    () => atree_graph_creator,
-    (v) => {
-      atree_graph_creator = v as AbilityTreeEnsureNodesNode;
-    },
-  ),
-  build_disp_node: live(
-    () => build_disp_node,
-    (v) => {
-      build_disp_node = v as BuildDisplayNode;
-    },
-  ),
-});
+;
 

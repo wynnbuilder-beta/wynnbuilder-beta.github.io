@@ -2,7 +2,6 @@
  * File implementing core damage calculation logic.
  */
 
-import { attachGlobals } from './lib/attachGlobals';
 import {
   attackSpeeds,
   baseDamageMultiplier,
@@ -323,8 +322,4 @@ export const default_spells: Record<WeaponType, DefaultMeleeSpell[]> = {
   ],
 };
 
-attachGlobals({
-  get_base_dps,
-  calculateSpellDamage,
-  default_spells,
-});
+;

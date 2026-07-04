@@ -1,5 +1,4 @@
 import { item_fields, item_types, str_item_fields } from '@/build_utils';
-import { attachGlobals, live } from '@/lib/attachGlobals';
 import { Loader } from '@/loader';
 import type { ItemRemotePayload, ItemStatMap, MajorId, SetBonusData } from '@/types/item';
 import type { JsonPayload, RejectFn } from '@/types/loader';
@@ -281,68 +280,4 @@ export async function load_encoding_constants(version_str: string, decoding_vers
   console.log('Loaded encoding data');
 }
 
-attachGlobals({
-  ItemLoader,
-  item_loader,
-  items: live(
-    () => items,
-    (v) => {
-      items = v as ItemStatMap[];
-    },
-  ),
-  sets: live(
-    () => sets,
-    (v) => {
-      sets = v as Map<string, SetBonusData>;
-    },
-  ),
-  itemMap: live(
-    () => itemMap,
-    (v) => {
-      itemMap = v as Map<string, ItemStatMap>;
-    },
-  ),
-  idMap: live(
-    () => idMap,
-    (v) => {
-      idMap = v as Map<number, string>;
-    },
-  ),
-  redirectMap: live(
-    () => redirectMap,
-    (v) => {
-      redirectMap = v as Map<number, string>;
-    },
-  ),
-  itemLists,
-  none_items,
-  clean_item,
-  wynn_version_names,
-  WYNN_VERSION_LATEST,
-  wynn_version_id: live(
-    () => wynn_version_id,
-    (v) => {
-      wynn_version_id = v as number;
-    },
-  ),
-  MAJOR_IDS: live(
-    () => MAJOR_IDS,
-    (v) => {
-      MAJOR_IDS = v as Record<string, MajorId> | null;
-    },
-  ),
-  load_major_id_data,
-  load_encoding_constants,
-  ENC: live(
-    () => ENC,
-    (v) => {
-      ENC = v;
-    },
-  ),
-  DEC: live(
-    () => DEC,
-    (v) => {
-      DEC = v;
-    },
-  ),
-});
+;

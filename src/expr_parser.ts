@@ -1,7 +1,6 @@
 /**
  * See `expr_parser.md` for notes on the implementation of this parser!
  */
-import { attachGlobals } from './lib/attachGlobals';
 import {
   AddTerm,
   BoolLitTerm,
@@ -862,6 +861,4 @@ export class ExprParser {
   }
 }
 
-attachGlobals({
-  ExprParser,
-});
+;

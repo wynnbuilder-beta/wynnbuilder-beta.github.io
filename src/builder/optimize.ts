@@ -1,4 +1,3 @@
-import { attachGlobals } from '@/lib/attachGlobals';
 import { levelToSkillPoints, skillPointsToPercentage, skp_order } from '@/build_utils';
 import { calculateSpellDamage } from '@/damage_calc';
 import { ComputeNode } from '@/computation_graph';
@@ -69,7 +68,3 @@ export function optimizeStrDex(): void {
     skp_inputs[i].update();
   }
 }
-
-attachGlobals({
-  optimizeStrDex,
-});

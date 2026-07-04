@@ -6,7 +6,6 @@
  */
 
 import { Item, levelToHPBase, levelToSkillPoints, skp_order } from '@/build_utils';
-import { attachGlobals } from '@/lib/attachGlobals';
 import { sets } from '@/load_item';
 import { calculate_skillpoints } from '@/skillpoints';
 import type { BuildStatMap, SkillpointVector, WeaponType } from '@/types/stats';
@@ -231,8 +230,4 @@ export class Build {
   }
 }
 
-attachGlobals({
-  classDefenseMultipliers,
-  Build,
-  build_errors,
-});
+;

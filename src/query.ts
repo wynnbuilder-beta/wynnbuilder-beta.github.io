@@ -1,5 +1,5 @@
 import { Item, baseDamageMultiplier, getOrNullToZero, skp_elements } from './build_utils';
-import { attachGlobals } from './lib/attachGlobals';
+import { itemMap } from '@/load_item';
 import { apply_weapon_powders, powderIDs, powderLevelReq } from './powders';
 
 export type QueryValueType = 'string' | 'number' | 'boolean' | 'any';
@@ -952,10 +952,4 @@ export function compareLexico(
   return (ib.lvl as number) - (ia.lvl as number);
 }
 
-attachGlobals({
-  itemQueryProps,
-  ingredientQueryProps,
-  queryFuncs,
-  compareLexico,
-  BoolLitTerm,
-});
+;

@@ -6,7 +6,6 @@
 import { damageClasses, merge_stat, wep_to_class } from '@/build_utils';
 import { ComputeNode, PassThroughNode } from '@/computation_graph';
 import { default_spells } from '@/damage_calc';
-import { attachGlobals, live } from '@/lib/attachGlobals';
 import { MAJOR_IDS } from '@/load_item';
 import {
   gen_slider_labeled,
@@ -1844,32 +1843,4 @@ function atree_set_edge(atree_connectors_map, parent, child, state) {
     }
 }
 
-attachGlobals({
-  ATREES: live(
-    () => ATREES,
-    (v) => {
-      ATREES = v as AtreeDatabase | undefined;
-    },
-  ),
-  load_atree_data,
-  default_abils,
-  get_sorted_class_atree,
-  atree_node,
-  atree_render,
-  atree_state_node,
-  abil_can_activate,
-  atree_validate,
-  atree_merge,
-  atree_make_interactives,
-  atree_scaling,
-  atree_scaling_tree,
-  atree_scaling_stats,
-  atree_render_errors,
-  atree_render_active,
-  atree_translate,
-  atree_collect_spells,
-  atree_raw_stats,
-  AbilityTreeEnsureNodesNode,
-  render_AT,
-  atree_set_state,
-});
+;

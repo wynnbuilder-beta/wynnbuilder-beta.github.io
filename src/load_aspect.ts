@@ -1,5 +1,4 @@
 import { classes } from '@/build_utils';
-import { attachGlobals, live } from '@/lib/attachGlobals';
 import { Loader } from '@/loader';
 import { wynn_version_names, WYNN_VERSION_LATEST } from '@/load_item';
 import type { AspectDatabase, AspectIdMap, AspectMap, AspectSpec, NoneAspect } from '@/types/aspect';
@@ -80,16 +79,4 @@ export class AspectLoader extends Loader {
 
 export const aspect_loader = new AspectLoader('aspect_db', [...classes], ASPECT_DB_VERSION);
 
-attachGlobals({
-  AspectLoader,
-  aspect_loader,
-  aspects: live(
-    () => aspects,
-    (v) => {
-      aspects = v as AspectDatabase;
-    },
-  ),
-  aspect_map,
-  aspect_id_map,
-  none_aspect,
-});
+;

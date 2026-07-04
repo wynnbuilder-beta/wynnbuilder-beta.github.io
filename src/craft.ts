@@ -1,4 +1,4 @@
-import { attachGlobals } from './lib/attachGlobals';
+import { ingMap, ingIDMap, recipeMap, recipeIDMap } from '@/load_ing';
 import {
   accessoryTypes,
   armorTypes,
@@ -699,13 +699,4 @@ export class Craft {
   }
 }
 
-attachGlobals({
-  recipeTypes,
-  levelTypes,
-  CRAFTER_ENC,
-  encodeCraft,
-  decodeCraft,
-  encodeCraftLegacy,
-  getCraftFromHash,
-  Craft,
-});
+;

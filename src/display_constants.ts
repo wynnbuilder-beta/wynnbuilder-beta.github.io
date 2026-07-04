@@ -1,5 +1,3 @@
-import { attachGlobals } from './lib/attachGlobals';
-
 export const colorMap = new Map<string, string>([
   ['Normal', '#fff'],
   ['Unique', '#ff5'],
@@ -584,20 +582,3 @@ export const sq2_ing_display_order = [
 ];
 
 export const elem_colors = ['#00AA00', '#FFFF55', '#55FFFF', '#FF5555', '#FFFFFF'];
-
-attachGlobals({
-  colorMap,
-  idPrefixes,
-  idSuffixes,
-  consumableIDPrefixes,
-  consumableIDSuffixes,
-  itemIDPrefixes,
-  posModPrefixes,
-  posModSuffixes,
-  build_overall_display_commands,
-  build_detailed_display_commands,
-  build_basic_display_commands,
-  sq2_item_display_commands,
-  sq2_ing_display_order,
-  elem_colors,
-});

@@ -1,4 +1,3 @@
-import { attachGlobals, live } from './lib/attachGlobals';
 import type { ComputeDirtyState } from './types/computation';
 
 export let all_nodes = new Set<ComputeNode>();
@@ -261,22 +260,4 @@ export class PassThroughNode extends ComputeNode {
   }
 }
 
-attachGlobals({
-  all_nodes,
-  node_debug_stack,
-  COMPUTE_GRAPH_DEBUG,
-  NodeInput,
-  ComputeNode,
-  ValueCheckComputeNode,
-  graph_live_update: live(
-    () => graph_live_update,
-    (v) => {
-      graph_live_update = v as boolean;
-    },
-  ),
-  setGraphLiveUpdate,
-  calcSchedule,
-  PrintNode,
-  InputNode,
-  PassThroughNode,
-});
+;

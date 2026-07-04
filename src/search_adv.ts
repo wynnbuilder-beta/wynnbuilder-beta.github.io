@@ -1,4 +1,3 @@
-import { attachGlobals, live } from '@/lib/attachGlobals';
 import { BoolLitTerm, compareLexico } from '@/query';
 import { ExprParser } from '@/expr_parser';
 import { setHTML } from '@/utils';
@@ -424,19 +423,4 @@ export function init_items_adv(): void {
   document.getElementById('scroll-up')!.addEventListener('mousedown', () => scrollTo({ top: 0, behavior: 'smooth' }));
 }
 
-attachGlobals({
-  configureAdvSearch,
-  searchDb: live(
-    () => searchDb,
-    (v) => {
-      searchDb = v as SearchDbEntry[];
-    },
-  ),
-  exprParser: live(
-    () => exprParser,
-    (v) => {
-      exprParser = v as ExprParser;
-    },
-  ),
-  init_items_adv,
-});
+;

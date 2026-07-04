@@ -5,7 +5,6 @@
 
 	Note: it only works on a real phone for some reason, it doesn't work on desktop browser simulations of phones for some reason.
 */
-import { attachGlobals } from './lib/attachGlobals';
 
 interface Point {
   x: number;
@@ -381,4 +380,4 @@ export namespace DragDropTouch {
   DragDropTouch._instance = new DragDropTouch();
 }
 
-attachGlobals({ DragDropTouch });
+;

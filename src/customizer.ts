@@ -1,4 +1,3 @@
-import { attachGlobals, live } from '@/lib/attachGlobals';
 import {
   attackSpeeds,
   classes,
@@ -253,9 +252,26 @@ function init_customizer(): void {
         changeBaseValues();
       });
     }
+
+    wireCustomEvents();
   } catch (error) {
     console.log(error);
   }
+}
+
+/** Wire static HTML controls on the custom item page (replaces inline onclick). */
+function wireCustomEvents(): void {
+  document.getElementById('reset-roll-range-button')?.addEventListener('click', resetBaseValues);
+  document.getElementById('create-button')?.addEventListener('click', calculateCustom);
+  document.getElementById('copy-button')?.addEventListener('click', copyCustom);
+  document.getElementById('fixID-choice')?.addEventListener('click', () => {
+    toggleButton('fixID-choice');
+    toggleFixed();
+  });
+  document.getElementById('reset-button')?.addEventListener('click', resetFields);
+  document.getElementById('copy-button-hash')?.addEventListener('click', copyHash);
+  document.getElementById('json-button')?.addEventListener('click', saveAsJSON);
+  document.getElementById('set-button')?.addEventListener('click', () => useBaseItem('base-input'));
 }
 
 export function calculateCustom(): void {
@@ -834,22 +850,4 @@ void (async function () {
   init_customizer();
 })();
 
-attachGlobals({
-  player_custom_item: live(
-    () => player_custom_item,
-    (v) => {
-      player_custom_item = v as Custom | undefined;
-    },
-  ),
-  calculateCustom,
-  toggleFixed,
-  useBaseItem,
-  copyCustom,
-  copyHash,
-  resetFields,
-  base_to_range,
-  range_to_base,
-  changeBaseValues,
-  resetBaseValues,
-  saveAsJSON,
-});
+;

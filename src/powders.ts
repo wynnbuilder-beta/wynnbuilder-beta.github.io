@@ -1,4 +1,3 @@
-import { attachGlobals } from './lib/attachGlobals';
 import type { ExpandedItem } from './types/item';
 import type { PowderSpecialEffectMap, PowderStats } from './types/stats';
 import { DAMAGE_KEYS, SKP_ELEMENTS } from './types/stats';
@@ -278,21 +277,4 @@ export function calc_weapon_powder(weapon: ExpandedItem, damageBases?: number[] 
   return [damages, present_elements];
 }
 
-attachGlobals({
-  powderIDs,
-  powderNames,
-  POWDER_TIERS,
-  Powder,
-  powderStats,
-  powderArmorHealth,
-  powderLevelReq,
-  PowderSpecial,
-  powderSpecialStats,
-  decodePowderIdx,
-  encodePowderIdx,
-  applyArmorPowders,
-  damage_keys,
-  damage_present_key,
-  apply_weapon_powders,
-  calc_weapon_powder,
-});
+;

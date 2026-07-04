@@ -1,4 +1,3 @@
-import { attachGlobals, live } from '@/lib/attachGlobals';
 import { compareLexico } from '@/query';
 import { ExprParser } from '@/expr_parser';
 import autoComplete from '@tarekraafat/autocomplete.js';
@@ -287,6 +286,9 @@ export function init_search(): void {
   create_filter();
   filters[0].input_elem.value = 'Combat Level';
   init_filter_drag();
+
+  document.getElementById('search-button')?.addEventListener('click', do_item_search);
+  document.getElementById('reset-button')?.addEventListener('click', reset_item_search);
 }
 
 export function reset_item_search(): void {
@@ -876,46 +878,4 @@ export function process_weapon_filter(raw_name: string, filter_name: string, fil
   return filter_name;
 }
 
-attachGlobals({
-  configureItemSearch,
-  setItemSearchData,
-  types: live(
-    () => types,
-    (v) => {
-      types = v as Record<string, boolean>;
-    },
-  ),
-  search_tiers: live(
-    () => search_tiers,
-    (v) => {
-      search_tiers = v as Record<string, boolean>;
-    },
-  ),
-  item_filters,
-  string_item_filters,
-  search_db: live(
-    () => search_db,
-    (v) => {
-      search_db = v as SearchDbEntry[];
-    },
-  ),
-  expr_parser: live(
-    () => expr_parser,
-    (v) => {
-      expr_parser = v as ExprParser;
-    },
-  ),
-  do_item_search,
-  init_search,
-  reset_item_search,
-  create_filter,
-  init_filter_drag,
-  create_exclude,
-  create_filter_string,
-  init_filter_dropdown,
-  init_string_operator_dropdown,
-  init_string_options_dropdown,
-  update_value_filter,
-  check_weapon_subfilter,
-  process_weapon_filter,
-});
+;

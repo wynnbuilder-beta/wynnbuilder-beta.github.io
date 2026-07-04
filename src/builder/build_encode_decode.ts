@@ -1,7 +1,6 @@
 import { wep_to_class } from '@/build_utils';
 import { decodeCraft, encodeCraft, encodeCraftLegacy, getCraftFromHash } from '@/craft';
 import { decodeCustom, encodeCustom, getCustomFromHash } from '@/custom';
-import { attachGlobals, live } from '@/lib/attachGlobals';
 import { aspect_id_map, aspect_loader, none_aspect } from '@/load_aspect';
 import { ingredient_loader } from '@/load_ing';
 import {
@@ -13,7 +12,9 @@ import {
   load_encoding_constants,
   load_major_id_data,
   redirectMap,
+  setWynnVersionId,
   WYNN_VERSION_LATEST,
+  wynn_version_id,
   wynn_version_names,
 } from '@/load_item';
 import { tome_loader, tomeIDMap, tomeRedirectMap } from '@/load_tome';
@@ -131,7 +132,7 @@ export async function loadOlderVersion(): Promise<void> {
   const decodingVersion = wynn_version_id;
   // Upgrade the build to the latest version
   if (confirm(updateMsg)) {
-    wynn_version_id = WYNN_VERSION_LATEST;
+    setWynnVersionId(WYNN_VERSION_LATEST);
   }
 
   const versionName = wynn_version_names[wynn_version_id];
@@ -658,7 +659,7 @@ function decodeAspects(cursor: BitVectorCursor, cls: PlayerClass): Array<[string
 async function handleLegacyHash(urlTag: string): Promise<DecodedSkillpoints> {
   // Legacy versioning using search query "?v=XX" in the URL itself.
   // Grab the version of the data from the search parameter "?v=" in the URL
-  wynn_version_id = getDataVersionLegacy();
+  setWynnVersionId(getDataVersionLegacy());
 
   // wynn_version 18 is the last version that supports legacy encoding.
   return await decodeHashLegacy(urlTag);
@@ -686,7 +687,7 @@ export async function decodeHash(): Promise<DecodedSkillpoints> {
   const cursor = new BitVectorCursor(vec, 0);
 
   // The version of the data.
-  wynn_version_id = decodeHeader(cursor);
+  setWynnVersionId(decodeHeader(cursor));
 
   // Load the correct data for the provided version, includes encoding data.
   // The reason we differentiate is that most of the heavy data can be loaded
@@ -809,10 +810,10 @@ export async function decodeHashLegacy(url_tag: string): Promise<DecodedSkillpoi
   let data_str = info[1];
 
   if (version_number >= 8) {
-    wynn_version_id = getDataVersionLegacy();
+    setWynnVersionId(getDataVersionLegacy());
   } else {
     // Change the default to oldest. (A time before v8)
-    wynn_version_id = 0;
+    setWynnVersionId(0);
   }
 
   // the deal with this is because old versions should default to 0 (oldest wynn item version), and v8+ defaults to latest.
@@ -1126,36 +1127,4 @@ export function decodeAtree(atree: ATree, bits: BitVectorLike): ATreeNode[] {
   return ret;
 }
 
-attachGlobals({
-  player_build: live(
-    () => player_build,
-    (v) => {
-      player_build = v as PlayerBuild | undefined;
-    },
-  ),
-  build_powders: live(
-    () => build_powders,
-    (v) => {
-      build_powders = v as number[][] | undefined;
-    },
-  ),
-  atree_data: live(
-    () => atree_data,
-    (v) => {
-      atree_data = v as BitVector | null;
-    },
-  ),
-  LAST_LEGACY_VERSION,
-  loadLatestVersion,
-  loadOlderVersion,
-  encodeBuild,
-  decodeHash,
-  getDataVersionLegacy,
-  decodeHashLegacy,
-  encodeBuildLegacy,
-  getFullURL,
-  copyBuild,
-  shareBuild,
-  encodeAtree,
-  decodeAtree,
-});
+;

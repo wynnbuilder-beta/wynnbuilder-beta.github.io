@@ -1,5 +1,4 @@
 import { expandIngredient } from '@/build_utils';
-import { attachGlobals } from '@/lib/attachGlobals';
 import { displayExpandedIngredient } from '@/display';
 import { ingredient_loader, ings } from '@/load_ing';
 import { item_loader, load_major_id_data, WYNN_VERSION_LATEST, wynn_version_names } from '@/load_item';
@@ -79,8 +78,4 @@ void (async function () {
   init_items_adv();
 })();
 
-attachGlobals({
-  getQueryIdentifiers,
-  generateEntries,
-  display,
-});
+;

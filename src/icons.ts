@@ -1,5 +1,3 @@
-import { attachGlobals, live } from './lib/attachGlobals';
-
 const window_storage = window.localStorage;
 
 export let newIcons = true;
@@ -39,11 +37,3 @@ if (window_storage.getItem('newicons') === 'false') {
   toggleIcons();
 }
 
-attachGlobals({
-  newIcons: live(
-    () => newIcons,
-    (v) => {
-      newIcons = v as boolean;
-    },
-  ),
-});
