@@ -159,7 +159,7 @@ function scheduleBuildDisplayUpdate(): void {
   }
 }
 
-/** Register builder-only mana cycle inputs. Call from builder_graph_init(). */
+/** Register builder-only mana cycle inputs. Call from wireBuilderGraph(). */
 export function initManaCalcListeners(): void {
   const spellCycle = document.getElementById('spell-cycle');
   const cpsCount = document.getElementById('cps-count');

@@ -21,7 +21,7 @@ import {
 import {
   getArmorPowderNode,
   getBoostsNode,
-  builder_graph_init,
+  wireBuilderGraph,
   damageMultipliers,
   edit_input_nodes,
   equip_inputs,
@@ -309,7 +309,7 @@ export async function initBuilderPage(): Promise<void> {
     console.log('Could not initialize autocomplete. Maybe you are offline?');
     console.log(e);
   }
-  builder_graph_init(skillpoints);
+  wireBuilderGraph(skillpoints);
   for (const item_node of item_final_nodes) {
     if (item_node.get_value() === null) {
       if (
