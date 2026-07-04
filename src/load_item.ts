@@ -5,6 +5,12 @@ import type { JsonPayload, RejectFn } from '@/types/loader';
 
 const ITEM_DB_VERSION = 195;
 
+function isItemRemotePayload(data: unknown): data is ItemRemotePayload {
+  if (!data || typeof data !== 'object') return false;
+  const payload = data as Record<string, unknown>;
+  return Array.isArray(payload.items) && payload.sets !== null && typeof payload.sets === 'object';
+}
+
 export let items: ItemStatMap[];
 export let sets = new Map<string, SetBonusData>();
 
@@ -29,7 +35,11 @@ export class ItemLoader extends Loader {
   }
 
   process_remote(data: JsonPayload, tsx: IDBTransaction, reject: RejectFn) {
-    const payload = data as ItemRemotePayload;
+    if (!isItemRemotePayload(data)) {
+      reject('Invalid item payload: expected items array and sets object');
+      return;
+    }
+    const payload = data;
     items = payload.items;
     const sets_ = payload.sets;
 
@@ -53,7 +63,10 @@ export class ItemLoader extends Loader {
   }
 
   process_old_version(data: JsonPayload) {
-    const payload = data as ItemRemotePayload;
+    if (!isItemRemotePayload(data)) {
+      throw new Error('Invalid item payload: expected items array and sets object');
+    }
+    const payload = data;
     items = payload.items;
     for (const item of items) {
       clean_item(item);
@@ -148,7 +161,12 @@ export class ItemLoader extends Loader {
     items = items.concat(none_items);
     for (const item of items) {
       if (item.remapID === undefined) {
-        itemLists.get(item.type).push(item.displayName);
+        const typeList = itemLists.get(item.type);
+        if (typeList) {
+          typeList.push(item.displayName);
+        } else {
+          console.warn(`Unknown item type "${item.type}" for "${item.displayName}"`);
+        }
         itemMap.set(item.displayName, item);
         if (none_items.includes(item)) {
           idMap.set(item.id, '');
@@ -161,7 +179,12 @@ export class ItemLoader extends Loader {
     }
     for (const [set_name, set_data] of sets) {
       for (const item_name of set_data.items) {
-        itemMap.get(item_name).set = set_name;
+        const setItem = itemMap.get(item_name);
+        if (setItem) {
+          setItem.set = set_name;
+        } else {
+          console.warn(`Set "${set_name}" references unknown item "${item_name}"`);
+        }
       }
     }
   }

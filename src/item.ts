@@ -36,23 +36,26 @@ export let item: ExpandedItem;
 export let amp_state = 0;
 
 function init_itempage(): void {
-  try {
-    item = expandItem(itemMap.get(item_url_tag.replace(/%20/g, ' '))!);
-    item.set('powders', []);
-    if (item.get('category') === 'weapon') {
-      apply_weapon_powders(item);
-    }
-    displayExpandedItem(item, 'item-view');
-    displayAdditionalInfo('additional-info', item);
-    displayIDCosts('identification-costs', item);
-    if (item.get('set') && sets.get(item.get('set') as string)) {
-      displayAllSetBonuses('set-bonus-info', item.get('set'));
-    }
-    displayIDProbabilities('identification-probabilities', item, amp_state);
-  } catch (error) {
-    console.log(error);
-    console.log((error as Error).stack);
+  if (!item_url_tag) {
+    throw new Error('No item specified in URL hash (e.g. #Item Name).');
   }
+  const itemName = item_url_tag.replace(/%20/g, ' ');
+  const rawItem = itemMap.get(itemName);
+  if (!rawItem) {
+    throw new Error(`Item not found: "${itemName}"`);
+  }
+  item = expandItem(rawItem);
+  item.set('powders', []);
+  if (item.get('category') === 'weapon') {
+    apply_weapon_powders(item);
+  }
+  displayExpandedItem(item, 'item-view');
+  displayAdditionalInfo('additional-info', item);
+  displayIDCosts('identification-costs', item);
+  if (item.get('set') && sets.get(item.get('set') as string)) {
+    displayAllSetBonuses('set-bonus-info', item.get('set'));
+  }
+  displayIDProbabilities('identification-probabilities', item, amp_state);
 }
 
 export function toggleAmps(button_id: number): void {

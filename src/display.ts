@@ -371,8 +371,10 @@ export function displayExpandedItem(_item: ExpandedItem | Map<string, unknown>, 
             let id = command;
             if (nonRolledIDs.includes(id)) {//nonRolledID & non-0/non-null/non-und ID
                 if (!item.get(id)) {
+                    const maxRolls = item.get("maxRolls");
+                    const minRolls = item.get("minRolls");
                     if (!(item.get("crafted") && isSkpId(id) &&
-                        (item.get("maxRolls").get(id) || item.get("minRolls").get(id)))) {
+                        ((maxRolls && maxRolls.get(id)) || (minRolls && minRolls.get(id))))) {
                         continue;
                     }
                 }
@@ -406,7 +408,9 @@ export function displayExpandedItem(_item: ExpandedItem | Map<string, unknown>, 
                     })
                     parent_div.appendChild(set_elem);
                 } else if (id === "majorIds") {
-                    for (let major_id_str of item.get(id)) {
+                    const majorIdList = item.get(id);
+                    if (!Array.isArray(majorIdList)) continue;
+                    for (let major_id_str of majorIdList) {
                         if (major_id_str in (MAJOR_IDS ?? {})) {
                             const major_ids = MAJOR_IDS as Record<string, { hidden?: boolean; displayName: string; description: string }>;
                             if (major_ids[major_id_str].hidden)
@@ -560,11 +564,14 @@ export function displayExpandedItem(_item: ExpandedItem | Map<string, unknown>, 
                 }
                 last_command = id;
             }
-            else if (rolledIDs.includes(id) &&
-                ((item.get("maxRolls") && item.get("maxRolls").get(id))
-                    || (item.get("minRolls") && item.get("minRolls").get(id)))) {
+            else if (rolledIDs.includes(id)) {
+                const maxRolls = item.get("maxRolls");
+                const minRolls = item.get("minRolls");
+                if (!((maxRolls && maxRolls.get(id)) || (minRolls && minRolls.get(id)))) {
+                    // no roll data for this id
+                } else {
                 let style = "positive";
-                if (item.get("minRolls").get(id) < 0) {
+                if ((minRolls?.get(id) ?? 0) < 0) {
                     style = "negative";
                 }
                 if (reversedIDs.includes(id)) {
@@ -576,7 +583,7 @@ export function displayExpandedItem(_item: ExpandedItem | Map<string, unknown>, 
                     if (id == "dex") {
                         console.log("dex activated at fix_id")
                     }
-                    displayFixedID(p_elem, id, item.get("minRolls").get(id), elemental_format, style);
+                    displayFixedID(p_elem, id, minRolls?.get(id) ?? maxRolls?.get(id), elemental_format, style);
                     parent_div.appendChild(p_elem);
                 }
                 else {
@@ -584,6 +591,7 @@ export function displayExpandedItem(_item: ExpandedItem | Map<string, unknown>, 
                     parent_div.appendChild(row);
                 }
                 last_command = id;
+                }
             } else {
                 // :/  
             }
@@ -1041,13 +1049,17 @@ export function displayExpandedIngredient(ingred, parent_id) {
                 }
                 div.appendChild(row);
             } else if (command === "ids") { //warp
-                for (let [key, value] of ingred.get("ids").get("maxRolls")) {
+                const ids = ingred.get("ids");
+                const maxRolls = ids?.get("maxRolls");
+                if (maxRolls) {
+                for (let [key, value] of maxRolls) {
                     if (value !== undefined && value != 0) {
-                        let row = displayRolledID(ingred.get("ids"), key, elemental_format);
+                        let row = displayRolledID(ids, key, elemental_format);
                         row.classList.remove("col");
                         row.classList.remove("col-12");
                         div.appendChild(row);
                     }
+                }
                 }
             } else {//this shouldn't be happening        
             }
@@ -1176,13 +1188,17 @@ function displayRolledID(item, id, elemental_format) {
     let row = document.createElement('div');
     row.classList.add('col');
 
+    const minRolls = item.get("minRolls");
+    const maxRolls = item.get("maxRolls");
+    if (!minRolls || !maxRolls) return row;
+
     let item_div = document.createElement('div');
     item_div.classList.add('row');
 
     let min_elem = document.createElement('div');
     min_elem.classList.add('col', 'text-start');
     min_elem.style.cssText += "flex-grow: 0";
-    let id_min = item.get("minRolls").get(id)
+    let id_min = minRolls.get(id)
     let style = id_min < 0 ? "negative" : "positive";
     if (reversedIDs.includes(id)) {
         style === "positive" ? style = "negative" : style = "positive";
@@ -1204,7 +1220,7 @@ function displayRolledID(item, id, elemental_format) {
     item_div.appendChild(desc_elem);
 
     let max_elem = document.createElement('div');
-    let id_max = item.get("maxRolls").get(id)
+    let id_max = maxRolls.get(id)
     max_elem.classList.add('col', 'text-end');
     max_elem.style.cssText += "flex-grow: 0";
     style = id_max < 0 ? "negative" : "positive";
