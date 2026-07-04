@@ -1,3 +1,4 @@
+import type { Build } from './builder/build';
 import { getAtreeCollectSpells } from './builder/atree';
 import { tryGetBuildDispNode } from './builder/builder_graph';
 import { getSpellCost } from './display';
@@ -21,7 +22,7 @@ function getCycle(): number[] {
   return cycle;
 }
 
-export function manaInputChanged(_build: unknown, stats: BuildStatMap): void {
+export function manaInputChanged(_build: Build, stats: BuildStatMap): void {
   const cycle = getCycle();
 
   let hasDifferentSpells = false;
@@ -45,7 +46,7 @@ export function manaInputChanged(_build: unknown, stats: BuildStatMap): void {
   }
 }
 
-export function calculateMana(cycle: number[], _build: unknown, stats: BuildStatMap): void {
+export function calculateMana(cycle: number[], _build: Build, stats: BuildStatMap): void {
   const includeManaSteal = (document.getElementById('mana-steal-check') as HTMLInputElement).checked;
   let cps = parseFloat((document.getElementById('cps-count') as HTMLInputElement).value);
   if (Number.isNaN(cps)) {

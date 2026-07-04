@@ -3,19 +3,20 @@ import { ExprParser } from '@/expr_parser';
 import autoComplete from '@tarekraafat/autocomplete.js';
 import { make_elem } from '@/utils';
 import type { Term } from '@/query';
-import type { Ingredient } from '@/types/ingredient';
-import type { ItemStatMap } from '@/types/item';
+import type { ExpandedIngredient, Ingredient } from '@/types/ingredient';
+import type { ExpandedItem, ItemStatMap } from '@/types/item';
 
-type SearchRawEntry = Record<string, unknown> | Ingredient | ItemStatMap;
-type SearchDbEntry = [SearchRawEntry, Map<string, unknown>];
+export type SearchRawEntry = ItemStatMap | Ingredient;
+export type SearchExpandedEntry = ExpandedItem | ExpandedIngredient;
+export type SearchDbEntry = [SearchRawEntry, SearchExpandedEntry];
 
 function asSearchRecord(entry: SearchRawEntry): Record<string, unknown> {
   return entry as Record<string, unknown>;
 }
 
 export type ItemSearchResult = {
-  item: Record<string, unknown>;
-  itemExp: Map<string, unknown>;
+  item: SearchRawEntry;
+  itemExp: SearchExpandedEntry;
   sortKeys: unknown[];
 };
 
@@ -220,7 +221,7 @@ export function do_item_search(): void {
     }
   }
   document.getElementById('search-results')!.textContent = '';
-  const results: { item: Record<string, unknown>; itemExp: Map<string, unknown>; sortKeys: unknown[] }[] = [];
+  const results: ItemSearchResult[] = [];
   try {
     const filter_expr = expr_parser.parse(filter_query) as Term;
     const sort_exprs = sort_queries.map((q) => expr_parser.parse(q) as Term);
@@ -236,7 +237,7 @@ export function do_item_search(): void {
       }
     }
     results.sort((a, b) => {
-      return compareLexico(a.item, a.sortKeys, b.item, b.sortKeys);
+      return compareLexico(asSearchRecord(a.item), a.sortKeys, asSearchRecord(b.item), b.sortKeys);
     });
   } catch (e) {
     summary.textContent = (e as Error).message;

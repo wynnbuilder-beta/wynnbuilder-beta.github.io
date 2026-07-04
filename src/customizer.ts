@@ -31,7 +31,7 @@ import autoComplete from '@/lib/vendor/autocomplete';
 let legacy_decode_version = '';
 let legacy_decode_fixID = false;
 let legacy_decode_tag = '';
-let legacy_decode_statMap = new Map<string, unknown>();
+let legacy_decode_statMap: ExpandedItem = new Map();
 
 const custom_url_base = location.href.split('#')[0];
 const custom_url_tag = location.hash.slice(1);
@@ -284,7 +284,7 @@ export function calculateCustom(): void {
       (i as HTMLElement).style.display = 'grid';
     }
 
-    const statMap = new Map<string, unknown>();
+    const statMap: ExpandedItem = new Map();
     statMap.set('minRolls', new Map());
     statMap.set('maxRolls', new Map());
 
@@ -347,9 +347,9 @@ export function calculateCustom(): void {
     player_custom_item.setHash(custom_str);
 
     if (player_custom_item.statMap.get('category') == 'weapon') {
-      apply_weapon_powders(player_custom_item.statMap as ExpandedItem);
+      apply_weapon_powders(player_custom_item.statMap);
     }
-    displayExpandedItem(player_custom_item.statMap as ExpandedItem, 'custom-stats');
+    displayExpandedItem(player_custom_item.statMap, 'custom-stats');
   } catch (error) {
     const msg = (error as Error).stack ?? String(error);
     const lines = msg.split('\n');
@@ -443,7 +443,7 @@ function decodeCustomLegacy(urlTag: string): void {
             legacy_decode_tag = legacy_decode_tag.slice(5 + len);
           }
         } else {
-          let val: unknown;
+          let val: string | number;
           if (non_rolled_strings.includes(id)) {
             if (id === 'tier') {
               val = tiers[Base64.toInt(legacy_decode_tag.charAt(2))];
@@ -529,7 +529,7 @@ export function toggleFixed(): void {
 
 export function useBaseItem(elem: string): void {
   const itemName = getValue(elem);
-  let baseItem: Map<string, unknown> | undefined;
+  let baseItem: ExpandedItem | undefined;
 
   const rawItem = itemMap.get(itemName);
   if (rawItem) {

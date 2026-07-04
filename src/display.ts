@@ -15,6 +15,7 @@ import {
   skillPointsToPercentage,
   skp_elements,
   skp_order,
+  statNum,
   tome_type_map,
   tome_types,
 } from './build_utils';
@@ -36,23 +37,36 @@ import { MAJOR_IDS, sets } from './load_item';
 import { POWDER_TIERS, powderSpecialStats } from './powders';
 import { make_elem, setHTML, ROMAN_NUMERAL_MAP } from './utils';
 import { tryGetAtreeMerge } from './builder/atree';
-import { getDefenseStats } from './builder/defense_stats';
-import type { ExpandedItem, SetDefinition } from './types/item';
+import type { Build } from './builder/build';
+import { getDefenseStats, type DefenseStats } from './builder/defense_stats';
+import type { ExpandedItem, MajorId, SetDefinition } from './types/item';
 import { isSetBonusStatValue } from './types/item';
-import type { SpellDefinition } from './types/stats';
+import type { ExpandedIngredient, ExpandedRecipe } from './types/ingredient';
+import type { AttackSpeed, BuildStatMap, ComputedSpellPart, SkillpointId, SpellDefinition } from './types/stats';
 
 type DisplayStyle = 'positive' | 'negative' | null;
 
-interface BuildDisplayContext {
-  activeSetCounts: Iterable<[string, number]>;
-  total_skillpoints: number[];
-  base_skillpoints: number[];
-}
-
 type DisplayMap = Map<string, any>;
 
-function statNum(stats: Map<string, unknown>, key: string): number {
-  return (stats.get(key) as number) ?? 0;
+type FormattedDefenseStats = [
+  string,
+  [string, string],
+  string,
+  [string, string],
+  [string, string],
+  string[],
+];
+
+function formatDefenseStatsForDisplay(defenseStats: DefenseStats): FormattedDefenseStats {
+  const fmt = (n: number) => n.toFixed(2);
+  return [
+    fmt(defenseStats[0]),
+    [fmt(defenseStats[1][0]), fmt(defenseStats[1][1])],
+    fmt(defenseStats[2]),
+    [fmt(defenseStats[3][0]), fmt(defenseStats[3][1])],
+    [fmt(defenseStats[4][0]), fmt(defenseStats[4][1])],
+    defenseStats[5].map(fmt),
+  ];
 }
 
 function isSkpId(id: string): boolean {
@@ -82,7 +96,7 @@ export const itemBGPositions: Record<string, string> = {
     "potion": "25% 0", "scroll": "50% 0", "food": "75% 0"
 };
 
-export function displaySetBonuses(parent_id: string, build: BuildDisplayContext): void {
+export function displaySetBonuses(parent_id: string, build: Build): void {
     setHTML(parent_id, "");
     let parent_div = document.getElementById(parent_id);
     if (!parent_div) return;
@@ -121,7 +135,12 @@ export function displaySetBonuses(parent_id: string, build: BuildDisplayContext)
     }
 }
 
-export function displayBuildStats(parent_id, build, command_group, stats) {
+export function displayBuildStats(
+    parent_id: string,
+    build: Build,
+    command_group: string[],
+    stats: BuildStatMap,
+): void {
     // Commands to "script" the creation of nice formatting.
     // #commands create a new element.
     // !elemental is some janky hack for elemental damage.
@@ -167,14 +186,14 @@ export function displayBuildStats(parent_id, build, command_group, stats) {
         }
 
         else if (command === "#maxManaTotal") {
-            let max_mana = stats.get("maxMana") || 0;
+            let max_mana = statNum(stats, 'maxMana');
             let modifier_shown = false;
             if (max_mana != 0) {
                 let style = max_mana > 0 ? "positive" : "negative";
                 displayFixedID(parent_div, "maxMana", max_mana, elemental_format, style);
                 modifier_shown = true;
             }
-            let int_mana = Math.floor(skillPointsToPercentage(stats.get('int') ?? 0) * 100);
+            let int_mana = Math.floor(skillPointsToPercentage(statNum(stats, 'int')) * 100);
             let total_mana = 100 + max_mana + int_mana;
             let row = make_elem('div', ['row']);
             let value_elem = make_elem('div', ['col', 'text-end']);
@@ -198,13 +217,13 @@ export function displayBuildStats(parent_id, build, command_group, stats) {
                 // TODO: add pos and neg style
                 if (!staticIDs.includes(id)) {
                     style = "positive";
-                    if (stats.get(id) < 0) {
+                    if (stats.get(id) && statNum(stats, id) < 0) {
                         style = "negative";
                     }
                 }
 
                 // ignore
-                let id_val = stats.get(id);
+                let id_val = statNum(stats, id);
                 if (reversedIDs.includes(id)) {
                     style === "positive" ? style = "negative" : style = "positive";
                 }
@@ -217,9 +236,9 @@ export function displayBuildStats(parent_id, build, command_group, stats) {
 
                             let prefix_elem = make_elem('b', [], { textContent: "\u279C Effective LS: " });
 
-                            let defStats = getDefenseStats(stats) as [number, [number, number], ...unknown[]];
+                            let defStats: DefenseStats = getDefenseStats(stats);
                             let number_elem = make_elem('b', style ? [style] : [], {
-                                textContent: Math.round(defStats[1][0] * (id_val as number) / defStats[0]) + "/3s"
+                                textContent: Math.round(defStats[1][0] * id_val / defStats[0]) + "/3s"
                             });
                             value_elem.append(prefix_elem);
                             value_elem.append(number_elem);
@@ -232,7 +251,7 @@ export function displayBuildStats(parent_id, build, command_group, stats) {
 
                             let prefix_elem = make_elem('b', [], { textContent: "\u279C Life per hit: " });
 
-                            let adjAtkSpd = attackSpeeds.indexOf(stats.get("atkSpd")) + stats.get("atkTier");
+                            let adjAtkSpd = attackSpeeds.indexOf((stats.get('atkSpd') ?? 'NORMAL') as AttackSpeed) + statNum(stats, 'atkTier');
                             if (adjAtkSpd > 6) {
                                 adjAtkSpd = 6;
                             } else if (adjAtkSpd < 0) {
@@ -270,7 +289,7 @@ export function displayBuildStats(parent_id, build, command_group, stats) {
 
                         let prefix_elem = make_elem('b', [], { textContent: "\u279C Mana per hit: " });
 
-                        let adjAtkSpd = attackSpeeds.indexOf(stats.get("atkSpd")) + stats.get("atkTier");
+                        let adjAtkSpd = attackSpeeds.indexOf((stats.get('atkSpd') ?? 'NORMAL') as AttackSpeed) + statNum(stats, 'atkTier');
                         if (adjAtkSpd > 6) {
                             adjAtkSpd = 6;
                         } else if (adjAtkSpd < 0) {
@@ -310,8 +329,9 @@ export function displayBuildStats(parent_id, build, command_group, stats) {
             }
             // sp thingy (WHY IS THIS HANDLED SEPARATELY TODO
             else if (isSkpId(id)) {
-                let total_assigned = build.total_skillpoints[skp_order.indexOf(id)];
-                let base_assigned = build.base_skillpoints[skp_order.indexOf(id)];
+                const skpIdx = (skp_order as readonly string[]).indexOf(id);
+                let total_assigned = build.total_skillpoints[skpIdx];
+                let base_assigned = build.base_skillpoints[skpIdx];
                 let diff = total_assigned - base_assigned;
                 let style;
                 if (diff > 0) {
@@ -412,11 +432,10 @@ export function displayExpandedItem(_item: ExpandedItem | Map<string, unknown>, 
                     if (!Array.isArray(majorIdList)) continue;
                     for (let major_id_str of majorIdList) {
                         if (major_id_str in (MAJOR_IDS ?? {})) {
-                            const major_ids = MAJOR_IDS as Record<string, { hidden?: boolean; displayName: string; description: string }>;
-                            if (major_ids[major_id_str].hidden)
+                            const major_id_info = (MAJOR_IDS as Record<string, MajorId>)[major_id_str];
+                            if (major_id_info.hidden)
                                 continue;
 
-                            let major_id_info = major_ids[major_id_str];
                             major_id_str = `+${major_id_info.displayName}: ${major_id_info.description}`;
                         }
                         let p_elem = make_elem("div", ['col']);
@@ -721,19 +740,27 @@ export function displayExpandedItem(_item: ExpandedItem | Map<string, unknown>, 
 *  Displays stats about a recipe that are NOT displayed in the craft stats. 
 *  Includes: mat name and amounts, ingred names in an "array" with ingred effectiveness
 */
-export function displayRecipeStats(craft: Record<string, unknown>, parent_id: string): void {
+export function displayRecipeStats(
+    craft: {
+        recipe: ExpandedRecipe;
+        mat_tiers: number[];
+        ingreds: ExpandedIngredient[];
+        statMap: ExpandedItem;
+    },
+    parent_id: string,
+): void {
     let elem = document.getElementById(parent_id);
     if (!elem) return;
 
     //local vars 
     elem.textContent = "";
-    let recipe = craft["recipe"] as Map<string, unknown>;
-    let mat_tiers = craft["mat_tiers"] as number[];
+    let recipe = craft.recipe;
+    let mat_tiers = craft.mat_tiers;
     let ingreds: string[] = [];
-    for (const n of craft["ingreds"] as Map<string, unknown>[]) {
+    for (const n of craft.ingreds) {
         ingreds.push(n.get("name") as string);
     }
-    let effectiveness = (craft["statMap"] as Map<string, unknown>).get("ingredEffectiveness") as number[];
+    let effectiveness = craft.statMap.get("ingredEffectiveness") as number[];
 
     let title = document.createElement("div");
     title.classList.add("col", "box-title", "fw-bold", "justify-content-center", "scaled-font");
@@ -750,7 +777,7 @@ export function displayRecipeStats(craft: Record<string, unknown>, parent_id: st
         let col = document.createElement("div");
         col.classList.add("col", "ps-4");
         let b = document.createElement("span");
-        let mat = (recipe.get("materials") as Map<string, unknown>[])[i];
+        let mat = (recipe.get("materials") as ExpandedItem[])[i];
         b.textContent = "- " + mat.get("amount") + "x " + (mat.get("item") as string).split(" ").slice(1).join(" ");
         b.classList.add("col");
         col.appendChild(b);
@@ -828,7 +855,8 @@ function displayCraftStats(craft, parent_id) {
 * Displays an ingredient in item format. 
 * However, an ingredient is too far from a normal item to display as one.
 */
-export function displayExpandedIngredient(ingred, parent_id) {
+export function displayExpandedIngredient(_ingred: ExpandedIngredient, parent_id: string) {
+    const ingred = _ingred as Map<string, any>;
     let parent_elem = document.getElementById(parent_id);
     parent_elem.textContent = "";
 
@@ -1135,42 +1163,42 @@ export function displayExpandedSet(set_name: string, set_value: SetDefinition, p
     parent_div.appendChild(change_tier);
 }
 
-function displayNextCosts(_stats: Map<string, unknown>, spell: SpellDefinition, spellIdx: number): HTMLElement {
-    let stats = new Map(_stats);
-    let intel = statNum(stats, 'int');
+function displayNextCosts(stats: BuildStatMap, spell: SpellDefinition, _spellIdx: number): HTMLElement {
+    let mutableStats = new Map(stats) as BuildStatMap;
+    let intel = statNum(mutableStats, 'int');
 
     let row = document.createElement("div");
     row.classList.add("spellcost-tooltip");
     let init_cost = document.createElement("b");
-    init_cost.textContent = String(getSpellCost(stats, spellIdx, spell.cost as unknown as boolean));
+    init_cost.textContent = String(getSpellCost(mutableStats, spell));
     init_cost.classList.add("Mana");
     let arrow = document.createElement("b");
     arrow.textContent = "\u279C";
     let next_cost = document.createElement("b");
-    next_cost.textContent = String(init_cost.textContent === "1" ? 1 : Number(getSpellCost(stats, spellIdx, spell.cost as unknown as boolean)) - 1);
+    next_cost.textContent = String(init_cost.textContent === "1" ? 1 : Number(getSpellCost(mutableStats, spell)) - 1);
     next_cost.classList.add("Mana");
     let int_needed = document.createElement("b");
     if (init_cost.textContent === "1") {
         int_needed.textContent = ": n/a (+0)";
     } else { //do math
-        let target = Number(getSpellCost(stats, spellIdx, spell.cost as unknown as boolean)) - 1;
+        let target = Number(getSpellCost(mutableStats, spell)) - 1;
         let needed = intel;
         let noUpdate = false;
         //forgive me... I couldn't inverse ceil, floor, and max.
-        while (Number(getSpellCost(stats, spellIdx, spell.cost as unknown as boolean)) > target) {
+        while (Number(getSpellCost(mutableStats, spell)) > target) {
             if (needed > 150) {
                 noUpdate = true;
                 break;
             }
             needed++;
-            stats.set('int', statNum(stats, 'int') + 1);
+            mutableStats.set('int', statNum(mutableStats, 'int') + 1);
         }
         let missing = needed - intel;
         //in rare circumstances, the next spell cost can jump.
         if (noUpdate) {
-            next_cost.textContent = String(init_cost.textContent === "1" ? 1 : Number(getSpellCost(stats, spellIdx, spell.cost as unknown as boolean)) - 1);
+            next_cost.textContent = String(init_cost.textContent === "1" ? 1 : Number(getSpellCost(mutableStats, spell)) - 1);
         } else {
-            next_cost.textContent = String(init_cost.textContent === "1" ? 1 : getSpellCost(stats, spellIdx, spell.cost as unknown as boolean));
+            next_cost.textContent = String(init_cost.textContent === "1" ? 1 : getSpellCost(mutableStats, spell));
         }
 
 
@@ -1283,13 +1311,13 @@ function displayFixedID(
     }
 }
 
-export function displayPoisonDamage(overallparent_elem, statMap) {
+export function displayPoisonDamage(overallparent_elem: HTMLElement, statMap: BuildStatMap): void {
     overallparent_elem.textContent = "";
-    if (statMap.get('poison') <= 0) {
-        overallparent_elem.style = "display: none";
+    if (statNum(statMap, 'poison') <= 0) {
+        overallparent_elem.style.cssText = "display: none";
         return;
     }
-    overallparent_elem.style = "";
+    overallparent_elem.style.cssText = "";
 
     let container = make_elem('div', ['col', 'pe-0']);
     let spell_summary = make_elem('div', ["col", "spell-display", "dark-5", "rounded", "dark-shadow", "py-2", "border", "border-dark"]);
@@ -1299,7 +1327,7 @@ export function displayPoisonDamage(overallparent_elem, statMap) {
     title_elemavg.append(make_elem('span', [], { textContent: "Poison Stats" }));
     spell_summary.append(title_elemavg);
 
-    let poison_tick = Math.floor(statMap.get("poison") / 3);
+    let poison_tick = Math.floor(statNum(statMap, 'poison') / 3);
     //let poison_tick = Math.ceil(statMap.get("poison") * (1+skillPointsToPercentage(statMap.get('str'))) * (statMap.get("poisonPct"))/100 /3);
 
     let overallpoisonDamage = make_elem("p");
@@ -1312,27 +1340,18 @@ export function displayPoisonDamage(overallparent_elem, statMap) {
     overallparent_elem.append(container);
 }
 
-function displayDefenseStats(parent_elem: HTMLElement, statMap: Map<string, unknown>, insertSummary?: boolean): void {
-    let defenseStats = getDefenseStats(statMap) as (number | number[])[];
+function displayDefenseStats(parent_elem: HTMLElement, statMap: BuildStatMap, insertSummary?: boolean): void {
+    const defenseStats = getDefenseStats(statMap);
     insertSummary = (typeof insertSummary !== 'undefined') ? insertSummary : false;
     if (!insertSummary) {
         parent_elem.textContent = "";
     }
-    const stats = defenseStats.slice() as unknown as (string | string[])[];
+    const stats = formatDefenseStatsForDisplay(defenseStats);
 
     // parent_elem.append(document.createElement("br"));
     let statsTable = document.createElement("div");
 
     //[total hp, ehp, total hpr, ehpr, [def%, agi%], [edef,tdef,wdef,fdef,adef]]
-    for (const i in stats) {
-        if (typeof stats[i] === "number") {
-            stats[i] = (stats[i] as unknown as number).toFixed(2);
-        } else {
-            for (const j in stats[i] as string[]) {
-                (stats[i] as string[])[j] = Number((stats[i] as string[])[j]).toFixed(2);
-            }
-        }
-    }
 
     //total HP
     let hpRow = document.createElement("div");
@@ -1365,7 +1384,7 @@ function displayDefenseStats(parent_elem: HTMLElement, statMap: Map<string, unkn
     ehp.textContent = "Effective HP:";
 
     boost = document.createElement("div");
-    boost.textContent = (stats[1] as string[])[0];
+    boost.textContent = stats[1][0];
     boost.classList.add("col");
     boost.classList.add("text-end");
     ehpRow.appendChild(ehp);
@@ -1385,7 +1404,7 @@ function displayDefenseStats(parent_elem: HTMLElement, statMap: Map<string, unkn
     ehp.textContent = "Effective HP (no agi):";
 
     boost = document.createElement("div");
-    boost.textContent = (stats[1] as string[])[1];
+    boost.textContent = stats[1][1];
     boost.classList.add("col");
     boost.classList.add("text-end");
     ehpRow.appendChild(ehp);
@@ -1428,7 +1447,7 @@ function displayDefenseStats(parent_elem: HTMLElement, statMap: Map<string, unkn
         ehpr.textContent = "Effective HP Regen:";
 
         boost = document.createElement("div");
-        boost.textContent = (stats[3] as string[])[0];
+        boost.textContent = stats[3][0];
         boost.classList.add("col");
         boost.classList.add("text-end");
         ehprRow.appendChild(ehpr);
@@ -1438,7 +1457,7 @@ function displayDefenseStats(parent_elem: HTMLElement, statMap: Map<string, unkn
     }
 
     //eledefs
-    let eledefs = stats[5] as string[];
+    let eledefs = stats[5];
     for (let i = 0; i < eledefs.length; i++) {
         let eledefElemRow = document.createElement("div");
         eledefElemRow.classList.add("row")
@@ -1479,7 +1498,7 @@ function displayDefenseStats(parent_elem: HTMLElement, statMap: Map<string, unkn
 export function displayPowderSpecials(
     parent_elem: HTMLElement,
     powderSpecials: [typeof powderSpecialStats[number], number][],
-    stats: Map<string, unknown>,
+    stats: BuildStatMap,
     weapon: ExpandedItem,
 ): void {
     parent_elem.textContent = "";
@@ -1577,7 +1596,7 @@ export function displayPowderSpecials(
 }
 
 export function getSpellCost(
-    stats: Map<string, unknown>,
+    stats: BuildStatMap,
     spell: SpellDefinition | number,
     capped: boolean | number = true,
 ): number {
@@ -1585,7 +1604,7 @@ export function getSpellCost(
     return capped ? Math.max(1, cost) : cost;
 }
 
-function getBaseSpellCost(stats: Map<string, unknown>, spell: SpellDefinition | number): number {
+function getBaseSpellCost(stats: BuildStatMap, spell: SpellDefinition | number): number {
     const s = spell as SpellDefinition;
     let cost = s.cost! * (1 - skillPointsToPercentage(statNum(stats, 'int')) * skillpoint_final_mult[2]);
     cost += statNum(stats, "spRaw" + s.base_spell);
@@ -1593,7 +1612,14 @@ function getBaseSpellCost(stats: Map<string, unknown>, spell: SpellDefinition | 
 }
 
 
-export function displaySpellDamage(parent_elem, _overallparent_elem, stats, spell, spellIdx, spell_results) {
+export function displaySpellDamage(
+    parent_elem: HTMLElement,
+    _overallparent_elem: HTMLElement,
+    stats: BuildStatMap,
+    spell: SpellDefinition,
+    spellIdx: number,
+    spell_results: ComputedSpellPart[],
+): void {
     // TODO: remove spellIdx (just used to flag melee and cost)
     // TODO: move cost calc out
     parent_elem.textContent = "";
@@ -1692,7 +1718,7 @@ export function displaySpellDamage(parent_elem, _overallparent_elem, stats, spel
             if (spell_info.name === spell.display) {
                 if (spellIdx === 0) {
                     let display_attack_speeds = ["Super Slow", "Very Slow", "Slow", "Normal", "Fast", "Very Fast", "Super Fast"];
-                    let adjAtkSpd = attackSpeeds.indexOf(stats.get("atkSpd")) + stats.get("atkTier");
+                    let adjAtkSpd = attackSpeeds.indexOf((stats.get('atkSpd') ?? 'NORMAL') as AttackSpeed) + statNum(stats, 'atkTier');
                     if (adjAtkSpd > 6) {
                         adjAtkSpd = 6;
                     } else if (adjAtkSpd < 0) {

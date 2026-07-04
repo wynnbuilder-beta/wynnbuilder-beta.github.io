@@ -17,7 +17,6 @@ import {
   toggleButton,
   zip2,
 } from '@/utils';
-import type { MajorId } from '@/types/item';
 import type {
   ATree,
   ATreeAbility,
@@ -54,10 +53,6 @@ interface SliderInfo {
   slider?: HTMLInputElement;
   max_mult?: number;
   overwritten?: boolean;
-}
-
-interface MajorIdAbility extends ATreeAbility {
-  class?: string;
 }
 
 interface LoadedAtlasImage extends HTMLImageElement {
@@ -614,7 +609,7 @@ export function registerAtreeGraph(): void {
     
                     // A major ID can have multiple abilities, specified as atree nodes,
                     //   as part of its effects. Apply each of them.
-                    for (const abil of (MAJOR_IDS as Record<string, MajorId>)[major_id_name].abilities as MajorIdAbility[]) {
+                    for (const abil of MAJOR_IDS![major_id_name].abilities) {
     
                         // But only the ones that match the current class.
                         if (abil["class"] === build_class || abil["class"] === "Any") {

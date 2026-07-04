@@ -5,7 +5,8 @@ import { apply_weapon_powders } from '@/powders';
 import { itemQueryProps, queryFuncs } from '@/query';
 import { ExprParser } from '@/expr_parser';
 import { configureAdvSearch, init_items_adv } from '@/search_adv';
-import type { ItemStatMap } from '@/types/item';
+import type { ExpandedItem, ItemStatMap } from '@/types/item';
+import type { SearchDbEntry } from '@/search';
 import '@/builder/build_encode_decode';
 
 const getQueryIdentifiers = (function () {
@@ -44,17 +45,17 @@ function generateEntries(size: number, itemList: HTMLElement, itemEntries: HTMLE
   }
 }
 
-function display(itemExp: Map<string, unknown>, id: string): void {
+function display(itemExp: ExpandedItem, id: string): void {
   itemExp.set('powders', []);
   if (itemExp.get('category') === 'weapon') {
-    apply_weapon_powders(itemExp as Parameters<typeof apply_weapon_powders>[0]);
+    apply_weapon_powders(itemExp);
   }
   displayExpandedItem(itemExp, id);
 }
 
 configureAdvSearch({
-  loadData: () => ({
-    db: (items as ItemStatMap[]).filter((i) => !i.remapID).map((i) => [i, expandItem(i)]),
+  loadData: (): { db: SearchDbEntry[]; parser: ExprParser } => ({
+    db: items.filter((i) => !i.remapID).map((i) => [i, expandItem(i)] as [ItemStatMap, ExpandedItem]),
     parser: new ExprParser(itemQueryProps, queryFuncs),
   }),
   display,

@@ -1,5 +1,6 @@
 import { expandIngredient } from '@/build_utils';
 import { displayExpandedIngredient } from '@/display';
+import type { ExpandedIngredient } from '@/types/ingredient';
 import { ExprParser } from '@/expr_parser';
 import { ings, ingredient_loader } from '@/load_ing';
 import {
@@ -170,7 +171,7 @@ const item_filters: string[] = [
 
 type SearchResult = {
   item: Record<string, unknown>;
-  itemExp: Map<string, unknown>;
+  itemExp: ExpandedIngredient;
   sortKeys: unknown[];
 };
 
@@ -243,7 +244,7 @@ export function init_values(): void {
       .map((i: Ingredient) => [
         i as unknown as Record<string, unknown>,
         expandIngredient(i as unknown as Record<string, unknown>),
-      ] as [Record<string, unknown>, Map<string, unknown>]),
+      ] as [Record<string, unknown>, ExpandedIngredient]),
     new ExprParser(ingredientQueryProps, queryFuncs),
   );
 }

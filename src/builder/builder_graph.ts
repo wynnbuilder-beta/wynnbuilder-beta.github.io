@@ -22,6 +22,8 @@ import {
   ValueCheckComputeNode,
   calcSchedule,
   setGraphLiveUpdate,
+  getComputeInput,
+  type ComputeInputMap,
 } from '@/computation_graph';
 import { Craft, decodeCraft, encodeCraft } from '@/craft';
 import { decodeCustom } from '@/custom';
@@ -111,7 +113,7 @@ import {
   zip3,
 } from '@/utils';
 import type { ATree, RenderedATree } from '@/types/atree';
-import type { SkillpointVector, SpellDefinition } from '@/types/stats';
+import type { SkillpointVector, SpellDefinition, BuildStatMap, ComputedSpellPart } from '@/types/stats';
 
 const preScaleAggNodeRef = createRegistered<ComputeNode>('pre_scale_agg_node');
 export function getPreScaleAggNode(): ComputeNode { return preScaleAggNodeRef.get(); }
@@ -219,11 +221,12 @@ class PowderSpecialDisplayNode extends ComputeNode {
         this.fail_cb = true;
     }
 
-    compute_func(input_map) {
-        const powder_specials = input_map.get('powder-specials');
-        const stats = input_map.get('stats');
-        const weapon = input_map.get('build').weapon;
-        displayPowderSpecials(document.getElementById("powder-special-stats"), powder_specials, stats, weapon.statMap);
+    compute_func(input_map: ComputeInputMap): null {
+        const powder_specials = getComputeInput<[typeof powderSpecialStats[number], number][]>(input_map, 'powder-specials');
+        const stats = getComputeInput<BuildStatMap>(input_map, 'stats');
+        const weapon = getComputeInput<Build>(input_map, 'build').weapon.statMap;
+        displayPowderSpecials(document.getElementById("powder-special-stats"), powder_specials, stats, weapon);
+        return null;
     }
 }
 
@@ -234,7 +237,7 @@ class PowderSpecialDisplayNode extends ComputeNode {
  */
 class ItemInputNode extends InputNode {
     none_item: Item;
-    category: unknown;
+    category: string | undefined;
 
     /**
      * Make an item stat pulling compute node.
@@ -246,7 +249,7 @@ class ItemInputNode extends InputNode {
     constructor(name, item_input_field, none_item) {
         super(name, item_input_field);
         this.none_item = new Item(none_item);
-        this.category = this.none_item.statMap.get('category');
+        this.category = this.none_item.statMap.get('category') as string | undefined;
         if (this.category == 'armor' || this.category == 'weapon') {
             this.none_item.statMap.set('powders', []);
             apply_weapon_powders(this.none_item.statMap); // Needed to put in damagecalc zeros
@@ -538,54 +541,54 @@ class URLUpdateNode extends ComputeNode {
  *                              weapon: Item,
  *                              level: int) => Build | null
  */
-class BuildAssembleNode extends ComputeNode {
+class BuildAssembleNode extends ComputeNode<Build | null> {
     constructor() { super("builder-make-build"); }
 
-    compute_func(input_map) {
+    compute_func(input_map: ComputeInputMap): Build | null {
         let equipments = [
-            input_map.get('helmet'),
-            input_map.get('chestplate'),
-            input_map.get('leggings'),
-            input_map.get('boots'),
-            input_map.get('ring1'),
-            input_map.get('ring2'),
-            input_map.get('bracelet'),
-            input_map.get('necklace'),
+            getComputeInput<Item>(input_map, 'helmet'),
+            getComputeInput<Item>(input_map, 'chestplate'),
+            getComputeInput<Item>(input_map, 'leggings'),
+            getComputeInput<Item>(input_map, 'boots'),
+            getComputeInput<Item>(input_map, 'ring1'),
+            getComputeInput<Item>(input_map, 'ring2'),
+            getComputeInput<Item>(input_map, 'bracelet'),
+            getComputeInput<Item>(input_map, 'necklace'),
         ];
 
         let tomes = [
-            input_map.get('weaponTome1'),
-            input_map.get('weaponTome2'),
-            input_map.get('armorTome1'),
-            input_map.get('armorTome2'),
-            input_map.get('armorTome3'),
-            input_map.get('armorTome4'),
-            input_map.get('guildTome1'),
-            input_map.get('lootrunTome1'),
-            input_map.get('gatherXpTome1'),
-            input_map.get('gatherXpTome2'),
-            input_map.get('dungeonXpTome1'),
-            input_map.get('dungeonXpTome2'),
-            input_map.get('mobXpTome1'),
-            input_map.get('mobXpTome2'),
+            getComputeInput<Item>(input_map, 'weaponTome1'),
+            getComputeInput<Item>(input_map, 'weaponTome2'),
+            getComputeInput<Item>(input_map, 'armorTome1'),
+            getComputeInput<Item>(input_map, 'armorTome2'),
+            getComputeInput<Item>(input_map, 'armorTome3'),
+            getComputeInput<Item>(input_map, 'armorTome4'),
+            getComputeInput<Item>(input_map, 'guildTome1'),
+            getComputeInput<Item>(input_map, 'lootrunTome1'),
+            getComputeInput<Item>(input_map, 'gatherXpTome1'),
+            getComputeInput<Item>(input_map, 'gatherXpTome2'),
+            getComputeInput<Item>(input_map, 'dungeonXpTome1'),
+            getComputeInput<Item>(input_map, 'dungeonXpTome2'),
+            getComputeInput<Item>(input_map, 'mobXpTome1'),
+            getComputeInput<Item>(input_map, 'mobXpTome2'),
 
         ];
         // I hate wynncraft but I'm lazy
         const wynn_equip = [
-            input_map.get('boots'),
-            input_map.get('leggings'),
-            input_map.get('chestplate'),
-            input_map.get('helmet'),
-            input_map.get('ring1'),
-            input_map.get('ring2'),
-            input_map.get('bracelet'),
-            input_map.get('necklace'),
-            input_map.get('guildTome1')
+            getComputeInput<Item>(input_map, 'boots'),
+            getComputeInput<Item>(input_map, 'leggings'),
+            getComputeInput<Item>(input_map, 'chestplate'),
+            getComputeInput<Item>(input_map, 'helmet'),
+            getComputeInput<Item>(input_map, 'ring1'),
+            getComputeInput<Item>(input_map, 'ring2'),
+            getComputeInput<Item>(input_map, 'bracelet'),
+            getComputeInput<Item>(input_map, 'necklace'),
+            getComputeInput<Item>(input_map, 'guildTome1')
         ];
 
-        let weapon = input_map.get('weapon');
+        let weapon = getComputeInput<Item>(input_map, 'weapon');
 
-        let level = parseInt(input_map.get('level-input'));
+        let level = parseInt(String(getComputeInput<unknown>(input_map, 'level-input')));
         if (isNaN(level)) {
             level = 121;
         }
@@ -687,15 +690,16 @@ export class SpellDisplayNode extends ComputeNode {
         this.spell = spell;
     }
 
-    compute_func(input_map) {
-        const stats = input_map.get('stats');
-        const damages = input_map.get('spell-damage');
+    compute_func(input_map: ComputeInputMap): null {
+        const stats = getComputeInput<BuildStatMap>(input_map, 'stats');
+        const damages = getComputeInput<ComputedSpellPart[]>(input_map, 'spell-damage');
         const spell = this.spell;
 
         const i = this.spell.base_spell;
         let parent_elem = document.getElementById("spell" + i + "-info");
         let overallparent_elem = document.getElementById("spell" + i + "-infoAvg");
         displaySpellDamage(parent_elem, overallparent_elem, stats, spell, i, damages);
+        return null;
     }
 }
 
@@ -704,12 +708,12 @@ export class SpellDisplayNode extends ComputeNode {
  *
  * Signature: BuildDisplayNode(build: Build) => null
  */
-class BuildDisplayNode extends ComputeNode {
+class BuildDisplayNode extends ComputeNode<null> {
     constructor() { super("builder-stats-display"); }
 
-    compute_func(input_map) {
-        const build = input_map.get('build');
-        const stats = input_map.get('stats');
+    compute_func(input_map: ComputeInputMap): null {
+        const build = getComputeInput<Build>(input_map, 'build');
+        const stats = getComputeInput<BuildStatMap>(input_map, 'stats');
         displayBuildStats('summary-stats', build, build_overall_display_commands, stats);
         displayBuildStats("detailed-stats", build, build_detailed_display_commands, stats);
         displaySetBonuses("set-info", build);
@@ -718,6 +722,7 @@ class BuildDisplayNode extends ComputeNode {
 
         displayPoisonDamage(document.getElementById("build-poison-stats"), stats);
         manaInputChanged(build, stats);
+        return null;
     }
 }
 
@@ -885,12 +890,13 @@ class DisplayBuildWarningsNode extends ComputeNode {
  *
  * Signature: AggregateStatsNode(*args) => StatMap
  */
-class AggregateStatsNode extends ComputeNode {
+class AggregateStatsNode extends ComputeNode<BuildStatMap> {
     constructor(name) { super(name); }
 
-    compute_func(input_map) {
-        const output_stats = new Map();
+    compute_func(input_map: ComputeInputMap): BuildStatMap {
+        const output_stats = new Map() as BuildStatMap;
         for (const [k, v] of input_map.entries()) {
+            if (!(v instanceof Map)) continue;
             for (const [k2, v2] of v.entries()) {
                 merge_stat(output_stats, k2, v2);
             }

@@ -2,10 +2,11 @@ import { expandIngredient } from '@/build_utils';
 import { displayExpandedIngredient } from '@/display';
 import { displayAdditionalInfo } from '@/item_display';
 import { ingMap, ingredient_loader } from '@/load_ing';
+import type { ExpandedIngredient } from '@/types/ingredient';
 
 const item_url_tag = location.hash.slice(1);
 
-export let item: Map<string, unknown>;
+export let item: ExpandedIngredient;
 
 function init_itempage(): void {
   try {

@@ -1,5 +1,6 @@
 import { item_fields, item_types, str_item_fields } from '@/build_utils';
 import { Loader } from '@/loader';
+import type { EncodingConstants } from '@/types/build';
 import type { ItemRemotePayload, ItemStatMap, MajorId, SetBonusData, SetBonusTier } from '@/types/item';
 import type { JsonPayload, RejectFn } from '@/types/loader';
 
@@ -290,8 +291,8 @@ export async function load_major_id_data(version_str: string) {
   console.log('Loaded major id data');
 }
 
-export let ENC: unknown = null;
-export let DEC: unknown = null;
+export let ENC: EncodingConstants | null = null;
+export let DEC: EncodingConstants | null = null;
 
 export async function load_encoding_constants(version_str: string, decoding_version_str?: string) {
   const getUrl = window.location;
@@ -299,9 +300,9 @@ export async function load_encoding_constants(version_str: string, decoding_vers
   // No random string -- we want to use caching
   const encoding_url = `${baseUrl}/data/${version_str}/encoding_consts.json`;
   const decoding_url = `${baseUrl}/data/${decoding_version_str}/encoding_consts.json`;
-  ENC = await (await fetch(encoding_url)).json();
+  ENC = (await (await fetch(encoding_url)).json()) as EncodingConstants;
   if (decoding_version_str !== undefined && decoding_version_str != version_str) {
-    DEC = await (await fetch(decoding_url)).json();
+    DEC = (await (await fetch(decoding_url)).json()) as EncodingConstants;
   } else {
     DEC = ENC;
   }

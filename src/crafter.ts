@@ -188,7 +188,7 @@ export function calculateCraft(): void {
   document.getElementById('mat-2')!.textContent =
     (recipe.get('materials') as ExpandedItem[])[1].get('item')!.toString().split(' ').slice(1).join(' ') + ' Tier:';
 
-  displayRecipeStats(player_craft as unknown as Record<string, unknown>, 'recipe-stats');
+  displayRecipeStats(player_craft, 'recipe-stats');
 
   const mock_item = player_craft.statMap;
   if (mock_item.get('category') === 'weapon') {

@@ -4,9 +4,9 @@ import { ExprParser } from '@/expr_parser';
 import { item_loader, items, load_major_id_data, WYNN_VERSION_LATEST, wynn_version_names } from '@/load_item';
 import { apply_weapon_powders } from '@/powders';
 import { itemQueryProps, queryFuncs } from '@/query';
-import { configureItemSearch, init_search, setItemSearchData } from '@/search';
+import { configureItemSearch, init_search, setItemSearchData, type ItemSearchResult } from '@/search';
 import { make_elem } from '@/utils';
-import type { ExpandedItem } from '@/types/item';
+import type { ExpandedItem, ItemStatMap } from '@/types/item';
 import '@/lib/vendor/autocomplete';
 import '@/drag_drop_touch';
 import '@/builder/build_encode_decode';
@@ -185,13 +185,7 @@ const item_filters: string[] = [
 ];
 const string_item_filters: string[] = Object.keys(string_mappings);
 
-type SearchResult = {
-  item: Record<string, unknown>;
-  itemExp: ExpandedItem;
-  sortKeys: unknown[];
-};
-
-export function display(items_copy: SearchResult[]): void {
+export function display(items_copy: ItemSearchResult[]): void {
   const items_parent = document.getElementById('search-results')!;
   for (const i in items_copy) {
     if (Number(i) > 200) {
@@ -256,7 +250,7 @@ export function init_values(): void {
   setItemSearchData(
     items
       .filter((i) => !i.remapID)
-      .map((i) => [i, expandItem(i)] as [Record<string, unknown>, Map<string, unknown>]),
+      .map((i) => [i, expandItem(i)] as [ItemStatMap, ExpandedItem]),
     new ExprParser(itemQueryProps, queryFuncs),
   );
 }

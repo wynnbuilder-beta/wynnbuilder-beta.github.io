@@ -58,6 +58,12 @@ export interface Recipe {
   id?: number;
 }
 
+/** Post-`expandIngredient()` map used in display, search, and craft. */
+export type ExpandedIngredient = Map<string, unknown>;
+
+/** Post-`expandRecipe()` map used in craft and builder graph. */
+export type ExpandedRecipe = Map<string, unknown>;
+
 /** displayName → ingredient from load_ing.init_maps(). */
 export type IngredientLookupMap = Map<string, Ingredient>;
 export type RecipeLookupMap = Map<string, Recipe>;

@@ -2,11 +2,7 @@ import { BoolLitTerm, compareLexico } from '@/query';
 import { ExprParser } from '@/expr_parser';
 import { setHTML } from '@/utils';
 import type { Term } from '@/query';
-import type { Ingredient } from '@/types/ingredient';
-import type { ItemStatMap } from '@/types/item';
-
-type SearchRawEntry = Record<string, unknown> | Ingredient | ItemStatMap;
-type SearchDbEntry = [SearchRawEntry, Map<string, unknown>];
+import type { SearchDbEntry, SearchExpandedEntry, SearchRawEntry, ItemSearchResult } from '@/search';
 
 function asSearchRecord(entry: SearchRawEntry): Record<string, unknown> {
   return entry as Record<string, unknown>;
@@ -14,7 +10,7 @@ function asSearchRecord(entry: SearchRawEntry): Record<string, unknown> {
 
 export type AdvSearchConfig = {
   loadData: () => { db: SearchDbEntry[]; parser: ExprParser };
-  display: (itemExp: Map<string, unknown>, id: string) => void;
+  display: (itemExp: SearchExpandedEntry, id: string) => void;
   generateEntries: (size: number, itemList: HTMLElement, itemEntries: HTMLElement[]) => void;
   getQueryIdentifiers: () => string[];
 };
@@ -328,11 +324,7 @@ export function init_items_adv(): void {
       setHTML(`item-sort-entry-${i}`, '');
     }
 
-    const searchResults: {
-      item: Record<string, unknown>;
-      itemExp: Map<string, unknown>;
-      sortKeys: unknown[];
-    }[] = [];
+    const searchResults: ItemSearchResult[] = [];
     try {
       for (let i = 0; i < searchDb.length; i++) {
         const item = searchDb[i][0];
@@ -357,7 +349,7 @@ export function init_items_adv(): void {
     try {
       searchResults.sort((a, b) => {
         try {
-          return compareLexico(a.item, a.sortKeys, b.item, b.sortKeys);
+          return compareLexico(asSearchRecord(a.item), a.sortKeys, asSearchRecord(b.item), b.sortKeys);
         } catch (e) {
           console.log(a.item, b.item);
           throw e;

@@ -20,11 +20,11 @@ import {
 import { tome_loader, tomeIDMap, tomeRedirectMap } from '@/load_tome';
 import { decodePowderIdx, encodePowderIdx, powderNames, POWDER_TIERS } from '@/powders';
 import { NUM_ASPECTS } from '@/types/aspect';
-import type { AspectTuple } from '@/types/aspect';
+import type { AspectTuple, DecodedAspect } from '@/types/aspect';
 import type { ATree, ATreeNode, RenderedATree } from '@/types/atree';
 import type { BuildItemRef, EncodingConstants, PlayerBuild } from '@/types/build';
 import { TOME_SLOT_COUNT } from '@/types/build';
-import type { DecodedSkillpoints, SkillpointVector } from '@/types/stats';
+import type { DecodedSkillpoints, PowderString, SkillpointVector } from '@/types/stats';
 import type { PlayerClass } from '@/types/stats';
 import {
   assert,
@@ -80,11 +80,11 @@ atree_data = null;
 LAST_LEGACY_VERSION = 18;
 
 function enc(): EncodingConstants {
-  return ENC as EncodingConstants;
+  return ENC!;
 }
 
 function dec(): EncodingConstants {
-  return DEC as EncodingConstants;
+  return DEC!;
 }
 
 function getItemNameFromID(id: number): string | undefined {
@@ -453,7 +453,7 @@ function decodeHeader(cursor: BitVectorCursor): number {
  *
  * TODO(@orgold): Refactor this code to not use 3 nested switch cases
  */
-function decodePowders(cursor: BitVectorCursor): string {
+function decodePowders(cursor: BitVectorCursor): PowderString {
   const D = dec();
   // HAS_POWDERS flag is true, so we know there's at least 1 powder.
   let powders: number[] = [decodePowderIdx(cursor.advanceBy(D.POWDER_ID_BITLEN), D.POWDER_TIERS)];
@@ -503,10 +503,10 @@ function decodePowders(cursor: BitVectorCursor): string {
  *
  * TODO(@orgold): Refactor this code to not use 3 nested switch cases
  */
-function decodeEquipment(cursor: BitVectorCursor): [Array<string | null>, string[]] {
+function decodeEquipment(cursor: BitVectorCursor): [Array<string | null>, PowderString[]] {
   const D = dec();
   const equipments: Array<string | null> = [];
-  const powders: string[] = [];
+  const powders: PowderString[] = [];
   for (let i = 0; i < D.EQUIPMENT_NUM; ++i) {
     const kind = cursor.advanceBy(D.EQUIPMENT_KIND.BITLEN);
     // Decode equipment kind
@@ -627,10 +627,10 @@ function decodeLevel(cursor: BitVectorCursor): number {
   }
 }
 
-function decodeAspects(cursor: BitVectorCursor, cls: PlayerClass): Array<[string, number] | null> {
+function decodeAspects(cursor: BitVectorCursor, cls: PlayerClass): DecodedAspect[] {
   const D = dec();
   const flag = cursor.advanceBy(D.ASPECTS_FLAG.BITLEN);
-  const aspects: Array<[string, number] | null> = [];
+  const aspects: DecodedAspect[] = [];
   switch (flag) {
     case D.ASPECTS_FLAG.NO_ASPECTS:
       break;
@@ -769,8 +769,8 @@ export function getDataVersionLegacy(): number {
 /**
  * The legacy version of decodePowders.
  */
-function decodePowdersLegacy(powder_info: string): [string[], string] {
-  const powdering: string[] = [];
+function decodePowdersLegacy(powder_info: string): [PowderString[], string] {
+  const powdering: PowderString[] = [];
   let remaining = powder_info;
   for (let i = 0; i < 5; ++i) {
     let powders = '';

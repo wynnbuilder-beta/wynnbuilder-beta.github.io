@@ -1,5 +1,6 @@
 import { expandIngredient } from '@/build_utils';
 import { displayExpandedIngredient } from '@/display';
+import type { ExpandedIngredient } from '@/types/ingredient';
 import { ingredient_loader, ings } from '@/load_ing';
 import { item_loader, load_major_id_data, WYNN_VERSION_LATEST, wynn_version_names } from '@/load_item';
 import { ingredientQueryProps, queryFuncs } from '@/query';
@@ -52,7 +53,7 @@ function generateEntries(size: number, itemList: HTMLElement, itemEntries: HTMLE
   }
 }
 
-function display(itemExp: Map<string, unknown>, id: string): void {
+function display(itemExp: ExpandedIngredient, id: string): void {
   displayExpandedIngredient(itemExp, id);
 }
 

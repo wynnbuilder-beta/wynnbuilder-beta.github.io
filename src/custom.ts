@@ -8,6 +8,7 @@ import {
   EncodingBitVector,
   log,
 } from '@/utils';
+import type { ExpandedItem } from '@/types/item';
 import {
   accessoryTypes,
   all_types,
@@ -239,7 +240,7 @@ const CUSTOM_ENC: CustomEnc = {
 
 const bootstringEncoder = new BootstringEncoder(0, 1, 52, 104, 700, 38, '-');
 
-function rollMap(statMap: Map<string, unknown>, key: 'minRolls' | 'maxRolls'): Map<string, number> {
+function rollMap(statMap: ExpandedItem, key: 'minRolls' | 'maxRolls'): Map<string, number> {
   return statMap.get(key) as Map<string, number>;
 }
 
@@ -276,11 +277,15 @@ export function encodeCustom(custom: Custom | null | undefined, verbose: boolean
       if (!fixedIDs) customVec.append(valMax & mask, idLen);
     } else {
       const damages = ['nDam', 'eDam', 'tDam', 'wDam', 'fDam', 'aDam'];
-      let idVal = custom.statMap.get(id);
+      let idVal: string | number | string[] | undefined = custom.statMap.get(id) as
+        | string
+        | number
+        | string[]
+        | undefined;
 
       if (id == 'majorIds') {
-        if ((idVal as string[]).length > 0) {
-          idVal = (idVal as string[])[0];
+        if (Array.isArray(idVal) && idVal.length > 0) {
+          idVal = idVal[0];
         } else {
           idVal = '';
         }
@@ -335,17 +340,17 @@ export function encodeCustom(custom: Custom | null | undefined, verbose: boolean
   return customVec;
 }
 
-export function encodeCustomLegacy(custom: Custom | Map<string, unknown> | null | undefined, verbose: boolean): string {
+export function encodeCustomLegacy(custom: Custom | ExpandedItem | null | undefined, verbose: boolean): string {
   if (custom) {
-    let statMap: Map<string, unknown>;
+    let statMap: ExpandedItem;
     if (custom instanceof Custom) {
       statMap = custom.statMap;
     } else if (custom instanceof Map) {
       statMap = custom;
-    } else if ((custom as { statMap?: Map<string, unknown> }).statMap) {
-      statMap = (custom as { statMap: Map<string, unknown> }).statMap;
+    } else if ((custom as { statMap?: ExpandedItem }).statMap) {
+      statMap = (custom as { statMap: ExpandedItem }).statMap;
     } else {
-      statMap = custom as Map<string, unknown>;
+      statMap = custom as ExpandedItem;
     }
     let hash = '1';
     if (statMap.has('fixID') && statMap.get('fixID')) {
@@ -382,10 +387,14 @@ export function encodeCustomLegacy(custom: Custom | Map<string, unknown> | null 
         }
       } else {
         const damages = ['nDam', 'eDam', 'tDam', 'wDam', 'fDam', 'aDam'];
-        let val = statMap.get(id);
+        let val: string | number | string[] | undefined = statMap.get(id) as
+          | string
+          | number
+          | string[]
+          | undefined;
         if (id == 'majorIds') {
-          if ((val as string[]).length > 0) {
-            val = (val as string[])[0];
+          if (Array.isArray(val) && val.length > 0) {
+            val = val[0];
           } else {
             val = '';
           }
@@ -441,7 +450,7 @@ export function decodeCustom({
     cursor = new BitVectorCursor(new BitVector(hash, hash.length * 6));
   }
 
-  const statMap = new Map<string, unknown>();
+  const statMap: ExpandedItem = new Map();
   statMap.set('hash', 'CI-' + cursor.bitVec.sliceB64(cursor.currIdx, cursor.endIdx));
 
   const legacy = cursor.advance();
@@ -477,7 +486,7 @@ export function decodeCustom({
       continue;
     }
 
-    let idVal: unknown = null;
+    let idVal: string | number | null = null;
 
     if (non_rolled_strings.includes(id)) {
       switch (id) {
@@ -505,8 +514,11 @@ export function decodeCustom({
       const extension = 32 - idLen;
       idVal = (cursor.advanceBy(idLen) << extension) >> extension;
     }
-    if (id === 'majorIds') idVal = [idVal];
-    statMap.set(id, idVal);
+    if (id === 'majorIds') {
+      statMap.set(id, [idVal as string | number]);
+    } else {
+      statMap.set(id, idVal);
+    }
   }
 
   statMap.set('custom', true);
@@ -515,7 +527,7 @@ export function decodeCustom({
 
 export function getCustomFromHash(hash: string): Custom | undefined {
   let name = hash.slice();
-  let statMap: Map<string, unknown> | undefined;
+  let statMap: ExpandedItem | undefined;
   try {
     if (name.slice(0, 3) === 'CI-') {
       name = name.substring(3);
@@ -560,7 +572,7 @@ export function getCustomFromHash(hash: string): Custom | undefined {
             tag = tag.slice(5 + len);
           }
         } else {
-          let val: unknown;
+          let val: string | number;
           if (non_rolled_strings.includes(id)) {
             if (id === 'tier') {
               val = tiers[Base64.toInt(tag.charAt(2))];
@@ -587,9 +599,10 @@ export function getCustomFromHash(hash: string): Custom | undefined {
             tag = tag.slice(5 + len);
           }
           if (id === 'majorIds') {
-            val = [val];
+            statMap.set(id, [val]);
+          } else {
+            statMap.set(id, val);
           }
-          statMap.set(id, val);
         }
       }
       statMap.set('hash', 'CI-' + name);
@@ -604,12 +617,12 @@ export function getCustomFromHash(hash: string): Custom | undefined {
 }
 
 export class Custom {
-  statMap: Map<string, unknown>;
+  statMap: ExpandedItem;
   hash?: string;
   name?: string;
   displayName?: string;
 
-  constructor(statMap: Map<string, unknown>) {
+  constructor(statMap: ExpandedItem) {
     this.statMap = statMap;
     this.initCustomStats();
   }
@@ -758,7 +771,7 @@ export class Custom {
   }
 }
 
-function statNum(statMap: Map<string, unknown>, key: string): number {
+function statNum(statMap: ExpandedItem, key: string): number {
   const val = statMap.get(key);
   return typeof val === 'number' ? val : 0;
 }

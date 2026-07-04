@@ -13,6 +13,7 @@ import {
 import { powderNames, powderStats } from './powders';
 import { assert, Base64, BitVector, BitVectorCursor, EncodingBitVector } from './utils';
 import type { ExpandedItem } from './types/item';
+import type { ExpandedIngredient, ExpandedRecipe } from './types/ingredient';
 
 interface BitVectorInstance {
   sliceB64(start: number, end: number): string;
@@ -136,8 +137,6 @@ export const CRAFTER_ENC: CrafterEnc = {
 // An array which is the inverse of CRAFTER_ENC.CRAFTED_STK_SPD to map ID => name
 CRAFTER_ENC.CRAFTED_ATK_SPD_ID = Object.keys(CRAFTER_ENC.CRAFTED_ATK_SPD).slice(0, -1);
 
-type ExpandedIngredientMap = Map<string, unknown>;
-
 /**
  * @param craft
  * Encodes a given craft and returns the resulting bit vector.
@@ -204,7 +203,7 @@ export function decodeCraft({ cursor, hash }: DecodeCraftArgs): Craft | undefine
   cursor.advanceBy(CRAFTER_ENC.CRAFTED_VERSION_BITLEN);
 
   // Decode ingredients
-  const ings: ExpandedIngredientMap[] = [];
+  const ings: ExpandedIngredient[] = [];
   for (let i = 0; i < CRAFTER_ENC.NUM_INGS; ++i) {
     const ing = ingMap.get(ingIDMap.get(cursor.advanceBy(CRAFTER_ENC.ING_ID_BITLEN))!);
     ings.push(expandIngredient(ing!));
@@ -268,7 +267,7 @@ export function getCraftFromHash(hash: string): Craft | undefined {
     const version = name.substring(0, 1);
     name = name.substring(1);
     if (version === '1') {
-      const ingreds: ExpandedIngredientMap[] = [];
+      const ingreds: ExpandedIngredient[] = [];
       for (let i = 0; i < 6; i++) {
         ingreds.push(
           expandIngredient(ingMap.get(ingIDMap.get(Base64.toInt(name.substring(2 * i, 2 * i + 2)))!)!),
@@ -303,9 +302,9 @@ function statStr(map: ExpandedItem, key: string): string {
  * Creates a crafted item object.
  */
 export class Craft {
-  recipe: ExpandedItem;
+  recipe: ExpandedRecipe;
   mat_tiers: number[];
-  ingreds: ExpandedIngredientMap[];
+  ingreds: ExpandedIngredient[];
   statMap: ExpandedItem;
   atkSpd: CraftAttackSpeed;
   hash: string;
@@ -316,9 +315,9 @@ export class Craft {
      @param ingreds: []. An array with 6 entries, each with an ingredient Map.
   */
   constructor(
-    recipe: ExpandedItem,
+    recipe: ExpandedRecipe,
     mat_tiers: number[],
-    ingreds: ExpandedIngredientMap[],
+    ingreds: ExpandedIngredient[],
     attackSpeed: CraftAttackSpeed,
     hash: string,
   ) {

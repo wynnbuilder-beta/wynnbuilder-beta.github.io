@@ -5,10 +5,10 @@
  * Aggregates item stats into a statMap to be used in damage calculation.
  */
 
-import { Item, levelToHPBase, levelToSkillPoints, skp_order } from '@/build_utils';
+import { Item, levelToHPBase, levelToSkillPoints, skp_order, statNum } from '@/build_utils';
 import { getActiveSetBonus } from '@/load_item';
 import { calculate_skillpoints } from '@/skillpoints';
-import type { BuildStatMap, SkillpointVector, WeaponType } from '@/types/stats';
+import type { BuildDamageStatId, BuildStatMap, BuildStaticStatId, SkillpointVector, WeaponType } from '@/types/stats';
 import { isSetBonusStatValue } from '@/types/item';
 import type { SkillpointEquipItem } from '@/skillpoints';
 
@@ -88,9 +88,9 @@ export class Build {
   }
 
   initBuildStats(): void {
-    const staticIDs = ['hp', 'eDef', 'tDef', 'wDef', 'fDef', 'aDef', 'str', 'dex', 'int', 'def', 'agi', 'damMobs', 'defMobs'];
+    const staticIDs: BuildStaticStatId[] = ['hp', 'eDef', 'tDef', 'wDef', 'fDef', 'aDef', 'str', 'dex', 'int', 'def', 'agi', 'damMobs', 'defMobs'];
 
-    const must_ids = [
+    const must_ids: BuildDamageStatId[] = [
       'eMdPct',
       'eMdRaw',
       'eSdPct',
@@ -180,14 +180,14 @@ export class Build {
     for (const item of this.items) {
       const item_stats = item.statMap;
       for (const [id, value] of item_stats.get('maxRolls') as Map<string, number>) {
-        if (staticIDs.includes(id)) {
+        if ((staticIDs as readonly string[]).includes(id)) {
           continue;
         }
-        statMap.set(id, ((statMap.get(id) as number) || 0) + value);
+        statMap.set(id, statNum(statMap, id) + value);
       }
       for (const staticID of staticIDs) {
         if (item_stats.get(staticID)) {
-          statMap.set(staticID, (statMap.get(staticID) as number) + (item_stats.get(staticID) as number));
+          statMap.set(staticID, statNum(statMap, staticID) + (item_stats.get(staticID) as number));
         }
       }
       if (item_stats.get('majorIds')) {
@@ -200,8 +200,8 @@ export class Build {
     const defMult = new Map<string, number>();
     statMap.set('damMult', damMult);
     statMap.set('defMult', defMult);
-    damMult.set('tome', statMap.get('damMobs') as number);
-    defMult.set('tome', statMap.get('defMobs') as number);
+    damMult.set('tome', statNum(statMap, 'damMobs'));
+    defMult.set('tome', statNum(statMap, 'defMobs'));
     statMap.set('activeMajorIDs', major_ids);
     for (const [setName, count] of this.activeSetCounts) {
       const bonus = getActiveSetBonus(setName, count);
@@ -212,14 +212,14 @@ export class Build {
         if ((skp_order as readonly string[]).includes(id)) {
           // pass. Don't include skillpoints in ids
         } else {
-          statMap.set(id, ((statMap.get(id) as number) || 0) + val);
+          statMap.set(id, statNum(statMap, id) + val);
         }
       }
     }
     statMap.set('poisonPct', 0);
     const healMult = new Map<string, number>();
     statMap.set('healMult', healMult);
-    healMult.set('item', statMap.get('healPct') as number);
+    healMult.set('item', statNum(statMap, 'healPct'));
     statMap.set('manaMult', new Map<string, number>());
 
     statMap.set('atkSpd', this.weapon.statMap.get('atkSpd'));
