@@ -6,6 +6,7 @@ import { itemQueryProps, queryFuncs } from '@/query';
 import { ExprParser } from '@/expr_parser';
 import { configureAdvSearch, init_items_adv } from '@/search_adv';
 import type { ItemStatMap } from '@/types/item';
+import '@/builder/build_encode_decode';
 
 const getQueryIdentifiers = (function () {
   let identCache: string[] | null = null;
@@ -61,10 +62,8 @@ configureAdvSearch({
   getQueryIdentifiers,
 });
 
-void (async function () {
+export async function initItemsAdvPage(): Promise<void> {
   await item_loader.load_init();
   await load_major_id_data(wynn_version_names[WYNN_VERSION_LATEST]);
   init_items_adv();
-})();
-
-;
+}

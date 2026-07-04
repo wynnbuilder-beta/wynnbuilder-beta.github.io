@@ -1,10 +1,5 @@
 import './bootstrap';
-import '@/lib/vendor/autocomplete';
-import '@/icons';
-import '@/display_constants';
-import '@/expr_parser';
-import '@/search';
-import '@/drag_drop_touch';
-import '@/items';
-import '@/display';
-import '@/builder/build_encode_decode';
+import { runPageInit } from '@/lib/runPageInit';
+import { initItemsPage } from '@/items';
+
+runPageInit(initItemsPage);

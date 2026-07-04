@@ -13,6 +13,7 @@ import {
 import { decodeCraft } from '@/craft';
 import { Custom, decodeCustom, encodeCustom } from '@/custom';
 import { idPrefixes } from '@/display_constants';
+import { ingredient_loader } from '@/load_ing';
 import {
   item_loader,
   itemMap,
@@ -25,7 +26,7 @@ import { Base64, copyTextToClipboard, getValue, make_elem, setValue, toggleButto
 import { ci_save_order, non_rolled_strings } from '@/custom';
 import { displayExpandedItem } from '@/display';
 import type { ExpandedItem } from '@/types/item';
-import autoComplete from '@tarekraafat/autocomplete.js';
+import autoComplete from '@/lib/vendor/autocomplete';
 
 let legacy_decode_version = '';
 let legacy_decode_fixID = false;
@@ -844,10 +845,11 @@ function full_range_to_base(min: number, max: number): number | null {
   return null;
 }
 
-void (async function () {
-  const load_promises = [item_loader.load_init(), load_major_id_data(wynn_version_names[WYNN_VERSION_LATEST])];
-  await Promise.all(load_promises);
+export async function initCustomPage(): Promise<void> {
+  await Promise.all([
+    ingredient_loader.load_init(),
+    item_loader.load_init(),
+    load_major_id_data(wynn_version_names[WYNN_VERSION_LATEST]),
+  ]);
   init_customizer();
-})();
-
-;
+}

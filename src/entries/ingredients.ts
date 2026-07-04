@@ -1,9 +1,5 @@
 import './bootstrap';
-import '@/lib/vendor/autocomplete';
-import '@/icons';
-import '@/display_constants';
-import '@/expr_parser';
-import '@/search';
-import '@/drag_drop_touch';
-import '@/ingredients';
-import '@/display';
+import { runPageInit } from '@/lib/runPageInit';
+import { initIngredientsPage } from '@/ingredients';
+
+runPageInit(initIngredientsPage);

@@ -45,6 +45,7 @@ import {
   powderSpecialStats,
   POWDER_TIERS,
 } from '@/powders';
+import { createRegistered } from '@/lib/registeredNode';
 import {
   AspectAggregateNode,
   AspectAutocompleteInitNode,
@@ -60,15 +61,16 @@ import {
 import { Build, classDefenseMultipliers } from './build';
 import {
   AbilityTreeEnsureNodesNode,
-  atree_collect_spells,
-  atree_merge,
-  atree_node,
-  atree_raw_stats,
-  atree_scaling,
-  atree_scaling_stats,
+  getAtreeCollectSpells,
+  getAtreeMerge,
+  getAtreeNode,
+  getAtreeRawStats,
+  getAtreeScaling,
+  getAtreeScalingStats,
+  getAtreeStateNode,
+  getAtreeValidate,
   atree_set_state,
-  atree_state_node,
-  atree_validate,
+  registerAtreeGraph,
 } from './atree';
 import {
   atree_data,
@@ -112,91 +114,32 @@ import type { ATree, RenderedATree } from '@/types/atree';
 import type { SetBonusTier } from '@/types/item';
 import type { SkillpointVector, SpellDefinition } from '@/types/stats';
 
-export let pre_scale_agg_node: ComputeNode;
+interface SetBonusEntry {
+  bonuses: SetBonusTier[];
+}
 
-export let armor_powder_node = new (class extends ComputeNode {
-    constructor() { super('builder-armor-powder-input'); }
+function getActiveSetBonus(setName: string, count: number): SetBonusTier | undefined {
+  const setData = sets.get(setName);
+  if (!setData) return undefined;
+  if (Array.isArray(setData)) return setData[count - 1];
+  return (setData as unknown as SetBonusEntry).bonuses?.[count - 1];
+}
 
-    compute_func(input_map) {
-        let damage_boost = 0;
-        let def_boost = 0;
-        let statMap = new Map();
-        for (const [e, elem] of zip2(skp_elements, skp_order)) {
-            let val = parseInt((document.getElementById(elem + "_boost_armor") as HTMLInputElement).value);
-            statMap.set(e + 'DamPct', val);
-        }
-        return statMap;
-    }
-})();
+const preScaleAggNodeRef = createRegistered<ComputeNode>('pre_scale_agg_node');
+export function getPreScaleAggNode(): ComputeNode { return preScaleAggNodeRef.get(); }
+export function tryGetPreScaleAggNode(): ComputeNode | undefined { return preScaleAggNodeRef.tryGet(); }
+
+const armorPowderNodeRef = createRegistered<ComputeNode>('armor_powder_node');
+export function getArmorPowderNode(): ComputeNode { return armorPowderNodeRef.get(); }
+export function tryGetArmorPowderNode(): ComputeNode | undefined { return armorPowderNodeRef.tryGet(); }
 
 export const damageMultipliers = new Map([["totem", 0.2], ["warscream", 0.0], ["emboldeningcry", 0.0], ["fortitude", 0.40], ["hauntingfanatic", 0.0], ["hauntinglunatic", 0.0]]);
 
-export let boosts_node = new (class extends ComputeNode {
-    constructor() { super('builder-boost-input'); }
+const boostsNodeRef = createRegistered<ComputeNode>('boosts_node');
+export function getBoostsNode(): ComputeNode { return boostsNodeRef.get(); }
+export function tryGetBoostsNode(): ComputeNode | undefined { return boostsNodeRef.tryGet(); }
 
-    compute_func(input_map) {
-        let damage_boost = 0;
-        let str_boost = 0;
-        let vuln_boost = 0;
-        let def_boost = 0;
-        let weaken_boost = 0;
-        for (const [key, value] of damageMultipliers) {
-            let elem = document.getElementById(key + "-boost");
-            if (!elem) {
-                continue;
-            }
-            if (elem.classList.contains("toggleOn")) {
-                if (value > damage_boost) { damage_boost = value }
-                if (key === "warscream") { def_boost += .20 }
-                else if (key === "emboldeningcry") { def_boost += .05; str_boost += .08 }
-                else if (key === "hauntingfanatic") { vuln_boost += .15 }
-                else if (key === "hauntinglunatic") { weaken_boost += .15 }
-            }
-        }
-        let res = new Map();
-        res.set('damMult.Potion', 100 * damage_boost);
-        res.set('damMult.Strength', 100 * str_boost);
-        res.set('damMult.Vulnerability', 100 * vuln_boost);
-        res.set('defMult.Potion', 100 * def_boost);
-        res.set('defMult.AbilityWeaken', 100 * weaken_boost);
-
-        if (document.getElementById('judgement-boost')?.classList.contains("toggleOn")) {
-            res.set('damMult.Judgement', 20);
-            res.set('defMult.Judgement', 20);
-        }
-        return res;
-    }
-})();
-
-let raid_buff_node = new (class extends ComputeNode {
-    constructor() { super('builder-raid-buff-input'); }
-
-    compute_func(input_map) {
-        const raids = ['notg', 'nol', 'tcc', 'tna', 'wtp'];
-        let statMap = new Map();
-        let toggledBuffs = [];
-        for (const raid of raids) {
-            for (let i = 1; i <= 3; i++) {
-                let other_tier = document.getElementById(raid + "-" + i);
-                for (let buff of other_tier.children) {
-                    if (buff.classList.contains("toggleOn")) { toggledBuffs.push(buff.id) }
-                }
-            }
-        }
-
-        for (const buff of toggledBuffs) {
-            for (const [stat, val] of raid_buff_map.get(buff)) {
-                if (statMap.has(stat)) {
-                    statMap.set(stat, val + statMap.get(stat));
-                }
-                else {
-                    statMap.set(stat, val);
-                }
-            }
-        }
-        return statMap;
-    }
-})();
+let raid_buff_node: ComputeNode;
 
 export function updateRaidBuffs(raid: string, tier: number, buttonId: string) {
     let prefix = (buttonId).split("-")[0].replace(' ', '_') + '-';
@@ -236,27 +179,14 @@ export function update_boosts(buttonId: string) {
     } else {
         elem.classList.add("toggleOn");
     }
-    boosts_node.mark_dirty().update();
+    getBoostsNode().mark_dirty().update();
 }
 
 export let specialNames = ["Quake", "Chain Lightning", "Curse", "Courage", "Wind Prison"];
-export let powder_special_input = new (class extends ComputeNode {
-    constructor() { super('builder-powder-special-input'); }
 
-    compute_func(input_map) {
-        let powder_specials = []; // [ [special, power], [special, power]]
-        for (const sName of specialNames) {
-            for (let i = 1; i < 8; i++) {
-                if (document.getElementById(sName.replace(" ", "_") + "-" + i).classList.contains("toggleOn")) {
-                    let powder_special = powderSpecialStats[specialNames.indexOf(sName.replace("_", " "))];
-                    powder_specials.push([powder_special, i]);
-                    break;
-                }
-            }
-        }
-        return powder_specials;
-    }
-})();
+const powderSpecialInputRef = createRegistered<ComputeNode>('powder_special_input');
+export function getPowderSpecialInput(): ComputeNode { return powderSpecialInputRef.get(); }
+export function tryGetPowderSpecialInput(): ComputeNode | undefined { return powderSpecialInputRef.tryGet(); }
 
 export function updatePowderSpecials(buttonId: string) {
     let prefix = (buttonId).split("-")[0].replace(' ', '_') + '-';
@@ -271,7 +201,7 @@ export function updatePowderSpecials(buttonId: string) {
         //toggle the pressed button on
         elem.classList.add("toggleOn");
     }
-    powder_special_input.mark_dirty().update();
+    getPowderSpecialInput().mark_dirty().update();
 }
 
 class PowderSpecialCalcNode extends ComputeNode {
@@ -951,8 +881,8 @@ class DisplayBuildWarningsNode extends ComputeNode {
             summarybox.append(lvlWarning);
         }
         for (const [setName, count] of build.activeSetCounts) {
-            const bonus = (sets.get(setName) as SetBonusTier[])[count - 1];
-            if (bonus["illegal"]) {
+            const bonus = getActiveSetBonus(setName, count);
+            if (bonus?.illegal) {
                 let setWarning = document.createElement("p");
                 setWarning.classList.add("itemp"); setWarning.classList.add("warning");
                 setWarning.textContent = "WARNING: illegal item combination: " + setName
@@ -1006,54 +936,9 @@ let radiance_affected = [ /*"hp"*/, "fDef", "wDef", "aDef", "tDef", "eDef", "hpr
  * Scale stats if radiance is enabled.
  * TODO: skillpoints...
  */
-export const radiance_node = new (class extends ComputeNode {
-    constructor() { super('radiance-node->:('); }
-
-    compute_func(input_map) {
-        const statmap = [...input_map.values()][0] as Map<string, number>;
-        var boost = 1;
-        if (document.getElementById('radiance-boost').classList.contains("toggleOn")) {
-            boost += 0.15;
-        }
-        if (document.getElementById('divinehonor-boost').classList.contains("toggleOn")) {
-            boost += 0.05;
-        }
-        if (document.getElementById('shine-boost').classList.contains("toggleOn")) {
-            boost += 0.05;
-        }
-        if (document.getElementById('judgement-boost').classList.contains("toggleOn")) {
-            boost = 1.4;
-        }
-
-        if (boost != 1.0) {
-            const ret = new Map(statmap);
-            for (const val of radiance_affected) {
-                if (reversedIDs.includes(val)) {
-                    if ((ret.get(val) || 0) < 0) {
-                        ret.set(val, Math.floor((ret.get(val) || 0) * boost));
-                    }
-                }
-                else {
-                    if ((ret.get(val) || 0) > 0) {
-                        ret.set(val, Math.floor((ret.get(val) || 0) * boost));
-                    }
-                }
-            }
-            
-            // Radiance only affects the skillpoints granted from items (and consu apparently?)
-            skp_order.forEach((skp, i) => {
-                const build = player_build as Build;
-                if ((build.total_item_skillpoints[i] || 0) > 0) {
-                    ret.set(skp, Math.floor((ret.get(skp) || 0) + build.total_item_skillpoints[i] * (boost-1)));
-                }
-            });
-            return ret;
-        }
-        else {
-            return statmap;
-        }
-    }
-})();
+const radianceNodeRef = createRegistered<ComputeNode>('radiance_node');
+export function getRadianceNode(): ComputeNode { return radianceNodeRef.get(); }
+export function tryGetRadianceNode(): ComputeNode | undefined { return radianceNodeRef.tryGet(); }
 
 /* Updates all spell boosts
 */
@@ -1064,7 +949,7 @@ export function update_radiance(input: string) {
     } else {
         elem.classList.add("toggleOn");
     }
-    radiance_node.mark_dirty().update();
+    getRadianceNode().mark_dirty().update();
 }
 
 
@@ -1089,10 +974,13 @@ class AggregateEditableIDNode extends ComputeNode {
     }
 }
 
-export let edit_id_output: EditableIDSetterNode;
+const editIdOutputRef = createRegistered<EditableIDSetterNode>('edit_id_output');
+export function getEditIdOutput(): EditableIDSetterNode { return editIdOutputRef.get(); }
+export function tryGetEditIdOutput(): EditableIDSetterNode | undefined { return editIdOutputRef.tryGet(); }
+
 export function resetEditableIDs() {
-    edit_id_output.mark_dirty().update();
-    edit_id_output.notify();
+    getEditIdOutput().mark_dirty().update();
+    getEditIdOutput().notify();
 }
 /**
  * Set the editble id fields.
@@ -1315,30 +1203,209 @@ export let powder_nodes: ComputeNode[] = [];
 export let edit_input_nodes: ComputeNode[] = [];
 export let skp_inputs: (ComputeNode & { input_field?: HTMLInputElement; value?: number })[] = [];
 export let equip_inputs: ComputeNode[] = [];
-export let build_node: BuildAssembleNode;
-export let stat_agg_node: AggregateStatsNode;
-export let edit_agg_node: AggregateEditableIDNode;
-export let atree_graph_creator: AbilityTreeEnsureNodesNode;
-export let build_disp_node: BuildDisplayNode;
+
+const buildNodeRef = createRegistered<BuildAssembleNode>('build_node');
+export function getBuildNode(): BuildAssembleNode { return buildNodeRef.get(); }
+export function tryGetBuildNode(): BuildAssembleNode | undefined { return buildNodeRef.tryGet(); }
+
+const statAggNodeRef = createRegistered<AggregateStatsNode>('stat_agg_node');
+export function getStatAggNode(): AggregateStatsNode { return statAggNodeRef.get(); }
+export function tryGetStatAggNode(): AggregateStatsNode | undefined { return statAggNodeRef.tryGet(); }
+
+const editAggNodeRef = createRegistered<AggregateEditableIDNode>('edit_agg_node');
+export function getEditAggNode(): AggregateEditableIDNode { return editAggNodeRef.get(); }
+export function tryGetEditAggNode(): AggregateEditableIDNode | undefined { return editAggNodeRef.tryGet(); }
+
+const atreeGraphCreatorRef = createRegistered<AbilityTreeEnsureNodesNode>('atree_graph_creator');
+export function getAtreeGraphCreator(): AbilityTreeEnsureNodesNode { return atreeGraphCreatorRef.get(); }
+export function tryGetAtreeGraphCreator(): AbilityTreeEnsureNodesNode | undefined { return atreeGraphCreatorRef.tryGet(); }
+
+const buildDispNodeRef = createRegistered<BuildDisplayNode>('build_disp_node');
+export function getBuildDispNode(): BuildDisplayNode { return buildDispNodeRef.get(); }
+export function tryGetBuildDispNode(): BuildDisplayNode | undefined { return buildDispNodeRef.tryGet(); }
+
+let graphRegistered = false;
+
+export function registerBuilderGraph(): void {
+    if (graphRegistered) return;
+
+    armorPowderNodeRef.set(new (class extends ComputeNode {
+        constructor() { super('builder-armor-powder-input'); }
+
+        compute_func(input_map) {
+            let damage_boost = 0;
+            let def_boost = 0;
+            let statMap = new Map();
+            for (const [e, elem] of zip2(skp_elements, skp_order)) {
+                let val = parseInt((document.getElementById(elem + "_boost_armor") as HTMLInputElement).value);
+                statMap.set(e + 'DamPct', val);
+            }
+            return statMap;
+        }
+    })());
+
+    boostsNodeRef.set(new (class extends ComputeNode {
+        constructor() { super('builder-boost-input'); }
+
+        compute_func(input_map) {
+            let damage_boost = 0;
+            let str_boost = 0;
+            let vuln_boost = 0;
+            let def_boost = 0;
+            let weaken_boost = 0;
+            for (const [key, value] of damageMultipliers) {
+                let elem = document.getElementById(key + "-boost");
+                if (!elem) {
+                    continue;
+                }
+                if (elem.classList.contains("toggleOn")) {
+                    if (value > damage_boost) { damage_boost = value }
+                    if (key === "warscream") { def_boost += .20 }
+                    else if (key === "emboldeningcry") { def_boost += .05; str_boost += .08 }
+                    else if (key === "hauntingfanatic") { vuln_boost += .15 }
+                    else if (key === "hauntinglunatic") { weaken_boost += .15 }
+                }
+            }
+            let res = new Map();
+            res.set('damMult.Potion', 100 * damage_boost);
+            res.set('damMult.Strength', 100 * str_boost);
+            res.set('damMult.Vulnerability', 100 * vuln_boost);
+            res.set('defMult.Potion', 100 * def_boost);
+            res.set('defMult.AbilityWeaken', 100 * weaken_boost);
+
+            if (document.getElementById('judgement-boost')?.classList.contains("toggleOn")) {
+                res.set('damMult.Judgement', 20);
+                res.set('defMult.Judgement', 20);
+            }
+            return res;
+        }
+    })());
+
+    raid_buff_node = new (class extends ComputeNode {
+        constructor() { super('builder-raid-buff-input'); }
+
+        compute_func(input_map) {
+            const raids = ['notg', 'nol', 'tcc', 'tna', 'wtp'];
+            let statMap = new Map();
+            let toggledBuffs = [];
+            for (const raid of raids) {
+                for (let i = 1; i <= 3; i++) {
+                    let other_tier = document.getElementById(raid + "-" + i);
+                    for (let buff of other_tier.children) {
+                        if (buff.classList.contains("toggleOn")) { toggledBuffs.push(buff.id) }
+                    }
+                }
+            }
+
+            for (const buff of toggledBuffs) {
+                for (const [stat, val] of raid_buff_map.get(buff)) {
+                    if (statMap.has(stat)) {
+                        statMap.set(stat, val + statMap.get(stat));
+                    }
+                    else {
+                        statMap.set(stat, val);
+                    }
+                }
+            }
+            return statMap;
+        }
+    })();
+
+    powderSpecialInputRef.set(new (class extends ComputeNode {
+        constructor() { super('builder-powder-special-input'); }
+
+        compute_func(input_map) {
+            let powder_specials = []; // [ [special, power], [special, power]]
+            for (const sName of specialNames) {
+                for (let i = 1; i < 8; i++) {
+                    if (document.getElementById(sName.replace(" ", "_") + "-" + i).classList.contains("toggleOn")) {
+                        let powder_special = powderSpecialStats[specialNames.indexOf(sName.replace("_", " "))];
+                        powder_specials.push([powder_special, i]);
+                        break;
+                    }
+                }
+            }
+            return powder_specials;
+        }
+    })());
+
+    radianceNodeRef.set(new (class extends ComputeNode {
+        constructor() { super('radiance-node->:('); }
+
+        compute_func(input_map) {
+            const statmap = [...input_map.values()][0] as Map<string, number>;
+            var boost = 1;
+            if (document.getElementById('radiance-boost').classList.contains("toggleOn")) {
+                boost += 0.15;
+            }
+            if (document.getElementById('divinehonor-boost').classList.contains("toggleOn")) {
+                boost += 0.05;
+            }
+            if (document.getElementById('shine-boost').classList.contains("toggleOn")) {
+                boost += 0.05;
+            }
+            if (document.getElementById('judgement-boost').classList.contains("toggleOn")) {
+                boost = 1.4;
+            }
+
+            if (boost != 1.0) {
+                const ret = new Map(statmap);
+                for (const val of radiance_affected) {
+                    if (reversedIDs.includes(val)) {
+                        if ((ret.get(val) || 0) < 0) {
+                            ret.set(val, Math.floor((ret.get(val) || 0) * boost));
+                        }
+                    }
+                    else {
+                        if ((ret.get(val) || 0) > 0) {
+                            ret.set(val, Math.floor((ret.get(val) || 0) * boost));
+                        }
+                    }
+                }
+                
+                // Radiance only affects the skillpoints granted from items (and consu apparently?)
+                skp_order.forEach((skp, i) => {
+                    const build = player_build as Build;
+                    if ((build.total_item_skillpoints[i] || 0) > 0) {
+                        ret.set(skp, Math.floor((ret.get(skp) || 0) + build.total_item_skillpoints[i] * (boost-1)));
+                    }
+                });
+                return ret;
+            }
+            else {
+                return statmap;
+            }
+        }
+    })());
+
+    registerAtreeGraph();
+    graphRegistered = true;
+}
+
+let graphWired = false;
 
 /**
  * Parameters:
  *  save_skp:   bool    True if skillpoints are modified away from skp engine defaults.
  */
 export function builder_graph_init(skillpoints: number[] | null) {
+    if (graphWired) return;
+    graphWired = true;
+
     // Phase 1/3: Set up item input, propagate updates, etc.
 
     // Level input node.
     let level_input = new InputNode('level-input', document.getElementById('level-choice') as HTMLInputElement);
 
     // "Build" now only refers to equipment and level (no powders). Powders are injected before damage calculation / stat display.
-    build_node = new BuildAssembleNode();
-    build_node.link_to(level_input);
-    atree_merge.link_to(build_node, "build");
+    const buildNode = new BuildAssembleNode();
+    buildNodeRef.set(buildNode);
+    buildNode.link_to(level_input);
+    getAtreeMerge().link_to(buildNode, "build");
 
 
     let build_encode_node = new BuildEncodeNode();
-    build_encode_node.link_to(build_node, 'build');
+    build_encode_node.link_to(buildNode, 'build');
 
     // Bind item input fields to input nodes, and some display stuff (for auto colorizing stuff).
     for (const [eq, display_elem, none_item] of zip3(equipment_fields, build_fields, none_items)) {
@@ -1362,7 +1429,7 @@ export function builder_graph_init(skillpoints: number[] | null) {
         new ItemDisplayNode(eq + '-item-display', display_elem).link_to(item_input);
         //new PrintNode(eq+'-debug').link_to(item_input);
         //document.querySelector("#"+eq+"-tooltip").setAttribute("onclick", "collapse_element('#"+ eq +"-tooltip');"); //toggle_plus_minus('" + eq + "-pm'); 
-        build_node.link_to(item_input, eq);
+        buildNode.link_to(item_input, eq);
     }
 
     for (const [eq, none_item] of zip2(tome_fields, [none_tomes[0], none_tomes[0], none_tomes[1], none_tomes[1], none_tomes[1], none_tomes[1], none_tomes[2], none_tomes[3], none_tomes[4], none_tomes[4], none_tomes[5], none_tomes[5], none_tomes[6], none_tomes[6]])) {
@@ -1376,7 +1443,7 @@ export function builder_graph_init(skillpoints: number[] | null) {
         let tomeDropdown = document.getElementById('tomes-dropdown');
         let tomeImage = document.getElementById(`${eq}-img-loc`);
         new TomeHoverRenderNode(`{eq}-render`, tomeImage, tomeDropdown).link_to(item_input, 'tooltip-args');
-        build_node.link_to(item_input, eq);
+        buildNode.link_to(item_input, eq);
     }
 
     // weapon image changer node.
@@ -1385,7 +1452,7 @@ export function builder_graph_init(skillpoints: number[] | null) {
     new WeaponInputDisplayNode('weapon-type-display', weapon_image, weapon_dps).link_to(item_final_nodes[8]);
 
     // linking to atree verification
-    atree_validate.link_to(level_input, 'level');
+    getAtreeValidate().link_to(level_input, 'level');
 
     let url_update_node = new URLUpdateNode();
     url_update_node.link_to(build_encode_node, 'build-str');
@@ -1393,48 +1460,52 @@ export function builder_graph_init(skillpoints: number[] | null) {
     // Phase 2/3: Set up editable IDs, skill points; use decodeBuild() skill points, calculate damage
 
     // Create one node that will be the "aggregator node" (listen to all the editable id nodes, as well as the build_node (for non editable stats) and collect them into one statmap)
-    pre_scale_agg_node = new AggregateStatsNode('pre-scale-stats');
-    stat_agg_node = new AggregateStatsNode('final-stats');
-    edit_agg_node = new AggregateEditableIDNode();
-    edit_agg_node.link_to(build_node, 'build');
+    const preScaleAggNode = new AggregateStatsNode('pre-scale-stats');
+    preScaleAggNodeRef.set(preScaleAggNode);
+    const statAggNode = new AggregateStatsNode('final-stats');
+    statAggNodeRef.set(statAggNode);
+    const editAggNode = new AggregateEditableIDNode();
+    editAggNodeRef.set(editAggNode);
+    editAggNode.link_to(buildNode, 'build');
     for (const field of editable_item_fields) {
         // Create nodes that listens to each editable id input, the node name should match the "id"
         const elem = document.getElementById(field);
         const node = new SumNumberInputNode('builder-' + field + '-input', elem as HTMLInputElement);
 
-        edit_agg_node.link_to(node, field);
+        editAggNode.link_to(node, field);
         edit_input_nodes.push(node);
     }
     // Edit IDs setter declared up here to set ids so they will be populated by default.
-    edit_id_output = new EditableIDSetterNode(edit_input_nodes);    // Makes shallow copy of list.
-    edit_id_output.link_to(build_node);
-    edit_agg_node.link_to(edit_id_output, 'edit-id-setter');
+    const editIdOutput = new EditableIDSetterNode(edit_input_nodes);    // Makes shallow copy of list.
+    editIdOutputRef.set(editIdOutput);
+    editIdOutput.link_to(buildNode);
+    editAggNode.link_to(editIdOutput, 'edit-id-setter');
 
     for (const skp of skp_order) {
         const elem = document.getElementById(skp + '-skp');
         const node = new SumNumberInputNode('builder-' + skp + '-input', elem as HTMLInputElement);
 
-        edit_agg_node.link_to(node, skp);
+        editAggNode.link_to(node, skp);
         build_encode_node.link_to(node, skp);
         edit_input_nodes.push(node);
         skp_inputs.push(node as ComputeNode & { input_field?: HTMLInputElement; value?: number });
     }
-    pre_scale_agg_node.link_to(edit_agg_node);
+    preScaleAggNode.link_to(editAggNode);
 
     // Phase 3/3: Set up atree and aspect stuff.
 
-    let class_node = new PlayerClassNode('builder-class').link_to(build_node);
+    let class_node = new PlayerClassNode('builder-class').link_to(buildNode);
     // These two are defined in `builder/atree.js`
-    atree_node.link_to(class_node, 'player-class');
-    atree_merge.link_to(class_node, 'player-class');
-    pre_scale_agg_node.link_to(atree_raw_stats, 'atree-raw-stats');
-    pre_scale_agg_node.link_to(raid_buff_node, 'raid-buff');
-    radiance_node.link_to(pre_scale_agg_node, 'stats');
-    atree_scaling.link_to(radiance_node, 'scale-stats');
-    stat_agg_node.link_to(radiance_node, 'pre-scaling');
-    stat_agg_node.link_to(atree_scaling_stats, 'atree-scaling');
+    getAtreeNode().link_to(class_node, 'player-class');
+    getAtreeMerge().link_to(class_node, 'player-class');
+    preScaleAggNode.link_to(getAtreeRawStats(), 'atree-raw-stats');
+    preScaleAggNode.link_to(raid_buff_node, 'raid-buff');
+    getRadianceNode().link_to(preScaleAggNode, 'stats');
+    getAtreeScaling().link_to(getRadianceNode(), 'scale-stats');
+    statAggNode.link_to(getRadianceNode(), 'pre-scaling');
+    statAggNode.link_to(getAtreeScalingStats(), 'atree-scaling');
 
-    build_encode_node.link_to(atree_node, 'atree').link_to(atree_state_node, 'atree-state');
+    build_encode_node.link_to(getAtreeNode(), 'atree').link_to(getAtreeStateNode(), 'atree-state');
 
     setAspectAggNode(new AspectAggregateNode('final-aspects'));
     const aspects_dropdown = document.getElementById('aspects-dropdown');
@@ -1453,7 +1524,7 @@ export function builder_graph_init(skillpoints: number[] | null) {
     }
     build_encode_node.link_to(aspect_agg_node!, 'aspects');
 
-    atree_merge.link_to(aspect_agg_node!);
+    getAtreeMerge().link_to(aspect_agg_node!);
 
     // ---------------------------------------------------------------
     //  Trigger the update cascade for build!
@@ -1462,24 +1533,27 @@ export function builder_graph_init(skillpoints: number[] | null) {
         input_node.update();
     }
 
-    armor_powder_node.update();
-    boosts_node.update();
+    getArmorPowderNode().update();
+    getBoostsNode().update();
     level_input.update();
     raid_buff_node.update();
 
-    atree_graph_creator = new AbilityTreeEnsureNodesNode(build_node, stat_agg_node)
-        .link_to(atree_collect_spells, 'spells');
+    const atreeGraphCreator = new AbilityTreeEnsureNodesNode(buildNode, statAggNode)
+        .link_to(getAtreeCollectSpells(), 'spells');
+    atreeGraphCreatorRef.set(atreeGraphCreator);
 
     // kinda janky, manually set atree and update. Some wasted compute here
-    if (atree_data !== null && atree_node.value !== null) { // janky check if atree is valid
-        const atree_state = atree_state_node.value;
+    const atreeNode = getAtreeNode();
+    if (atree_data !== null && atreeNode.value !== null) { // janky check if atree is valid
+        const atreeStateNode = getAtreeStateNode();
+        const atree_state = atreeStateNode.value;
         if (atree_data.length > 0) {
             try {
-                const active_nodes = decodeAtree(atree_node.value as ATree, atree_data as unknown as Parameters<typeof decodeAtree>[1]);
+                const active_nodes = decodeAtree(atreeNode.value as ATree, atree_data as unknown as Parameters<typeof decodeAtree>[1]);
                 for (const node of active_nodes) {
                     atree_set_state((atree_state as RenderedATree).get(node.ability.id), true);
                 }
-                atree_state_node.mark_dirty().update();
+                atreeStateNode.mark_dirty().update();
             } catch (e) {
                 console.error(e);
                 console.log("Failed to decode atree. This can happen when updating versions. Give up!")
@@ -1492,30 +1566,31 @@ export function builder_graph_init(skillpoints: number[] | null) {
     }
 
     // Powder specials.
-    let powder_special_calc = new PowderSpecialCalcNode().link_to(powder_special_input, 'powder-specials');
-    new PowderSpecialDisplayNode().link_to(powder_special_input, 'powder-specials')
-        .link_to(stat_agg_node, 'stats').link_to(build_node, 'build');
-    pre_scale_agg_node.link_to(powder_special_calc, 'powder-boost');
-    stat_agg_node.link_to(armor_powder_node, 'armor-powder');
-    powder_special_input.update();
+    let powder_special_calc = new PowderSpecialCalcNode().link_to(getPowderSpecialInput(), 'powder-specials');
+    new PowderSpecialDisplayNode().link_to(getPowderSpecialInput(), 'powder-specials')
+        .link_to(statAggNode, 'stats').link_to(buildNode, 'build');
+    preScaleAggNode.link_to(powder_special_calc, 'powder-boost');
+    statAggNode.link_to(getArmorPowderNode(), 'armor-powder');
+    getPowderSpecialInput().update();
 
     // Potion boost.
-    stat_agg_node.link_to(boosts_node, 'potion-boost');
+    statAggNode.link_to(getBoostsNode(), 'potion-boost');
 
     // Also do something similar for skill points
-    build_disp_node = new BuildDisplayNode();
-    build_disp_node.link_to(build_node, 'build');
-    build_disp_node.link_to(stat_agg_node, 'stats');
+    const buildDispNode = new BuildDisplayNode();
+    buildDispNodeRef.set(buildDispNode);
+    buildDispNode.link_to(buildNode, 'build');
+    buildDispNode.link_to(statAggNode, 'stats');
 
     for (const node of edit_input_nodes) {
         node.update();
     }
 
     let skp_output = new SkillPointSetterNode(skp_inputs);
-    skp_output.link_to(build_node);
+    skp_output.link_to(buildNode);
     skp_output.update().mark_dirty().update(skillpoints);
     let build_warnings_node = new DisplayBuildWarningsNode();
-    build_warnings_node.link_to(build_node, 'build');
+    build_warnings_node.link_to(buildNode, 'build');
     for (const [skp_input, skp] of zip2(skp_inputs, skp_order)) {
         build_warnings_node.link_to(skp_input, skp);
     }

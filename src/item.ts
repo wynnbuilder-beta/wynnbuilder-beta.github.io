@@ -35,7 +35,7 @@ export const ITEM_BUILD_VERSION = '7.0.1';
 export let item: ExpandedItem;
 export let amp_state = 0;
 
-export function init_itempage(): void {
+function init_itempage(): void {
   try {
     item = expandItem(itemMap.get(item_url_tag.replace(/%20/g, ' '))!);
     item.set('powders', []);
@@ -72,11 +72,9 @@ export function toggleAmps(button_id: number): void {
   displayIDProbabilities('identification-probabilities', item, amp_state);
 }
 
-void (async function () {
+export async function initItemPage(): Promise<void> {
   const latest_ver_name = wynn_version_names[WYNN_VERSION_LATEST];
   const load_promises = [item_loader.load_init(), load_major_id_data(latest_ver_name)];
   await Promise.all(load_promises);
   init_itempage();
-})();
-
-;
+}

@@ -1,3 +1,5 @@
 import './bootstrap';
-import '@/icons';
-import '@/dev';
+import { runPageInit } from '@/lib/runPageInit';
+import { initDevPage } from '@/dev';
+
+runPageInit(initDevPage);

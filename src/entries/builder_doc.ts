@@ -1,19 +1,9 @@
 import './bootstrap';
-import '@/lib/vendor/autocomplete';
-import '@/lib/vendor/macy';
-import '@/computation_graph';
-import '@/icons';
-import '@/display_constants';
-import '@/display';
-import '@/craft';
-import '@/load_tome';
-import '@/load_aspect';
-import '@/custom';
-import '@/builder/build';
-import '@/builder/builder_constants';
-import '@/builder/build_encode_decode';
-import '@/builder/atree';
-import '@/builder/aspects';
-import '@/builder/builder_graph';
-import '@/builder/builder';
-import '@/debug/render_compute_graph';
+import { runPageInit } from '@/lib/runPageInit';
+import { initBuilderPage } from '@/builder/builder';
+import { initRenderComputeGraphPage } from '@/debug/render_compute_graph';
+
+runPageInit(async () => {
+  await initBuilderPage();
+  await initRenderComputeGraphPage();
+});

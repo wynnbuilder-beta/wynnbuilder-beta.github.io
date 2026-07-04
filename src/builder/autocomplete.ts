@@ -1,4 +1,5 @@
 import autoComplete from '@tarekraafat/autocomplete.js';
+import '@tarekraafat/autocomplete.js/dist/css/autoComplete.css';
 
 function autocomplete_msg(equipment_type: string) {
   return (list: HTMLElement, _data: { results: unknown[] }) => {

@@ -1,5 +1,5 @@
 import './bootstrap';
-import '@/icons';
-import '@/display_constants';
-import '@/display';
-import '@/sets';
+import { runPageInit } from '@/lib/runPageInit';
+import { initSetsPage } from '@/sets';
+
+runPageInit(initSetsPage);

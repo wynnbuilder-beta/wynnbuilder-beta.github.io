@@ -1,6 +1,6 @@
 import { copyBuild, player_build, shareBuild } from '@/builder/build_encode_decode';
 import {
-  radiance_node,
+  getRadianceNode,
   resetEditableIDs,
   update_boosts,
   updatePowderSpecials,
@@ -94,7 +94,7 @@ function wireAbilityBoosts(): void {
     }
     if (btn.id === 'judgement-boost') {
       update_boosts('judgement-boost');
-      radiance_node.mark_dirty().update();
+      getRadianceNode().mark_dirty().update();
       return;
     }
     if (btn.id.endsWith('-boost')) {

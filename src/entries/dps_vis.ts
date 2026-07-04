@@ -1,3 +1,5 @@
 import './bootstrap';
-import '@/icons';
-import '@/debug/dps_vis';
+import { runPageInit } from '@/lib/runPageInit';
+import { initDpsVisPage } from '@/debug/dps_vis';
+
+runPageInit(initDpsVisPage);

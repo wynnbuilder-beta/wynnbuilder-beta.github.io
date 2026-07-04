@@ -1,3 +1,5 @@
 import './bootstrap';
-import '@/icons';
-import '@/wynnfo/main';
+import { runPageInit } from '@/lib/runPageInit';
+import { initWynnfoPage } from '@/wynnfo/main';
+
+runPageInit(initWynnfoPage);

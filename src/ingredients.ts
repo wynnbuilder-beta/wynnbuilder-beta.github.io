@@ -12,6 +12,8 @@ import { ingredientQueryProps, queryFuncs } from '@/query';
 import { configureItemSearch, init_search, search_db, setItemSearchData } from '@/search';
 import { make_elem } from '@/utils';
 import type { Ingredient } from '@/types/ingredient';
+import '@/lib/vendor/autocomplete';
+import '@/drag_drop_touch';
 
 export const translate_mappings: Record<string, string> = {
   Durability: 'durability',
@@ -263,11 +265,9 @@ configureItemSearch({
   getStringFilterValues: () => [],
 });
 
-void (async function () {
+export async function initIngredientsPage(): Promise<void> {
   await ingredient_loader.load_init();
   await item_loader.load_init();
   await load_major_id_data(wynn_version_names[WYNN_VERSION_LATEST]);
   init_search();
-})();
-
-;
+}

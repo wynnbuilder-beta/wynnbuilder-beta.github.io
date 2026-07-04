@@ -1,11 +1,11 @@
-import { atree_collect_spells } from './builder/atree';
-import { build_disp_node } from './builder/builder_graph';
+import { getAtreeCollectSpells } from './builder/atree';
+import { tryGetBuildDispNode } from './builder/builder_graph';
 import { getSpellCost } from './display';
 import { make_elem } from './utils';
 import type { BuildStatMap, ManaCycleEntry, SpellDefinition } from './types/stats';
 
 const spellMap = () =>
-  (atree_collect_spells.value as Map<number, SpellDefinition>);
+  (getAtreeCollectSpells().value as Map<number, SpellDefinition>);
 
 function getCycle(): number[] {
   const spellCycleEl = document.getElementById('spell-cycle') as HTMLInputElement;
@@ -153,8 +153,9 @@ export function calculateMana(cycle: number[], _build: unknown, stats: BuildStat
 }
 
 function scheduleBuildDisplayUpdate(): void {
-  if (build_disp_node) {
-    build_disp_node.mark_dirty().update();
+  const buildDispNode = tryGetBuildDispNode();
+  if (buildDispNode) {
+    buildDispNode.mark_dirty().update();
   }
 }
 

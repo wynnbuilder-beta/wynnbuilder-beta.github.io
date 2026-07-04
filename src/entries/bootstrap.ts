@@ -1,14 +1,4 @@
-/** Shared globals used by every app page. Styles load via <link> in each HTML entry. */
-import '@/icons';
-import { wireSidebarEvents } from '@/lib/sidebar/events';
+/** Shared module imports for every app page (no runtime side effects). */
 import '@/redirect_fork';
+import '@/icons';
 import '@/utils';
-import '@/build_utils';
-import '@/loader';
-import '@/load_item';
-import '@/load_ing';
-import '@/powders';
-import '@/skillpoints';
-import '@/damage_calc';
-
-wireSidebarEvents();

@@ -1,3 +1,4 @@
+import '@/lib/vendor/leaflet';
 import { newIcons } from '@/icons';
 import {
   claims,
@@ -719,6 +720,6 @@ function eraseTerritoryStats(): void {
   terr_stats_elem.innerHTML = '';
 }
 
-void load_map_init(init_map);
-
-;
+export async function initMapPage(): Promise<void> {
+  await load_map_init(init_map);
+}

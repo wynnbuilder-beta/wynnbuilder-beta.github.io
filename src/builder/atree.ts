@@ -33,6 +33,7 @@ import type {
 } from '@/types/atree';
 import type { AspectTuple } from '@/types/aspect';
 import type { PlayerClass, SpellDefinition, WeaponType } from '@/types/stats';
+import { createRegistered } from '@/lib/registeredNode';
 import { SpellDamageCalcNode } from './spell_nodes';
 import { SpellDisplayNode } from './builder_graph';
 
@@ -319,64 +320,841 @@ export function get_sorted_class_atree(
   return atree_topo_sort;
 }
 
-/**
- * Update ability tree internal representation. (topologically sorted node list)
- *
- * Signature: AbilityTreeUpdateNode(player-class: str) => ATree (List of atree nodes in topological order)
- */
-export const atree_node = new (class extends ComputeNode {
-    constructor() { super('builder-atree-update'); }
+const atreeNodeRef = createRegistered<ComputeNode>('atree_node');
+export function getAtreeNode(): ComputeNode { return atreeNodeRef.get(); }
+export function tryGetAtreeNode(): ComputeNode | undefined { return atreeNodeRef.tryGet(); }
 
-    compute_func(input_map) {
-        if (input_map.size !== 1) { throw "AbilityTreeUpdateNode accepts exactly one input (player-class)"; }
-        const [player_class] = input_map.values();  // Extract values, pattern match it into size one list and bind to first element
-        return get_sorted_class_atree(ATREES, player_class);
-    }
-})();
+const atreeRenderRef = createRegistered<ComputeNode>('atree_render');
+export function getAtreeRender(): ComputeNode { return atreeRenderRef.get(); }
+export function tryGetAtreeRender(): ComputeNode | undefined { return atreeRenderRef.tryGet(); }
 
-/**
- * Display ability tree from topologically sorted list.
- *
- * Signature: AbilityTreeRenderNode(atree: ATree) => RenderedATree ( Map[id, RenderedATNode] )
- */
-export const atree_render = new (class extends ComputeNode {
-    UI_elem: HTMLElement;
-    list_elem: HTMLElement;
+const atreeStateNodeRef = createRegistered<ComputeNode>('atree_state_node');
+export function getAtreeStateNode(): ComputeNode { return atreeStateNodeRef.get(); }
+export function tryGetAtreeStateNode(): ComputeNode | undefined { return atreeStateNodeRef.tryGet(); }
 
-    constructor() {
-        super('builder-atree-render');
-        this.UI_elem = document.getElementById("atree-ui")!;
-        this.list_elem = document.getElementById("atree-header")!;
-    }
+const atreeValidateRef = createRegistered<ComputeNode>('atree_validate');
+export function getAtreeValidate(): ComputeNode { return atreeValidateRef.get(); }
+export function tryGetAtreeValidate(): ComputeNode | undefined { return atreeValidateRef.tryGet(); }
 
-    compute_func(input_map) {
-        if (input_map.size !== 1) { throw "AbilityTreeRenderNode accepts exactly one input (atree)"; }
-        const [atree] = input_map.values();  // Extract values, pattern match it into size one list and bind to first element
-        
-        //for some reason we have to cast to string 
-        this.list_elem.innerHTML = ""; //reset all atree actives - should be done in a more general way later
-        this.UI_elem.innerHTML = ""; //reset the atree in the DOM
+const atreeMergeRef = createRegistered<ComputeNode>('atree_merge');
+export function getAtreeMerge(): ComputeNode { return atreeMergeRef.get(); }
+export function tryGetAtreeMerge(): ComputeNode | undefined { return atreeMergeRef.tryGet(); }
 
-        let ret = null;
-        if (atree) { ret = render_AT(this.UI_elem, this.list_elem, atree); }
+const atreeMakeInteractivesRef = createRegistered<ComputeNode>('atree_make_interactives');
+export function getAtreeMakeInteractives(): ComputeNode { return atreeMakeInteractivesRef.get(); }
+export function tryGetAtreeMakeInteractives(): ComputeNode | undefined { return atreeMakeInteractivesRef.tryGet(); }
 
-        //Toggle on, previously was toggled off
-        toggle_tab('atree-dropdown'); toggleButton('toggle-atree');
+const atreeScalingRef = createRegistered<ComputeNode>('atree_scaling');
+export function getAtreeScaling(): ComputeNode { return atreeScalingRef.get(); }
+export function tryGetAtreeScaling(): ComputeNode | undefined { return atreeScalingRef.tryGet(); }
 
-        return ret;
-    }
-})().link_to(atree_node);
+const atreeScalingTreeRef = createRegistered<ComputeNode>('atree_scaling_tree');
+export function getAtreeScalingTree(): ComputeNode { return atreeScalingTreeRef.get(); }
+export function tryGetAtreeScalingTree(): ComputeNode | undefined { return atreeScalingTreeRef.tryGet(); }
 
-// This exists so i don't have to re-render the UI to push atree updates.
-export const atree_state_node = new (class extends ComputeNode {
-    constructor() { super('builder-atree-state'); }
+const atreeScalingStatsRef = createRegistered<ComputeNode>('atree_scaling_stats');
+export function getAtreeScalingStats(): ComputeNode { return atreeScalingStatsRef.get(); }
+export function tryGetAtreeScalingStats(): ComputeNode | undefined { return atreeScalingStatsRef.tryGet(); }
 
-    compute_func(input_map) {
-        if (input_map.size !== 1) { throw "AbilityTreeStateNode accepts exactly one input (atree-rendered)"; }
-        const [rendered_atree] = input_map.values();  // Extract values, pattern match it into size one list and bind to first element
-        return rendered_atree;
-    }
-})().link_to(atree_render, 'atree-render');
+const atreeRenderErrorsRef = createRegistered<ComputeNode>('atree_render_errors');
+export function getAtreeRenderErrors(): ComputeNode { return atreeRenderErrorsRef.get(); }
+export function tryGetAtreeRenderErrors(): ComputeNode | undefined { return atreeRenderErrorsRef.tryGet(); }
+
+const atreeRenderActiveRef = createRegistered<ComputeNode>('atree_render_active');
+export function getAtreeRenderActive(): ComputeNode { return atreeRenderActiveRef.get(); }
+export function tryGetAtreeRenderActive(): ComputeNode | undefined { return atreeRenderActiveRef.tryGet(); }
+
+const atreeCollectSpellsRef = createRegistered<ComputeNode>('atree_collect_spells');
+export function getAtreeCollectSpells(): ComputeNode { return atreeCollectSpellsRef.get(); }
+export function tryGetAtreeCollectSpells(): ComputeNode | undefined { return atreeCollectSpellsRef.tryGet(); }
+
+const atreeRawStatsRef = createRegistered<ComputeNode>('atree_raw_stats');
+export function getAtreeRawStats(): ComputeNode { return atreeRawStatsRef.get(); }
+export function tryGetAtreeRawStats(): ComputeNode | undefined { return atreeRawStatsRef.tryGet(); }
+
+let atreeGraphRegistered = false;
+
+export function registerAtreeGraph(): void {
+    if (atreeGraphRegistered) return;
+
+    const atreeNode = new (class extends ComputeNode {
+        constructor() { super('builder-atree-update'); }
+    
+        compute_func(input_map) {
+            if (input_map.size !== 1) { throw "AbilityTreeUpdateNode accepts exactly one input (player-class)"; }
+            const [player_class] = input_map.values();  // Extract values, pattern match it into size one list and bind to first element
+            return get_sorted_class_atree(ATREES, player_class);
+        }
+    })();
+    atreeNodeRef.set(atreeNode);
+
+    const atreeRender = new (class extends ComputeNode {
+        UI_elem: HTMLElement;
+        list_elem: HTMLElement;
+    
+        constructor() {
+            super('builder-atree-render');
+            this.UI_elem = document.getElementById("atree-ui")!;
+            this.list_elem = document.getElementById("atree-header")!;
+        }
+    
+        compute_func(input_map) {
+            if (input_map.size !== 1) { throw "AbilityTreeRenderNode accepts exactly one input (atree)"; }
+            const [atree] = input_map.values();  // Extract values, pattern match it into size one list and bind to first element
+            
+            //for some reason we have to cast to string 
+            this.list_elem.innerHTML = ""; //reset all atree actives - should be done in a more general way later
+            this.UI_elem.innerHTML = ""; //reset the atree in the DOM
+    
+            let ret = null;
+            if (atree) { ret = render_AT(this.UI_elem, this.list_elem, atree); }
+    
+            //Toggle on, previously was toggled off
+            toggle_tab('atree-dropdown'); toggleButton('toggle-atree');
+    
+            return ret;
+        }
+    })().link_to(atreeNode);
+    atreeRenderRef.set(atreeRender);
+
+    const atreeStateNode = new (class extends ComputeNode {
+        constructor() { super('builder-atree-state'); }
+    
+        compute_func(input_map) {
+            if (input_map.size !== 1) { throw "AbilityTreeStateNode accepts exactly one input (atree-rendered)"; }
+            const [rendered_atree] = input_map.values();  // Extract values, pattern match it into size one list and bind to first element
+            return rendered_atree;
+        }
+    })().link_to(atreeRender, 'atree-render');
+    atreeStateNodeRef.set(atreeStateNode);
+
+    const atreeValidate = new (class extends ComputeNode {
+        constructor() { super('atree-validator'); }
+    
+        compute_func(input_map) {
+            const atree_state = input_map.get('atree-state');
+            const atree_order = input_map.get('atree');
+            const level = parseInt(input_map.get('level'));
+    
+            if (atree_order.length == 0) { return [0, false, ['no atree data']]; }
+    
+            let atree_to_add = [];
+            let atree_not_present = [];
+            // mark all selected nodes as bright, and mark all other nodes as dark.
+            // also initialize the "to check" list, and the "not present" list.
+            for (const node of atree_order) {
+                const abil = node.ability;
+                if (atree_state.get(abil.id).active) {
+                    atree_to_add.push([node, 'not reachable', false]);
+                    draw_atlas_image(atree_state.get(abil.id).img, atree_node_atlas_img, [atree_node_atlas_positions[abil.display.icon], 2], atree_node_tile_size);
+                }
+                else {
+                    atree_not_present.push(abil.id);
+                    draw_atlas_image(atree_state.get(abil.id).img, atree_node_atlas_img, [atree_node_atlas_positions[abil.display.icon], 0], atree_node_tile_size);
+                }
+            }
+    
+            let reachable = new Set<number>();
+            let abil_points_total = 0;
+            let archetype_count = new Map<string, number>();
+            while (true) {
+                let _add = [];
+                for (const [node, fail_reason, fail_hardness] of atree_to_add) {
+                    const {ability} = node;
+                    const [success, hard_error, reason] = abil_can_activate(node, atree_state, reachable, archetype_count, 9999);
+                    if (!success) {
+                        _add.push([node, reason, hard_error]);
+                        continue;
+                    }
+                    if ('archetype' in ability && ability.archetype !== "") {
+                        let val = 1;
+                        if (archetype_count.has(ability.archetype)) {
+                            val = archetype_count.get(ability.archetype) + 1;
+                        }
+                        archetype_count.set(ability.archetype, val);
+                    }
+                    abil_points_total += ability.cost;
+                    reachable.add(ability.id);
+                }
+                if (atree_to_add.length == _add.length) {
+                    atree_to_add = _add;
+                    break;
+                }
+                atree_to_add = _add;
+            }
+            const atree_level_table = ['lvl0wtf',1,2,2,3,3,4,4,5,5,6,6,7,8,8,9,9,10,11,11,12,12,13,14,14,15,16,16,17,17,18,18,19,19,20,20,20,21,21,22,22,23,23,23,24,24,25,25,26,26,27,27,28,28,29,29,30,30,31,31,32,32,33,33,34,34,34,35,35,35,36,36,36,37,37,37,38,38,38,38,39,39,39,39,40,40,40,40,41,41,41,41,42,42,42,42,43,43,43,43,44,44,44,44,45,45,45,46,46,46,47,47,47,48,48,48,49,49,49,49,50,50];
+            let AP_cap: number;
+            if (isNaN(level)) {
+                AP_cap = 50;   
+            }
+            else {
+                AP_cap = atree_level_table[level] as number;
+            }
+            document.getElementById('active_AP_cap')!.textContent = String(AP_cap);
+            document.getElementById("active_AP_cost")!.textContent = String(abil_points_total);
+            const ap_left = AP_cap - abil_points_total;
+    
+            // using the "not present" list, highlight one-step reachable nodes.
+            for (const node_id of atree_not_present) {
+                const node = atree_state.get(node_id);
+                const [success, hard_error, reason] = abil_can_activate(node, atree_state, reachable, archetype_count, ap_left);
+                if (success) {
+                    draw_atlas_image(node.img, atree_node_atlas_img, [atree_node_atlas_positions[node.ability.display.icon], 1], atree_node_tile_size);
+                }
+            }
+    
+            let hard_error = false;
+            let errors = [];
+            if (abil_points_total > AP_cap) {
+                errors.push('too many ability points assigned! ('+abil_points_total+' > '+AP_cap+')');
+            }
+            for (const [node, fail_reason, fail_hardness] of atree_to_add) {
+                if (fail_hardness) { hard_error = true; }
+                errors.push(node.ability.display_name + ": " + fail_reason);
+            }
+    
+            return [hard_error, errors];
+        }
+    })().link_to(atreeNode, 'atree').link_to(atreeStateNode, 'atree-state');
+    atreeValidateRef.set(atreeValidate);
+
+    const atreeMerge = new (class extends ComputeNode {
+        constructor() { super('builder-atree-merge'); }
+    
+        compute_func(input_map) {
+            const [hard_error, errors] = input_map.get('atree-errors');
+            if (hard_error) { return null; }
+            const player_class = input_map.get('player-class');
+            const build = input_map.get('build');
+            const atree_state = input_map.get('atree-state');
+            const atree_order = input_map.get('atree');
+    
+            let abils_merged = new Map();
+            for (const abil of default_abils[player_class]) {
+                let tmp_abil = structuredClone(abil);
+                if (!('desc' in tmp_abil)) {
+                    tmp_abil.desc = [];
+                }
+                else if (!Array.isArray(tmp_abil.desc)) {
+                    tmp_abil.desc = [tmp_abil.desc];
+                }
+                abils_merged.set(abil.id, tmp_abil);
+            }
+    
+            function merge_abil(abil) {
+                if ('base_abil' in abil) {
+                    if (abils_merged.has(abil.base_abil)) {
+                        // Merge abilities.
+                        // TODO: What if there is more than one base abil?
+                        let base_abil = abils_merged.get(abil.base_abil);
+                        if (abil.desc) {
+                            if (Array.isArray(abil.desc)) { base_abil.desc = base_abil.desc.concat(abil.desc); }
+                            else { base_abil.desc.push(abil.desc); }
+                        }
+    
+                        base_abil.effects = base_abil.effects.concat(abil.effects);
+                        for (let propname in abil.properties) {
+                            if (propname in base_abil.properties) {
+                                base_abil.properties[propname] += abil.properties[propname];
+                            }
+                            else { base_abil.properties[propname] = abil.properties[propname]; }
+                        }
+                    } 
+                    // do nothing otherwise.
+                }
+                else {
+                    let tmp_abil = structuredClone(abil);
+                    if (!Array.isArray(tmp_abil.desc)) {
+                        tmp_abil.desc = [tmp_abil.desc];
+                    }
+                    abils_merged.set(abil.id, tmp_abil);
+                }
+            }
+    
+            for (const node of atree_order) {
+                const abil_id = node.ability.id;
+                if (!atree_state.get(abil_id).active) {
+                    continue;
+                }
+                merge_abil(node.ability);
+            }
+            
+            // Apply aspects. Order is redundent.
+            // Similar to major_ids, each aspect can have multiple abilities.
+            // Unlike major ids, aspects are imlemented to always be valid for the current class.
+            const aspects = input_map.get('final-aspects');
+            for (const [aspect, tier_num] of aspects) {
+                if (aspect.NONE || !aspect.tiers[tier_num - 1].abilities) {
+                    continue;
+                }
+                for (const abil of aspect.tiers[tier_num - 1].abilities) {
+                    if (abil.dependencies !== undefined) {
+                        let dep_satisfied = true;
+                        for (const dep_id of abil.dependencies) {
+                            if (!atree_state.get(dep_id).active) {
+                                dep_satisfied = false;
+                                break;
+                            }
+                        }
+                        if (!dep_satisfied) { continue; }
+                    }
+                    merge_abil(abil); 
+                }
+            }
+    
+            // Apply major IDs.
+            const build_class = wep_to_class.get(build.weapon.statMap.get("type"));
+            for (const major_id_name of build.statMap.get("activeMajorIDs")) {
+    
+                // Sometimes, something silly happens and we haven't implemented a major ID that
+                //   exists. This makes sure we don't try to apply unimplemented major IDs.
+                //
+                // `major_ids` is a global map loaded from data json.
+                if (major_id_name in (MAJOR_IDS ?? {})) {
+    
+                    // A major ID can have multiple abilities, specified as atree nodes,
+                    //   as part of its effects. Apply each of them.
+                    for (const abil of (MAJOR_IDS as Record<string, MajorId>)[major_id_name].abilities as MajorIdAbility[]) {
+    
+                        // But only the ones that match the current class.
+                        if (abil["class"] === build_class || abil["class"] === "Any") {
+    
+                            // Major IDs can have ability dependencies.
+                            // By default they are always on.
+                            if (abil.dependencies !== undefined) {
+    
+                                let dep_satisfied = true;
+                                for (const dep_id of abil.dependencies) {
+                                    if (!atree_state.get(dep_id).active) {
+                                        dep_satisfied = false;
+                                        break;
+                                    }
+                                }
+                                if (!dep_satisfied) { continue; }
+                            }
+                            merge_abil(abil);
+                        }
+                    }
+                }
+            }
+    
+            return abils_merged;
+        }
+    })().link_to(atreeNode, 'atree').link_to(atreeStateNode, 'atree-state').link_to(atreeValidate, 'atree-errors');
+    atreeMergeRef.set(atreeMerge);
+
+    const atreeMakeInteractives = new (class extends ComputeNode {
+        constructor() { super('atree-make-interactives'); }
+    
+        compute_func(input_map) {
+            const merged_abils = input_map.get('atree-merged');
+            const atree_order = input_map.get('atree-order');
+    
+            const boost_slider_parent = document.getElementById("boost-sliders");
+            const boost_toggle_parent = document.getElementById("boost-toggles");
+            boost_slider_parent.innerHTML = "";
+            boost_toggle_parent.innerHTML = "";
+    
+            /**
+             * slider_info 
+             *   label_name: str,
+             *   max: int,
+             *   step: int,
+             *   id: str,
+             *   abil: atree_node
+             *   slider: html element
+             * }
+             */
+            // Map<str, slider_info>
+            const slider_map = new Map();
+            const button_map = new Map();
+    
+            let to_process = [];
+            for (const [abil_id, ability] of merged_abils) {
+                for (const effect of ability.effects) {
+                    if (effect['type'] === "stat_scaling" && effect['slider'] === true) {
+                        to_process.push([effect, abil_id, ability]);
+                    }
+                    if (effect['type'] === "raw_stat" && effect['toggle']) {
+                        to_process.push([effect, abil_id, ability]);
+                    }
+                }
+            }
+            let unprocessed = [];
+            // first, pull out all the sliders and toggles.
+            let k = to_process.length;
+            for (let i = 0; i < k; ++i) {
+                for (const [effect, abil_id, ability] of to_process) {
+                    if (effect['type'] === "stat_scaling" && effect['slider'] === true) {
+                        const { slider_name, behavior = 'merge', slider_max = 0, slider_step, slider_default = 0, scaling = [0], max = 0} = effect;
+                        if (slider_map.has(slider_name)) {
+                            const slider_info = slider_map.get(slider_name);
+                            if (behavior === 'overwrite') {
+                                if('slider_max' in effect)
+                                    slider_info.max = slider_max;
+                                if('slider_default' in effect)
+                                    slider_info.default_val = slider_default;
+                                if('scaling' in effect){
+                                    for(let j = 0; j < slider_info.abil.effects.length; ++j){
+                                        if('scaling' in slider_info.abil.effects[j] && slider_info.abil.effects[j] !== effect &&slider_info.abil.effects[j].output.name === effect.output.name){ 
+                                            slider_info.abil.effects[j].scaling = [0];
+                                        }
+                                    }
+                                }
+                                slider_info.overwritten = true;
+                            }
+                            else if (!slider_info.overwritten) {
+                                slider_info.max += slider_max;
+                                if ('slider_max_mult' in effect) {
+                                    slider_info.max_mult = (slider_info.max_mult ?? 1) * effect.slider_max_mult;
+                                }
+                                slider_info.default_val += slider_default;
+                            }
+                        }
+                        else if (behavior === 'merge') {
+                            slider_map.set(slider_name, {
+                                label_name: slider_name+' ('+ability.display_name+')',
+                                max: slider_max,
+                                default_val: slider_default,
+                                step: slider_step,
+                                id: "ability-slider"+ability.id,
+                                //color: effect['slider_color'] TODO: add colors to json
+                                abil: ability
+                            });
+                        }
+                        else {
+                            unprocessed.push([effect, abil_id, ability]);
+                        }
+                    }
+                    if (effect['type'] === "raw_stat" && effect['toggle']) {
+                        const { toggle: toggle_name } = effect;
+                        button_map.set(toggle_name, {
+                            abil: ability
+                        });
+                    }
+                }
+                if (unprocessed.length == to_process.length) { break; }
+                to_process = unprocessed;
+                unprocessed = [];
+            }
+            // apply accumulated slider_max_mult factors (multiplicative phase)
+            for (const [_, info] of slider_map) {
+                if (info.max_mult != null && info.max_mult !== 1) {
+                    info.max = Math.round(info.max * info.max_mult);
+                }
+            }
+            // next, render the sliders and toggles onto the abilities.
+            for (const [slider_name, slider_info] of slider_map.entries()) {
+                let slider_container = gen_slider_labeled(slider_info);
+                boost_slider_parent.appendChild(slider_container);
+                slider_info.slider = document.getElementById(slider_info.id);
+                slider_info.slider.addEventListener("change", (e) => getAtreeScaling().mark_dirty().update());
+            }
+            for (const [button_name, button_info] of button_map.entries()) {
+                let button = make_elem('button', ["button-boost", "border-0", "text-white", "dark-8u", "dark-shadow-sm", "m-1"], {
+                    id: button_info.abil.id,
+                    textContent: button_name
+                });
+                button.addEventListener("click", (e) => {
+                    if (button.classList.contains("toggleOn")) {
+                        button.classList.remove("toggleOn");
+                    } else {
+                        button.classList.add("toggleOn");
+                    }
+                    getAtreeScaling().mark_dirty().update()
+                });
+                button_info.button = button;
+                boost_toggle_parent.appendChild(button);
+            }
+            return [slider_map, button_map];
+        }
+    })().link_to(atreeNode, 'atree-order').link_to(atreeMerge, 'atree-merged');
+    atreeMakeInteractivesRef.set(atreeMakeInteractives);
+
+    const atreeScaling = new (class extends ComputeNode {
+        constructor() { super('atree-scaling-collector'); }
+    
+        compute_func(input_map) {
+            const atree_merged = input_map.get('atree-merged');
+            const pre_scale_stats = input_map.get('scale-stats');
+            const [slider_map, button_map] = input_map.get('atree-interactive');
+    
+            const atree_edit = new Map();
+            for (const [abil_id, abil] of atree_merged.entries()) {
+                atree_edit.set(abil_id, structuredClone(abil));
+            }
+            let ret_effects = new Map();
+    
+            // Apply a stat bonus.
+            function apply_bonus(bonus_info, value) {
+                const { type, name, abil = null, mult = false} = bonus_info;
+                if (type === 'stat') {
+                    merge_stat(ret_effects, name, atree_translate(atree_merged, value));
+                } else if (type === 'prop') {
+                    const merge_abil = atree_edit.get(abil);
+                    if (merge_abil) {
+                        if (mult)
+                            merge_abil.properties[name] *= atree_translate(atree_edit, value);
+                        else
+                            merge_abil.properties[name] += atree_translate(atree_edit, value);
+                    }
+                }
+            }
+            for (const [abil_id, abil] of atree_merged.entries()) {
+                if (abil.effects.length == 0) { continue; }
+    
+                for (const effect of abil.effects) {
+                    switch (effect.type) {
+                    case 'raw_stat':
+                        if (effect.toggle) {
+                            const button = button_map.get(effect.toggle).button;
+                            if (!button.classList.contains("toggleOn")) { continue; }
+                            for (const bonus of effect.bonuses) {
+                                apply_bonus(bonus, bonus.value);
+                            }
+                        } else {
+                            for (const bonus of effect.bonuses) {
+                                // Stat was applied earlier...
+                                if (bonus.type === 'stat') { continue; }
+                                apply_bonus(bonus, bonus.value);
+                            }
+                        }
+                        continue;
+                    case 'stat_scaling':
+                        let total = 0;
+                        const {slider = false, scaling = [0], behavior="merge", multiplicative = false, requirement = 0} = effect;
+                        let { positive = true, round = true } = effect;
+                        if (slider) {
+                            if (behavior == "modify" && !slider_map.has(effect.slider_name)) {
+                                // Dangerous control flow.. early continue
+                                continue;
+                            }
+    
+                            const slider_val = slider_map.get(effect.slider_name).slider.value;
+                            if(requirement > slider_val){
+                                continue;
+                            }
+                            const input_value = slider_val - requirement;
+    
+                            if (multiplicative) {
+                                total = (((100+atree_translate(atree_merged, scaling[0]))/100) ** Math.floor(input_value)-1) * 100;
+                            }
+                            else {
+                                total = Math.floor(input_value) * atree_translate(atree_merged, scaling[0]);
+                            }
+                            positive = false;
+                        }
+                        else {
+                            // TODO: type: prop?
+                            for (const [_scaling, input] of zip2(scaling, (effect as ATreeStatScalingEffect).inputs ?? [])) {
+                                const target = input as ATreeScalingTarget;
+                                const scaleFactor = _scaling as number;
+                                if (target.type === 'stat') {
+                                    total += (pre_scale_stats.get(target.name) as number) * atree_translate(atree_merged, scaleFactor);
+                                } else if (target.type === 'prop') {
+                                    const merge_abil = atree_edit.get(target.abil!);
+                                    if (merge_abil) {
+                                        total += merge_abil.properties[target.name] * atree_translate(atree_merged, scaleFactor);
+                                    }
+                                }
+                            }
+                        }
+    
+                        if ('output' in effect) { // sometimes nodes will modify slider without having effect.
+                            if (round) { total = Math.floor(round_near(total)); }
+                            if (positive && total < 0) { total = 0; }   // Normal stat scaling will not go negative.
+                            if ('max' in effect) {
+                                let effect_max = atree_translate(atree_merged, effect.max);
+                                if (effect_max > 0 && total > effect_max) { total = effect.max; }
+                                if (effect_max < 0 && total < effect_max) { total = effect.max; }
+                            }
+                            if (Array.isArray(effect.output)) {
+                                for (const output of effect.output) {
+                                    apply_bonus(output, total);
+                                }
+                            }
+                            else {
+                                apply_bonus(effect.output, total);
+                            }
+                        }
+                        continue;
+                    }
+                }
+            }
+            return [atree_edit, ret_effects];
+        }
+    })().link_to(atreeMerge, 'atree-merged').link_to(atreeMakeInteractives, 'atree-interactive');
+    atreeScalingRef.set(atreeScaling);
+
+    const atreeScalingTree = new (class extends ComputeNode {
+        constructor() { super('atree-scaling-tree'); }
+    
+        compute_func(input_map) {
+            const [[tree, stats]] = input_map.values();
+            return tree;
+        }
+    })().link_to(atreeScaling, 'atree-scaling');
+    atreeScalingTreeRef.set(atreeScalingTree);
+
+    const atreeScalingStats = new (class extends ComputeNode {
+        constructor() { super('atree-scaling-stats'); }
+    
+        compute_func(input_map) {
+            const [[tree, stats]] = input_map.values();
+            return stats;
+        }
+    })().link_to(atreeScaling, 'atree-scaling');
+    atreeScalingStatsRef.set(atreeScalingStats);
+
+    const atreeRenderErrors = new (class extends ComputeNode {
+        list_elem: HTMLElement;
+    
+        constructor() {
+            super('atree-render-errors');
+            this.list_elem = document.getElementById("atree-warning")!;
+        }
+    
+        compute_func(input_map) {
+            const [hard_error, errors] = input_map.get('atree-errors');
+    
+            this.list_elem.innerHTML = ""; //reset all atree actives - should be done in a more general way later
+            // TODO: move to display?
+            if (errors.length > 0) {
+                const errorbox = make_elem('div', ['rounded-bottom', 'dark-4', 'border', 'p-0', 'mx-2', 'mb-0', 'mt-4', 'dark-shadow']);
+                this.list_elem.append(errorbox);
+    
+                const error_title = make_elem('b', ['warning', 'scaled-font'], { innerHTML: "ATree Error!" });
+                errorbox.append(error_title);
+    
+                for (let i = 0; i < 5 && i < errors.length; ++i) {
+                    errorbox.append(make_elem("p", ["warning", "small-text"], {textContent: errors[i]}));
+                }
+                if (errors.length > 5) {
+                    const error = '... ' + (errors.length-5) + ' errors not shown';
+                    errorbox.append(make_elem("p", ["warning", "small-text"], {textContent: error}));
+                }
+            }
+        }
+    })().link_to(atreeValidate, 'atree-errors');
+    atreeRenderErrorsRef.set(atreeRenderErrors);
+
+    const atreeRenderActive = new (class extends ComputeNode {
+        list_elem: HTMLElement;
+    
+        constructor() {
+            super('atree-render-active');
+            this.list_elem = document.getElementById("atree-active")!;
+        }
+    
+        compute_func(input_map) {
+            const merged_abils = input_map.get('atree-merged');
+            const atree_order = input_map.get('atree-order');
+    
+            this.list_elem.innerHTML = ""; //reset all atree actives - should be done in a more general way later
+            const ret_map = new Map();
+            const to_render_id = [999, 998];
+            for (const node of atree_order) {
+                if (!merged_abils.has(node.ability.id)) {
+                    continue;
+                }
+                to_render_id.push(node.ability.id);
+            }
+            for (const id of to_render_id) {
+                const abil = merged_abils.get(id);
+    
+                const active_tooltip = make_elem('div', ['rounded-bottom', 'dark-4', 'border', 'p-0', 'mx-2', 'my-4', 'dark-shadow']);
+                active_tooltip.append(make_elem('b', ['scaled-font'], { innerHTML: abil.display_name }));
+    
+                for (const desc of abil.desc) {
+                    active_tooltip.append(make_elem('p', ['scaled-font-sm', 'my-0', 'mx-1', 'text-wrap'], { innerHTML: desc }));
+                }
+                ret_map.set(abil.id, active_tooltip);
+    
+                this.list_elem.append(active_tooltip);
+            }
+            return ret_map;
+        }
+    })().link_to(atreeNode, 'atree-order').link_to(atreeScalingTree, 'atree-merged');
+    atreeRenderActiveRef.set(atreeRenderActive);
+
+    const atreeCollectSpells = new (class extends ComputeNode {
+        constructor() { super('atree-spell-collector'); }
+    
+        compute_func(input_map) {
+            const atree_merged = input_map.get('atree-merged');
+            
+            let ret_spells = new Map();
+            for (const [abil_id, abil] of atree_merged.entries()) {
+                // TODO: Possibly, make a better way for detecting "spell abilities"?
+                for (const effect of abil.effects) {
+                    if (effect.type === 'replace_spell') {
+                        // replace_spell just replaces all (defined) aspects.
+                        let ret_spell = ret_spells.get(effect.base_spell);
+                        if (ret_spell) {
+                            // NOTE: do not mutate results of previous steps!
+                            for (const key in effect) {
+                                ret_spell[key] = structuredClone(effect[key]);
+                            }
+                        }
+                        else {
+                            ret_spell = structuredClone(effect);
+                            ret_spells.set(effect.base_spell, ret_spell);
+                        }
+                        for (const part of ret_spell.parts) {
+                            if ('hits' in part) {
+                                for (const idx in part.hits) {
+                                    part.hits[idx] = atree_translate(atree_merged, part.hits[idx]);
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+    
+            for (const [abil_id, abil] of atree_merged.entries()) {
+                for (const effect of abil.effects) {
+                    switch (effect.type) {
+                    case 'replace_spell':
+                        // Already handled above.
+                        continue;
+                    case 'add_spell_prop': {
+                        const { base_spell, target_part = null, cost = 0, mana_gained = 0, behavior = 'merge'} = effect;
+                        if (!ret_spells.has(base_spell)) {
+                            continue;
+                        }
+    
+                        const ret_spell = ret_spells.get(base_spell);
+                        // :enraged:
+                        // NOTE to hpp: this is out here because:
+                        // target_part doesn't exist for spell cost modification abilities
+                        // except when it does... in which case it should apply exactly once.
+                        if ('cost' in ret_spell) { ret_spell.cost += cost; }
+                        if (mana_gained) { 
+                            const val = atree_translate(atree_merged, mana_gained);
+                            ret_spell.mana_gained = ret_spell.mana_gained == null ? val : ret_spell.mana_gained + val;
+                        }
+                        if ('display' in effect) {
+                            ret_spell.display = effect.display;
+                        }
+    
+                        // NOTE: see above comment for the weird placement of this code block.
+                        if (target_part === null) { continue; }
+    
+                        let found_part = false;
+                        for (let part of ret_spell.parts) { // TODO: replace with Map? to avoid this linear search... idk prolly good since its not more verbose to type in json
+                            if (part.name !== target_part) {
+                                continue;
+                            }
+                            // we found the part. merge or modify it!
+                            if ('multipliers' in effect) {
+                                for (const [idx, v] of effect.multipliers.entries()) {  // python: enumerate()
+                                    if (behavior === 'overwrite') { part.multipliers[idx] = v; }
+                                    else { part.multipliers[idx] += v; }
+                                }
+                            }
+                            else if ('power' in effect) {
+                                if (behavior === 'overwrite') { part.power = effect.power; }
+                                else { part.power += effect.power; }
+                            }
+                            else if ('hits' in effect) {
+                                for (const [idx, _v] of Object.entries(effect.hits)) { // looks kinda similar to multipliers case... hmm... can we unify all of these three? (make healpower a list)
+                                    let v = atree_translate(atree_merged, _v as string | number);
+                                    if (behavior === 'overwrite') { part.hits[idx] = v; }
+                                    else {
+                                        if (idx in part.hits) { part.hits[idx] += v; }
+                                        else { part.hits[idx] = v; }
+                                    }
+                                }
+                            }
+                            else {
+                                throw "uhh invalid spell add effect";
+                            }
+                            if ('hide' in effect) {
+                                part.display = false;
+                            }
+                            if ('ignored_mults' in effect) {
+                                if ('ignored_mults' in part) { part.ignored_mults.push(effect.ignored_mults); }
+                                else { part.ignored_mults = effect.ignored_mults; }
+                            }
+                            found_part = true;
+                            break;
+                        }
+                        if (!found_part && behavior === 'merge') { // add part. if behavior is merge
+                            let spell_part = structuredClone(effect);
+                            spell_part.name = target_part;  // has some extra fields but whatever
+                            if ('hits' in spell_part) {
+                                for (const idx in spell_part.hits) {
+                                    spell_part.hits[idx] = atree_translate(atree_merged, spell_part.hits[idx]);
+                                }
+                            }
+                            if ('hide' in effect) {
+                                spell_part.display = false;
+                            }
+                            ret_spell.parts.push(spell_part);
+                        }
+                        continue;
+                    }
+                    // NOTE: Legacy support
+                    case 'convert_spell_conv':
+                        const { base_spell, target_part, conversion } = effect;
+                        const ret_spell = ret_spells.get(base_spell);
+                        const elem_idx = damageClasses.indexOf(conversion);
+                        let filter = target_part === 'all';
+                        for (let part of ret_spell.parts) { // TODO: replace with Map? to avoid this linear search... idk prolly good since its not more verbose to type in json
+                            if (filter || part.name === target_part) {
+                                if ('multipliers' in part) {
+                                    let total_conv = 0;
+                                    for (let i = 1; i < 6; ++i) {   // skip neutral
+                                        total_conv += part.multipliers[i];
+                                    }
+                                    let new_conv = [part.multipliers[0], 0, 0, 0, 0, 0];
+                                    new_conv[elem_idx] = total_conv;
+                                    part.multipliers = new_conv;
+                                }
+                            }
+                        }
+                        continue;
+                    }
+                }
+            }
+            return ret_spells;
+        }
+    })().link_to(atreeScalingTree, 'atree-merged');
+    atreeCollectSpellsRef.set(atreeCollectSpells);
+
+    const atreeRawStats = new (class extends ComputeNode {
+        constructor() { super('atree-raw-stats-collector'); }
+    
+        compute_func(input_map) {
+            const atree_merged = input_map.get('atree-merged');
+    
+            let ret_effects = new Map();
+            for (const [abil_id, abil] of atree_merged.entries()) {
+                if (abil.effects.length == 0) { continue; }
+    
+                for (const effect of abil.effects) {
+                    switch (effect.type) {
+                    case 'raw_stat':
+                        // toggles are handled in atree_scaling.
+                        if (effect.toggle) { continue; }
+                        for (const bonus of effect.bonuses) {
+                            const { type, name, abil = "", value } = bonus;
+                            // TODO: prop
+                            if (type === "stat") {
+                                merge_stat(ret_effects, name, value);
+                            }
+                        }
+                        continue;
+                    }
+                }
+            }
+            return ret_effects;
+        }
+    })().link_to(atreeMerge, 'atree-merged');
+    atreeRawStatsRef.set(atreeRawStats);
+
+    atreeGraphRegistered = true;
+}
 
 /**
  * Check if an atree node can be activated.
@@ -445,94 +1223,6 @@ export function abil_can_activate(
  *
  * Signature: AbilityTreeMergeNode(atree: ATree, atree-state: RenderedATree) => List[str]
  */
-export const atree_validate = new (class extends ComputeNode {
-    constructor() { super('atree-validator'); }
-
-    compute_func(input_map) {
-        const atree_state = input_map.get('atree-state');
-        const atree_order = input_map.get('atree');
-        const level = parseInt(input_map.get('level'));
-
-        if (atree_order.length == 0) { return [0, false, ['no atree data']]; }
-
-        let atree_to_add = [];
-        let atree_not_present = [];
-        // mark all selected nodes as bright, and mark all other nodes as dark.
-        // also initialize the "to check" list, and the "not present" list.
-        for (const node of atree_order) {
-            const abil = node.ability;
-            if (atree_state.get(abil.id).active) {
-                atree_to_add.push([node, 'not reachable', false]);
-                draw_atlas_image(atree_state.get(abil.id).img, atree_node_atlas_img, [atree_node_atlas_positions[abil.display.icon], 2], atree_node_tile_size);
-            }
-            else {
-                atree_not_present.push(abil.id);
-                draw_atlas_image(atree_state.get(abil.id).img, atree_node_atlas_img, [atree_node_atlas_positions[abil.display.icon], 0], atree_node_tile_size);
-            }
-        }
-
-        let reachable = new Set<number>();
-        let abil_points_total = 0;
-        let archetype_count = new Map<string, number>();
-        while (true) {
-            let _add = [];
-            for (const [node, fail_reason, fail_hardness] of atree_to_add) {
-                const {ability} = node;
-                const [success, hard_error, reason] = abil_can_activate(node, atree_state, reachable, archetype_count, 9999);
-                if (!success) {
-                    _add.push([node, reason, hard_error]);
-                    continue;
-                }
-                if ('archetype' in ability && ability.archetype !== "") {
-                    let val = 1;
-                    if (archetype_count.has(ability.archetype)) {
-                        val = archetype_count.get(ability.archetype) + 1;
-                    }
-                    archetype_count.set(ability.archetype, val);
-                }
-                abil_points_total += ability.cost;
-                reachable.add(ability.id);
-            }
-            if (atree_to_add.length == _add.length) {
-                atree_to_add = _add;
-                break;
-            }
-            atree_to_add = _add;
-        }
-        const atree_level_table = ['lvl0wtf',1,2,2,3,3,4,4,5,5,6,6,7,8,8,9,9,10,11,11,12,12,13,14,14,15,16,16,17,17,18,18,19,19,20,20,20,21,21,22,22,23,23,23,24,24,25,25,26,26,27,27,28,28,29,29,30,30,31,31,32,32,33,33,34,34,34,35,35,35,36,36,36,37,37,37,38,38,38,38,39,39,39,39,40,40,40,40,41,41,41,41,42,42,42,42,43,43,43,43,44,44,44,44,45,45,45,46,46,46,47,47,47,48,48,48,49,49,49,49,50,50];
-        let AP_cap: number;
-        if (isNaN(level)) {
-            AP_cap = 50;   
-        }
-        else {
-            AP_cap = atree_level_table[level] as number;
-        }
-        document.getElementById('active_AP_cap')!.textContent = String(AP_cap);
-        document.getElementById("active_AP_cost")!.textContent = String(abil_points_total);
-        const ap_left = AP_cap - abil_points_total;
-
-        // using the "not present" list, highlight one-step reachable nodes.
-        for (const node_id of atree_not_present) {
-            const node = atree_state.get(node_id);
-            const [success, hard_error, reason] = abil_can_activate(node, atree_state, reachable, archetype_count, ap_left);
-            if (success) {
-                draw_atlas_image(node.img, atree_node_atlas_img, [atree_node_atlas_positions[node.ability.display.icon], 1], atree_node_tile_size);
-            }
-        }
-
-        let hard_error = false;
-        let errors = [];
-        if (abil_points_total > AP_cap) {
-            errors.push('too many ability points assigned! ('+abil_points_total+' > '+AP_cap+')');
-        }
-        for (const [node, fail_reason, fail_hardness] of atree_to_add) {
-            if (fail_hardness) { hard_error = true; }
-            errors.push(node.ability.display_name + ": " + fail_reason);
-        }
-
-        return [hard_error, errors];
-    }
-})().link_to(atree_node, 'atree').link_to(atree_state_node, 'atree-state');
 
 /**
  * Collect abilities and condense them into a list of "final abils".
@@ -542,129 +1232,6 @@ export const atree_validate = new (class extends ComputeNode {
  *
  * Signature: AbilityTreeMergeNode(player-class: WeaponType, atree: ATree, atree-state: RenderedATree) => Map[id, Ability]
  */
-export const atree_merge = new (class extends ComputeNode {
-    constructor() { super('builder-atree-merge'); }
-
-    compute_func(input_map) {
-        const [hard_error, errors] = input_map.get('atree-errors');
-        if (hard_error) { return null; }
-        const player_class = input_map.get('player-class');
-        const build = input_map.get('build');
-        const atree_state = input_map.get('atree-state');
-        const atree_order = input_map.get('atree');
-
-        let abils_merged = new Map();
-        for (const abil of default_abils[player_class]) {
-            let tmp_abil = structuredClone(abil);
-            if (!('desc' in tmp_abil)) {
-                tmp_abil.desc = [];
-            }
-            else if (!Array.isArray(tmp_abil.desc)) {
-                tmp_abil.desc = [tmp_abil.desc];
-            }
-            abils_merged.set(abil.id, tmp_abil);
-        }
-
-        function merge_abil(abil) {
-            if ('base_abil' in abil) {
-                if (abils_merged.has(abil.base_abil)) {
-                    // Merge abilities.
-                    // TODO: What if there is more than one base abil?
-                    let base_abil = abils_merged.get(abil.base_abil);
-                    if (abil.desc) {
-                        if (Array.isArray(abil.desc)) { base_abil.desc = base_abil.desc.concat(abil.desc); }
-                        else { base_abil.desc.push(abil.desc); }
-                    }
-
-                    base_abil.effects = base_abil.effects.concat(abil.effects);
-                    for (let propname in abil.properties) {
-                        if (propname in base_abil.properties) {
-                            base_abil.properties[propname] += abil.properties[propname];
-                        }
-                        else { base_abil.properties[propname] = abil.properties[propname]; }
-                    }
-                } 
-                // do nothing otherwise.
-            }
-            else {
-                let tmp_abil = structuredClone(abil);
-                if (!Array.isArray(tmp_abil.desc)) {
-                    tmp_abil.desc = [tmp_abil.desc];
-                }
-                abils_merged.set(abil.id, tmp_abil);
-            }
-        }
-
-        for (const node of atree_order) {
-            const abil_id = node.ability.id;
-            if (!atree_state.get(abil_id).active) {
-                continue;
-            }
-            merge_abil(node.ability);
-        }
-        
-        // Apply aspects. Order is redundent.
-        // Similar to major_ids, each aspect can have multiple abilities.
-        // Unlike major ids, aspects are imlemented to always be valid for the current class.
-        const aspects = input_map.get('final-aspects');
-        for (const [aspect, tier_num] of aspects) {
-            if (aspect.NONE || !aspect.tiers[tier_num - 1].abilities) {
-                continue;
-            }
-            for (const abil of aspect.tiers[tier_num - 1].abilities) {
-                if (abil.dependencies !== undefined) {
-                    let dep_satisfied = true;
-                    for (const dep_id of abil.dependencies) {
-                        if (!atree_state.get(dep_id).active) {
-                            dep_satisfied = false;
-                            break;
-                        }
-                    }
-                    if (!dep_satisfied) { continue; }
-                }
-                merge_abil(abil); 
-            }
-        }
-
-        // Apply major IDs.
-        const build_class = wep_to_class.get(build.weapon.statMap.get("type"));
-        for (const major_id_name of build.statMap.get("activeMajorIDs")) {
-
-            // Sometimes, something silly happens and we haven't implemented a major ID that
-            //   exists. This makes sure we don't try to apply unimplemented major IDs.
-            //
-            // `major_ids` is a global map loaded from data json.
-            if (major_id_name in (MAJOR_IDS ?? {})) {
-
-                // A major ID can have multiple abilities, specified as atree nodes,
-                //   as part of its effects. Apply each of them.
-                for (const abil of (MAJOR_IDS as Record<string, MajorId>)[major_id_name].abilities as MajorIdAbility[]) {
-
-                    // But only the ones that match the current class.
-                    if (abil["class"] === build_class || abil["class"] === "Any") {
-
-                        // Major IDs can have ability dependencies.
-                        // By default they are always on.
-                        if (abil.dependencies !== undefined) {
-
-                            let dep_satisfied = true;
-                            for (const dep_id of abil.dependencies) {
-                                if (!atree_state.get(dep_id).active) {
-                                    dep_satisfied = false;
-                                    break;
-                                }
-                            }
-                            if (!dep_satisfied) { continue; }
-                        }
-                        merge_abil(abil);
-                    }
-                }
-            }
-        }
-
-        return abils_merged;
-    }
-})().link_to(atree_node, 'atree').link_to(atree_state_node, 'atree-state').link_to(atree_validate, 'atree-errors');
 
 /**
  * Make interactive elements (sliders, buttons)
@@ -675,132 +1242,6 @@ export const atree_merge = new (class extends ComputeNode {
  *   value: int     // value for sliders; 0-1 for toggles
  * }
  */
-export const atree_make_interactives = new (class extends ComputeNode {
-    constructor() { super('atree-make-interactives'); }
-
-    compute_func(input_map) {
-        const merged_abils = input_map.get('atree-merged');
-        const atree_order = input_map.get('atree-order');
-
-        const boost_slider_parent = document.getElementById("boost-sliders");
-        const boost_toggle_parent = document.getElementById("boost-toggles");
-        boost_slider_parent.innerHTML = "";
-        boost_toggle_parent.innerHTML = "";
-
-        /**
-         * slider_info 
-         *   label_name: str,
-         *   max: int,
-         *   step: int,
-         *   id: str,
-         *   abil: atree_node
-         *   slider: html element
-         * }
-         */
-        // Map<str, slider_info>
-        const slider_map = new Map();
-        const button_map = new Map();
-
-        let to_process = [];
-        for (const [abil_id, ability] of merged_abils) {
-            for (const effect of ability.effects) {
-                if (effect['type'] === "stat_scaling" && effect['slider'] === true) {
-                    to_process.push([effect, abil_id, ability]);
-                }
-                if (effect['type'] === "raw_stat" && effect['toggle']) {
-                    to_process.push([effect, abil_id, ability]);
-                }
-            }
-        }
-        let unprocessed = [];
-        // first, pull out all the sliders and toggles.
-        let k = to_process.length;
-        for (let i = 0; i < k; ++i) {
-            for (const [effect, abil_id, ability] of to_process) {
-                if (effect['type'] === "stat_scaling" && effect['slider'] === true) {
-                    const { slider_name, behavior = 'merge', slider_max = 0, slider_step, slider_default = 0, scaling = [0], max = 0} = effect;
-                    if (slider_map.has(slider_name)) {
-                        const slider_info = slider_map.get(slider_name);
-                        if (behavior === 'overwrite') {
-                            if('slider_max' in effect)
-                                slider_info.max = slider_max;
-                            if('slider_default' in effect)
-                                slider_info.default_val = slider_default;
-                            if('scaling' in effect){
-                                for(let j = 0; j < slider_info.abil.effects.length; ++j){
-                                    if('scaling' in slider_info.abil.effects[j] && slider_info.abil.effects[j] !== effect &&slider_info.abil.effects[j].output.name === effect.output.name){ 
-                                        slider_info.abil.effects[j].scaling = [0];
-                                    }
-                                }
-                            }
-                            slider_info.overwritten = true;
-                        }
-                        else if (!slider_info.overwritten) {
-                            slider_info.max += slider_max;
-                            if ('slider_max_mult' in effect) {
-                                slider_info.max_mult = (slider_info.max_mult ?? 1) * effect.slider_max_mult;
-                            }
-                            slider_info.default_val += slider_default;
-                        }
-                    }
-                    else if (behavior === 'merge') {
-                        slider_map.set(slider_name, {
-                            label_name: slider_name+' ('+ability.display_name+')',
-                            max: slider_max,
-                            default_val: slider_default,
-                            step: slider_step,
-                            id: "ability-slider"+ability.id,
-                            //color: effect['slider_color'] TODO: add colors to json
-                            abil: ability
-                        });
-                    }
-                    else {
-                        unprocessed.push([effect, abil_id, ability]);
-                    }
-                }
-                if (effect['type'] === "raw_stat" && effect['toggle']) {
-                    const { toggle: toggle_name } = effect;
-                    button_map.set(toggle_name, {
-                        abil: ability
-                    });
-                }
-            }
-            if (unprocessed.length == to_process.length) { break; }
-            to_process = unprocessed;
-            unprocessed = [];
-        }
-        // apply accumulated slider_max_mult factors (multiplicative phase)
-        for (const [_, info] of slider_map) {
-            if (info.max_mult != null && info.max_mult !== 1) {
-                info.max = Math.round(info.max * info.max_mult);
-            }
-        }
-        // next, render the sliders and toggles onto the abilities.
-        for (const [slider_name, slider_info] of slider_map.entries()) {
-            let slider_container = gen_slider_labeled(slider_info);
-            boost_slider_parent.appendChild(slider_container);
-            slider_info.slider = document.getElementById(slider_info.id);
-            slider_info.slider.addEventListener("change", (e) => atree_scaling.mark_dirty().update());
-        }
-        for (const [button_name, button_info] of button_map.entries()) {
-            let button = make_elem('button', ["button-boost", "border-0", "text-white", "dark-8u", "dark-shadow-sm", "m-1"], {
-                id: button_info.abil.id,
-                textContent: button_name
-            });
-            button.addEventListener("click", (e) => {
-                if (button.classList.contains("toggleOn")) {
-                    button.classList.remove("toggleOn");
-                } else {
-                    button.classList.add("toggleOn");
-                }
-                atree_scaling.mark_dirty().update()
-            });
-            button_info.button = button;
-            boost_toggle_parent.appendChild(button);
-        }
-        return [slider_map, button_map];
-    }
-})().link_to(atree_node, 'atree-order').link_to(atree_merge, 'atree-merged');
 
 /**
  * Scaling stats from ability tree.
@@ -809,170 +1250,11 @@ export const atree_make_interactives = new (class extends ComputeNode {
  * Signature: AbilityTreeScalingNode(atree-merged: MergedATree, scale-scats: StatMap,
  *                                 atree-interactive: [Map<str, slider_info>, Map<str, button_info>]) => (ATree, StatMap)
  */
-export const atree_scaling = new (class extends ComputeNode {
-    constructor() { super('atree-scaling-collector'); }
-
-    compute_func(input_map) {
-        const atree_merged = input_map.get('atree-merged');
-        const pre_scale_stats = input_map.get('scale-stats');
-        const [slider_map, button_map] = input_map.get('atree-interactive');
-
-        const atree_edit = new Map();
-        for (const [abil_id, abil] of atree_merged.entries()) {
-            atree_edit.set(abil_id, structuredClone(abil));
-        }
-        let ret_effects = new Map();
-
-        // Apply a stat bonus.
-        function apply_bonus(bonus_info, value) {
-            const { type, name, abil = null, mult = false} = bonus_info;
-            if (type === 'stat') {
-                merge_stat(ret_effects, name, atree_translate(atree_merged, value));
-            } else if (type === 'prop') {
-                const merge_abil = atree_edit.get(abil);
-                if (merge_abil) {
-                    if (mult)
-                        merge_abil.properties[name] *= atree_translate(atree_edit, value);
-                    else
-                        merge_abil.properties[name] += atree_translate(atree_edit, value);
-                }
-            }
-        }
-        for (const [abil_id, abil] of atree_merged.entries()) {
-            if (abil.effects.length == 0) { continue; }
-
-            for (const effect of abil.effects) {
-                switch (effect.type) {
-                case 'raw_stat':
-                    if (effect.toggle) {
-                        const button = button_map.get(effect.toggle).button;
-                        if (!button.classList.contains("toggleOn")) { continue; }
-                        for (const bonus of effect.bonuses) {
-                            apply_bonus(bonus, bonus.value);
-                        }
-                    } else {
-                        for (const bonus of effect.bonuses) {
-                            // Stat was applied earlier...
-                            if (bonus.type === 'stat') { continue; }
-                            apply_bonus(bonus, bonus.value);
-                        }
-                    }
-                    continue;
-                case 'stat_scaling':
-                    let total = 0;
-                    const {slider = false, scaling = [0], behavior="merge", multiplicative = false, requirement = 0} = effect;
-                    let { positive = true, round = true } = effect;
-                    if (slider) {
-                        if (behavior == "modify" && !slider_map.has(effect.slider_name)) {
-                            // Dangerous control flow.. early continue
-                            continue;
-                        }
-
-                        const slider_val = slider_map.get(effect.slider_name).slider.value;
-                        if(requirement > slider_val){
-                            continue;
-                        }
-                        const input_value = slider_val - requirement;
-
-                        if (multiplicative) {
-                            total = (((100+atree_translate(atree_merged, scaling[0]))/100) ** Math.floor(input_value)-1) * 100;
-                        }
-                        else {
-                            total = Math.floor(input_value) * atree_translate(atree_merged, scaling[0]);
-                        }
-                        positive = false;
-                    }
-                    else {
-                        // TODO: type: prop?
-                        for (const [_scaling, input] of zip2(scaling, (effect as ATreeStatScalingEffect).inputs ?? [])) {
-                            const target = input as ATreeScalingTarget;
-                            const scaleFactor = _scaling as number;
-                            if (target.type === 'stat') {
-                                total += (pre_scale_stats.get(target.name) as number) * atree_translate(atree_merged, scaleFactor);
-                            } else if (target.type === 'prop') {
-                                const merge_abil = atree_edit.get(target.abil!);
-                                if (merge_abil) {
-                                    total += merge_abil.properties[target.name] * atree_translate(atree_merged, scaleFactor);
-                                }
-                            }
-                        }
-                    }
-
-                    if ('output' in effect) { // sometimes nodes will modify slider without having effect.
-                        if (round) { total = Math.floor(round_near(total)); }
-                        if (positive && total < 0) { total = 0; }   // Normal stat scaling will not go negative.
-                        if ('max' in effect) {
-                            let effect_max = atree_translate(atree_merged, effect.max);
-                            if (effect_max > 0 && total > effect_max) { total = effect.max; }
-                            if (effect_max < 0 && total < effect_max) { total = effect.max; }
-                        }
-                        if (Array.isArray(effect.output)) {
-                            for (const output of effect.output) {
-                                apply_bonus(output, total);
-                            }
-                        }
-                        else {
-                            apply_bonus(effect.output, total);
-                        }
-                    }
-                    continue;
-                }
-            }
-        }
-        return [atree_edit, ret_effects];
-    }
-})().link_to(atree_merge, 'atree-merged').link_to(atree_make_interactives, 'atree-interactive');
 
 /**
  * These following two nodes are just boilerplate that breaks down the scaling node.
  */
-export const atree_scaling_tree = new (class extends ComputeNode {
-    constructor() { super('atree-scaling-tree'); }
 
-    compute_func(input_map) {
-        const [[tree, stats]] = input_map.values();
-        return tree;
-    }
-})().link_to(atree_scaling, 'atree-scaling');
-export const atree_scaling_stats = new (class extends ComputeNode {
-    constructor() { super('atree-scaling-stats'); }
-
-    compute_func(input_map) {
-        const [[tree, stats]] = input_map.values();
-        return stats;
-    }
-})().link_to(atree_scaling, 'atree-scaling');
-
-export const atree_render_errors = new (class extends ComputeNode {
-    list_elem: HTMLElement;
-
-    constructor() {
-        super('atree-render-errors');
-        this.list_elem = document.getElementById("atree-warning")!;
-    }
-
-    compute_func(input_map) {
-        const [hard_error, errors] = input_map.get('atree-errors');
-
-        this.list_elem.innerHTML = ""; //reset all atree actives - should be done in a more general way later
-        // TODO: move to display?
-        if (errors.length > 0) {
-            const errorbox = make_elem('div', ['rounded-bottom', 'dark-4', 'border', 'p-0', 'mx-2', 'mb-0', 'mt-4', 'dark-shadow']);
-            this.list_elem.append(errorbox);
-
-            const error_title = make_elem('b', ['warning', 'scaled-font'], { innerHTML: "ATree Error!" });
-            errorbox.append(error_title);
-
-            for (let i = 0; i < 5 && i < errors.length; ++i) {
-                errorbox.append(make_elem("p", ["warning", "small-text"], {textContent: errors[i]}));
-            }
-            if (errors.length > 5) {
-                const error = '... ' + (errors.length-5) + ' errors not shown';
-                errorbox.append(make_elem("p", ["warning", "small-text"], {textContent: error}));
-            }
-        }
-    }
-})().link_to(atree_validate, 'atree-errors');
 
 /**
  * Render ability tree.
@@ -980,43 +1262,6 @@ export const atree_render_errors = new (class extends ComputeNode {
  *
  * Signature: AbilityTreeRenderActiveNode(atree-merged: MergedATree, atree-order: ATree, atree-errors: List[str]) => Map[int, ATreeNode]
  */
-export const atree_render_active = new (class extends ComputeNode {
-    list_elem: HTMLElement;
-
-    constructor() {
-        super('atree-render-active');
-        this.list_elem = document.getElementById("atree-active")!;
-    }
-
-    compute_func(input_map) {
-        const merged_abils = input_map.get('atree-merged');
-        const atree_order = input_map.get('atree-order');
-
-        this.list_elem.innerHTML = ""; //reset all atree actives - should be done in a more general way later
-        const ret_map = new Map();
-        const to_render_id = [999, 998];
-        for (const node of atree_order) {
-            if (!merged_abils.has(node.ability.id)) {
-                continue;
-            }
-            to_render_id.push(node.ability.id);
-        }
-        for (const id of to_render_id) {
-            const abil = merged_abils.get(id);
-
-            const active_tooltip = make_elem('div', ['rounded-bottom', 'dark-4', 'border', 'p-0', 'mx-2', 'my-4', 'dark-shadow']);
-            active_tooltip.append(make_elem('b', ['scaled-font'], { innerHTML: abil.display_name }));
-
-            for (const desc of abil.desc) {
-                active_tooltip.append(make_elem('p', ['scaled-font-sm', 'my-0', 'mx-1', 'text-wrap'], { innerHTML: desc }));
-            }
-            ret_map.set(abil.id, active_tooltip);
-
-            this.list_elem.append(active_tooltip);
-        }
-        return ret_map;
-    }
-})().link_to(atree_node, 'atree-order').link_to(atree_scaling_tree, 'atree-merged');
 
 /**
  * Parse out "parametrized entries".
@@ -1042,149 +1287,6 @@ export function atree_translate(
  *
  * Signature: AbilityCollectSpellsNode(atree-merged: Map[id, Ability]) => List[Spell]
  */
-export const atree_collect_spells = new (class extends ComputeNode {
-    constructor() { super('atree-spell-collector'); }
-
-    compute_func(input_map) {
-        const atree_merged = input_map.get('atree-merged');
-        
-        let ret_spells = new Map();
-        for (const [abil_id, abil] of atree_merged.entries()) {
-            // TODO: Possibly, make a better way for detecting "spell abilities"?
-            for (const effect of abil.effects) {
-                if (effect.type === 'replace_spell') {
-                    // replace_spell just replaces all (defined) aspects.
-                    let ret_spell = ret_spells.get(effect.base_spell);
-                    if (ret_spell) {
-                        // NOTE: do not mutate results of previous steps!
-                        for (const key in effect) {
-                            ret_spell[key] = structuredClone(effect[key]);
-                        }
-                    }
-                    else {
-                        ret_spell = structuredClone(effect);
-                        ret_spells.set(effect.base_spell, ret_spell);
-                    }
-                    for (const part of ret_spell.parts) {
-                        if ('hits' in part) {
-                            for (const idx in part.hits) {
-                                part.hits[idx] = atree_translate(atree_merged, part.hits[idx]);
-                            }
-                        }
-                    }
-                }
-            }
-        }
-
-        for (const [abil_id, abil] of atree_merged.entries()) {
-            for (const effect of abil.effects) {
-                switch (effect.type) {
-                case 'replace_spell':
-                    // Already handled above.
-                    continue;
-                case 'add_spell_prop': {
-                    const { base_spell, target_part = null, cost = 0, mana_gained = 0, behavior = 'merge'} = effect;
-                    if (!ret_spells.has(base_spell)) {
-                        continue;
-                    }
-
-                    const ret_spell = ret_spells.get(base_spell);
-                    // :enraged:
-                    // NOTE to hpp: this is out here because:
-                    // target_part doesn't exist for spell cost modification abilities
-                    // except when it does... in which case it should apply exactly once.
-                    if ('cost' in ret_spell) { ret_spell.cost += cost; }
-                    if (mana_gained) { 
-                        const val = atree_translate(atree_merged, mana_gained);
-                        ret_spell.mana_gained = ret_spell.mana_gained == null ? val : ret_spell.mana_gained + val;
-                    }
-                    if ('display' in effect) {
-                        ret_spell.display = effect.display;
-                    }
-
-                    // NOTE: see above comment for the weird placement of this code block.
-                    if (target_part === null) { continue; }
-
-                    let found_part = false;
-                    for (let part of ret_spell.parts) { // TODO: replace with Map? to avoid this linear search... idk prolly good since its not more verbose to type in json
-                        if (part.name !== target_part) {
-                            continue;
-                        }
-                        // we found the part. merge or modify it!
-                        if ('multipliers' in effect) {
-                            for (const [idx, v] of effect.multipliers.entries()) {  // python: enumerate()
-                                if (behavior === 'overwrite') { part.multipliers[idx] = v; }
-                                else { part.multipliers[idx] += v; }
-                            }
-                        }
-                        else if ('power' in effect) {
-                            if (behavior === 'overwrite') { part.power = effect.power; }
-                            else { part.power += effect.power; }
-                        }
-                        else if ('hits' in effect) {
-                            for (const [idx, _v] of Object.entries(effect.hits)) { // looks kinda similar to multipliers case... hmm... can we unify all of these three? (make healpower a list)
-                                let v = atree_translate(atree_merged, _v as string | number);
-                                if (behavior === 'overwrite') { part.hits[idx] = v; }
-                                else {
-                                    if (idx in part.hits) { part.hits[idx] += v; }
-                                    else { part.hits[idx] = v; }
-                                }
-                            }
-                        }
-                        else {
-                            throw "uhh invalid spell add effect";
-                        }
-                        if ('hide' in effect) {
-                            part.display = false;
-                        }
-                        if ('ignored_mults' in effect) {
-                            if ('ignored_mults' in part) { part.ignored_mults.push(effect.ignored_mults); }
-                            else { part.ignored_mults = effect.ignored_mults; }
-                        }
-                        found_part = true;
-                        break;
-                    }
-                    if (!found_part && behavior === 'merge') { // add part. if behavior is merge
-                        let spell_part = structuredClone(effect);
-                        spell_part.name = target_part;  // has some extra fields but whatever
-                        if ('hits' in spell_part) {
-                            for (const idx in spell_part.hits) {
-                                spell_part.hits[idx] = atree_translate(atree_merged, spell_part.hits[idx]);
-                            }
-                        }
-                        if ('hide' in effect) {
-                            spell_part.display = false;
-                        }
-                        ret_spell.parts.push(spell_part);
-                    }
-                    continue;
-                }
-                // NOTE: Legacy support
-                case 'convert_spell_conv':
-                    const { base_spell, target_part, conversion } = effect;
-                    const ret_spell = ret_spells.get(base_spell);
-                    const elem_idx = damageClasses.indexOf(conversion);
-                    let filter = target_part === 'all';
-                    for (let part of ret_spell.parts) { // TODO: replace with Map? to avoid this linear search... idk prolly good since its not more verbose to type in json
-                        if (filter || part.name === target_part) {
-                            if ('multipliers' in part) {
-                                let total_conv = 0;
-                                for (let i = 1; i < 6; ++i) {   // skip neutral
-                                    total_conv += part.multipliers[i];
-                                }
-                                let new_conv = [part.multipliers[0], 0, 0, 0, 0, 0];
-                                new_conv[elem_idx] = total_conv;
-                                part.multipliers = new_conv;
-                            }
-                        }
-                    }
-                    continue;
-                }
-            }
-        }
-        return ret_spells;
-    }
-})().link_to(atree_scaling_tree, 'atree-merged');
 
 /**
  * Collect raw stats from ability tree.
@@ -1192,35 +1294,6 @@ export const atree_collect_spells = new (class extends ComputeNode {
  *
  * Signature: AbilityTreeStatsNode(atree-merged: MergedATree) => StatMap
  */
-export const atree_raw_stats = new (class extends ComputeNode {
-    constructor() { super('atree-raw-stats-collector'); }
-
-    compute_func(input_map) {
-        const atree_merged = input_map.get('atree-merged');
-
-        let ret_effects = new Map();
-        for (const [abil_id, abil] of atree_merged.entries()) {
-            if (abil.effects.length == 0) { continue; }
-
-            for (const effect of abil.effects) {
-                switch (effect.type) {
-                case 'raw_stat':
-                    // toggles are handled in atree_scaling.
-                    if (effect.toggle) { continue; }
-                    for (const bonus of effect.bonuses) {
-                        const { type, name, abil = "", value } = bonus;
-                        // TODO: prop
-                        if (type === "stat") {
-                            merge_stat(ret_effects, name, value);
-                        }
-                    }
-                    continue;
-                }
-            }
-        }
-        return ret_effects;
-    }
-})().link_to(atree_merge, 'atree-merged');
 
 /**
  * Construct compute nodes to link builder items and edit IDs to the appropriate display outputs.
@@ -1421,7 +1494,7 @@ export function render_AT(
         if (!isMobile) { // desktop
             hitbox.addEventListener('click', function(e) {
                 atree_set_state(node_wrap, !node_wrap.active);
-                atree_state_node.mark_dirty().update();
+                getAtreeStateNode().mark_dirty().update();
             });
 
             // add tooltip
@@ -1481,7 +1554,7 @@ export function render_AT(
                     let toggleButton = make_elem("button", ["scaled-font", "disable-select"], {innerHTML: (node_wrap.active ? "Unselect Ability" : "Select Ability"), style: "width: 95vw; height: 8vh; margin-top: 2vh; text-align: center;"});
                     toggleButton.addEventListener("click", function(e) {
                         atree_set_state(node_wrap, !node_wrap.active);
-                        atree_state_node.mark_dirty().update();
+                        getAtreeStateNode().mark_dirty().update();
                         popup.remove();
                     });
                     popup.appendChild(toggleButton);
@@ -1497,7 +1570,7 @@ export function render_AT(
                     clearTimeout(touchTimer);
                     touchTimer = null;
                     atree_set_state(node_wrap, !node_wrap.active);
-                    atree_state_node.mark_dirty().update();
+                    getAtreeStateNode().mark_dirty().update();
                 } else {
                     didLongPress = false;
                 }

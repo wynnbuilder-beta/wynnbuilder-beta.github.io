@@ -7,7 +7,7 @@ const item_url_tag = location.hash.slice(1);
 
 export let item: Map<string, unknown>;
 
-export function init_itempage(): void {
+function init_itempage(): void {
   try {
     item = expandIngredient(ingMap.get(item_url_tag.replace(/%20/g, ' '))!);
     displayExpandedIngredient(item, 'item-view');
@@ -18,9 +18,7 @@ export function init_itempage(): void {
   }
 }
 
-void (async function () {
+export async function initIngredientPage(): Promise<void> {
   await Promise.resolve(ingredient_loader.load_init());
   init_itempage();
-})();
-
-;
+}
